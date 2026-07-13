@@ -38,6 +38,27 @@ with col4: st.metric(label="Bloqueadores Críticos (Alta)", value=high_priority_
 
 st.markdown("---")
 
+# =========================================================================
+# NUEVA SECCIÓN: GRÁFICAS DE ANALÍTICA CON PANDAS
+# =========================================================================
+st.markdown("### 📈 Visualización y Distribución de Datos")
+grafica_col1, grafica_col2 = st.columns(2)
+
+with grafica_col1:
+    st.markdown("**Cantidad de Tareas por Prioridad**")
+    # Agrupamos con Pandas el conteo de prioridades
+    priority_counts = df['priority'].value_counts()
+    st.bar_chart(priority_counts, color="#29b5e8")
+
+with grafica_col2:
+    st.markdown("**Estado Actual de los Entregables**")
+    # Agrupamos con Pandas el conteo de estados (Pendiente vs Completada)
+    status_counts = df['status'].value_counts()
+    st.bar_chart(status_counts, color="#ff4b4b")
+
+st.markdown("---")
+# =========================================================================
+
 # 4. VISTA DE DATOS Y FORMULARIO
 col_left, col_right = st.columns([2, 1])
 with col_left:
