@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# 1. SIMULACIÓN DE DATOS (Asegurando todas las columnas necesarias)
+# 1. SIMULACIÓN DE DATOS
 if 'tasks_data' not in st.session_state:
     st.session_state.tasks_data = [
         {"task_id": 1, "task_name": "Configurar repositorio GitHub", "priority": "Alta", "status": "Completada", "days_to_complete": 1.0},
@@ -35,7 +35,7 @@ filtro_estado = st.sidebar.multiselect(
     default=df_base["status"].unique()
 )
 
-# Aplicamos los filtros válidos con la lógica de Pandas
+# Aplicamos los filtros base con la lógica de Pandas
 df = df_base[df_base["priority"].isin(filtro_prioridad) & df_base["status"].isin(filtro_estado)]
 
 # 2. CÁLCULO DE KPIs CON PANDAS
@@ -77,9 +77,14 @@ st.markdown("---")
 # 5. VISTA DE DATOS EDITABLE Y FORMULARIO
 col_left, col_right = st.columns([2, 1])
 with col_left:
-    st.markdown("### 📝 Listado Actual de Tareas (¡Doble clic para renombrar!)")
+    st.markdown("### 📝 Listado Actual de Tareas")
     
-    # Tabla configurada para permitir renombrar los nombres libremente
+    # MEJORA 1: Buscador de texto en tiempo real usando Pandas
+    search_query = st.text_input("🔍 Buscar tarea por nombre:", "")
+    if search_query:
+        df = df[df['task_name'].str.contains(search_query, case=False, na=False)]
+    
+    # Tabla editable
     edited_df = st.data_editor(
         df, 
         use_container_width=True,
@@ -91,7 +96,16 @@ with col_left:
         }
     )
     
-    # Sincronizar cambios (incluyendo los nombres editados)
+    # MEJORA 2: Botón para descargar el reporte actual en formato CSV
+    csv_data = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Descargar Reporte Actual (CSV)",
+        data=csv_data,
+        file_name="reporte_proyectos_pandas.csv",
+        mime="text/csv"
+    )
+    
+    # Sincronizar cambios en la tabla
     if not edited_df.equals(df):
         for index, row in edited_df.iterrows():
             idx_original = next((i for i, item in enumerate(st.session_state.tasks_data) if item["task_id"] == row["task_id"]), None)
