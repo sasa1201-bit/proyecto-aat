@@ -16,10 +16,10 @@ if 'tasks_data' not in st.session_state:
 # Convertimos los datos originales a DataFrame de Pandas
 df_base = pd.DataFrame(st.session_state.tasks_data)
 
-# INTERFAZ
-st.set_page_config(page_title="Gestor de Proyectos + Analytics", layout="wide")
-st.title("🚀 Panel de Control de Proyectos & Productividad")
-st.subheader("Mejora del sistema: Integración de KPIs con Pandas")
+# INTERFAZ PREMIUM
+st.set_page_config(page_title="Enterprise Project Dashboard", layout="wide")
+st.title("💼 Enterprise Analytics & Project Dashboard")
+st.caption("Módulo de Inteligencia de Datos y Control de Entregables desarrollado con Streamlit & Pandas")
 
 # BARRA LATERAL DE FILTROS (Manejo Dinámico con Pandas)
 st.sidebar.header("🎯 Filtros de Datos (Pandas)")
@@ -45,63 +45,73 @@ completion_rate = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 
 avg_time_resolution = df['days_to_complete'].mean() if total_tasks > 0 else 0
 high_priority_blockers = len(df[(df['priority'] == 'Alta') & (df['status'] == 'Pendiente')])
 
-# 3. MOSTRAR KPIs
-st.markdown("### 📊 Panel de Insights & KPIs (Métricas en Tiempo Real)")
+# 3. MOSTRAR KPIs (Con diseño de contenedores profesionales)
+st.markdown("### 📊 Indicadores Clave de Rendimiento (Métricas de Operación)")
 col1, col2, col3, col4 = st.columns(4)
-with col1: st.metric(label="Tareas Visibles", value=total_tasks)
-with col2: st.metric(label="Tasa de Finalización", value=f"{completion_rate:.1f}%")
+with col1: 
+    st.metric(label="Volumen Total Visible", value=total_tasks)
+with col2: 
+    st.metric(label="Tasa de Cierre Eficiente", value=f"{completion_rate:.1f}%")
 with col3: 
     val_promedio = f"{avg_time_resolution:.1f} días" if not pd.isna(avg_time_resolution) else "N/A"
-    st.metric(label="Tiempo Promedio de Cierre", value=val_promedio)
-with col4: st.metric(label="Bloqueadores Críticos (Alta)", value=high_priority_blockers)
+    st.metric(label="Tiempo Medio de Resolución", value=val_promedio)
+with col4: 
+    # Alerta visual en color si hay bloqueadores críticos
+    if high_priority_blockers > 0:
+        st.metric(label="⚠️ Riesgos Críticos (Alta)", value=high_priority_blockers, delta="Acción Requerida", delta_color="inverse")
+    else:
+        st.metric(label="Riesgos Críticos (Alta)", value=high_priority_blockers, delta="Estable")
 
 st.markdown("---")
 
 # 4. GRÁFICAS DE ÁREA INTERACTIVAS CON PANDAS
-st.markdown("### 📈 Visualización Dinámica (Gráficas de Área)")
+st.markdown("### 📈 Tendencias y Distribución del Flujo de Trabajo")
 if total_tasks > 0:
     grafica_col1, grafica_col2 = st.columns(2)
     with grafica_col1:
-        st.markdown("**Volumen por Prioridad**")
+        st.markdown("**Carga Operativa por Nivel de Prioridad**")
         priority_counts = df['priority'].value_counts()
         st.area_chart(priority_counts, color="#29b5e8")
     with grafica_col2:
-        st.markdown("**Volumen por Estado de los Entregables**")
+        st.markdown("**Balance de Entregables Completados vs Pendientes**")
         status_counts = df['status'].value_counts()
-        st.area_chart(status_counts, color="#ff4b4b")
+        st.area_chart(status_counts, color="#10b981") # Color verde corporativo
 else:
-    st.warning("⚠️ No hay datos que coincidan con los filtros seleccionados.")
+    st.warning("⚠️ No se encontraron registros que coincidan con la segmentación actual.")
 
 st.markdown("---")
 
-# 5. VISTA DE DATOS EDITABLE Y FORMULARIO
+# 5. VISTA DE DATOS PREMIUM Y SECCIÓN DE OPERACIONES
 col_left, col_right = st.columns([2, 1])
+
 with col_left:
-    st.markdown("### 📝 Listado Actual de Tareas")
+    st.markdown("### 📝 Repositorio Central de Datos (Editable)")
     
-    # MEJORA 1: Buscador de texto en tiempo real usando Pandas
-    search_query = st.text_input("🔍 Buscar tarea por nombre:", "")
+    # Buscador integrado de texto estructurado
+    search_query = st.text_input("🔍 Filtrado inteligente por palabras clave:", "")
     if search_query:
         df = df[df['task_name'].str.contains(search_query, case=False, na=False)]
     
-    # Tabla editable
+    # CONFIGURACIÓN PROFESIONAL DE COLUMNAS (Formato tipo SaaS)
     edited_df = st.data_editor(
         df, 
         use_container_width=True,
         disabled=["task_id"], 
         column_config={
-            "task_name": st.column_config.TextColumn("Nombre de la Tarea", required=True), 
-            "priority": st.column_config.SelectboxColumn("Priority", options=["Alta", "Media", "Baja"]),
-            "status": st.column_config.SelectboxColumn("Status", options=["Pendiente", "Completada"])
+            "task_id": st.column_config.NumberColumn("ID", format="%d"),
+            "task_name": st.column_config.TextColumn("Descripción de la Actividad", required=True), 
+            "priority": st.column_config.SelectboxColumn("Prioridad Organizacional", options=["Alta", "Media", "Baja"]),
+            "status": st.column_config.SelectboxColumn("Estado de Entrega", options=["Pendiente", "Completada"]),
+            "days_to_complete": st.column_config.NumberColumn("Tiempo Empleado (Días)", format="%.1f")
         }
     )
     
-    # MEJORA 2: Botón para descargar el reporte actual en formato CSV
+    # Descarga directa formateada
     csv_data = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📥 Descargar Reporte Actual (CSV)",
+        label="📥 Exportar Dataframe a CSV Lineal",
         data=csv_data,
-        file_name="reporte_proyectos_pandas.csv",
+        file_name="data_audit_report.csv",
         mime="text/csv"
     )
     
@@ -114,17 +124,30 @@ with col_left:
         st.rerun()
 
 with col_right:
-    st.markdown("### ➕ Añadir Nueva Tarea")
-    with st.form("new_task_form", clear_on_submit=True):
-        new_name = st.text_input("Nombre de la tarea:")
-        new_priority = st.selectbox("Prioridad:", ["Alta", "Media", "Baja"])
-        submitted = st.form_submit_button("Registrar Tarea")
-        if submitted and new_name:
-            st.session_state.tasks_data.append({
-                "task_id": len(st.session_state.tasks_data) + 1,
-                "task_name": new_name,
-                "priority": new_priority,
-                "status": "Pendiente",
-                "days_to_complete": None
-            })
-            st.rerun()
+    st.markdown("### ⚙️ Consola de Control")
+    
+    # Organización en pestañas limpias
+    tab1, tab2 = st.tabs(["➕ Registrar Tarea", "ℹ️ Acerca del Sistema"])
+    
+    with tab1:
+        with st.form("new_task_form", clear_on_submit=True):
+            new_name = st.text_input("Definición de nueva actividad:")
+            new_priority = st.selectbox("Asignar Prioridad:", ["Alta", "Media", "Baja"])
+            submitted = st.form_submit_button("Inyectar Datos al Dataframe")
+            if submitted and new_name:
+                st.session_state.tasks_data.append({
+                    "task_id": len(st.session_state.tasks_data) + 1,
+                    "task_name": new_name,
+                    "priority": new_priority,
+                    "status": "Pendiente",
+                    "days_to_complete": None
+                })
+                st.rerun()
+                
+    with tab2:
+        st.markdown("""
+        **Tecnologías Utilizadas:**
+        *   **Pandas core Engine:** Filtrado matricial de datos a través de máscaras booleanas `.isin()`.
+        *   **Stateful Memory:** Persistencia de datos local reactiva con `st.session_state`.
+        *   **Dynamic UI Layout:** Columnas asíncronas y layouts autoajustables.
+        """)
