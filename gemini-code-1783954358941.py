@@ -21,9 +21,7 @@ st.set_page_config(page_title="Gestor de Proyectos + Analytics", layout="wide")
 st.title("🚀 Panel de Control de Proyectos & Productividad")
 st.subheader("Mejora del sistema: Integración de KPIs con Pandas")
 
-# =========================================================================
-# NUEVA SECCIÓN: BARRA LATERAL DE FILTROS (Manejo Dinámico con Pandas)
-# =========================================================================
+# BARRA LATERAL DE FILTROS (Manejo Dinámico con Pandas)
 st.sidebar.header("🎯 Filtros de Datos (Pandas)")
 filtro_prioridad = st.sidebar.multiselect(
     "Filtrar por Prioridad:",
@@ -39,9 +37,8 @@ filtro_estado = st.sidebar.multiselect(
 
 # Aplicamos los filtros al DataFrame usando la lógica de Pandas
 df = df_base[df_base["priority"].isin(filtro_prioridad) & df_base["status"].isin(filtro_estado)]
-# =========================================================================
 
-# 2. CÁLCULO DE KPIs CON PANDAS (Ahora sobre el DataFrame filtrado)
+# 2. CÁLCULO DE KPIs CON PANDAS (Sobre el DataFrame filtrado)
 total_tasks = len(df)
 completed_tasks = len(df[df['status'] == 'Completada'])
 completion_rate = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
@@ -54,31 +51,32 @@ col1, col2, col3, col4 = st.columns(4)
 with col1: st.metric(label="Tareas Visibles", value=total_tasks)
 with col2: st.metric(label="Tasa de Finalización", value=f"{completion_rate:.1f}%")
 with col3: 
-    # Validar si el promedio es nulo
     val_promedio = f"{avg_time_resolution:.1f} días" if not pd.isna(avg_time_resolution) else "N/A"
     st.metric(label="Tiempo Promedio de Cierre", value=val_promedio)
 with col4: st.metric(label="Bloqueadores Críticos (Alta)", value=high_priority_blockers)
 
 st.markdown("---")
 
-# 4. GRÁFICAS DE ANALÍTICA CON PANDAS
-st.markdown("### 📈 Visualización y Distribución de Datos")
+# 4. NUEVA SECCIÓN: GRÁFICAS DE ÁREA INTERACTIVAS CON PANDAS
+st.markdown("### 📈 Visualización Dinámica (Gráficas de Área)")
 if total_tasks > 0:
     grafica_col1, grafica_col2 = st.columns(2)
     with grafica_col1:
-        st.markdown("**Cantidad de Tareas por Prioridad**")
+        st.markdown("**Tendencia/Distribución por Prioridad**")
         priority_counts = df['priority'].value_counts()
-        st.bar_chart(priority_counts, color="#29b5e8")
+        # Cambiado a gráfica de área
+        st.area_chart(priority_counts, color="#29b5e8")
     with grafica_col2:
-        st.markdown("**Estado Actual de los Entregables**")
+        st.markdown("**Volumen por Estado de los Entregables**")
         status_counts = df['status'].value_counts()
-        st.bar_chart(status_counts, color="#ff4b4b")
+        # Cambiado a gráfica de área
+        st.area_chart(status_counts, color="#ff4b4b")
 else:
     st.warning("⚠️ No hay datos que coincidan con los filtros seleccionados en la barra lateral.")
 
 st.markdown("---")
 
-# 5. VISTA DE DATOS AND FORMULARIO
+# 5. VISTA DE DATOS Y FORMULARIO
 col_left, col_right = st.columns([2, 1])
 with col_left:
     st.markdown("### 📝 Listado Actual de Tareas (DataFrame Filtrado)")
