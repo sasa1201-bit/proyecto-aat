@@ -13,56 +13,75 @@ if 'tasks_data' not in st.session_state:
         {"task_id": 7, "task_name": "Configurar despliegue web", "priority": "Alta", "status": "Pendiente", "days_to_complete": None},
     ]
 
-# Convertimos los datos a DataFrame de Pandas
-df = pd.DataFrame(st.session_state.tasks_data)
+# Convertimos los datos originales a DataFrame de Pandas
+df_base = pd.DataFrame(st.session_state.tasks_data)
 
 # INTERFAZ
 st.set_page_config(page_title="Gestor de Proyectos + Analytics", layout="wide")
 st.title("🚀 Panel de Control de Proyectos & Productividad")
 st.subheader("Mejora del sistema: Integración de KPIs con Pandas")
 
-# 2. CÁLCULO DE KPIs CON PANDAS
+# =========================================================================
+# NUEVA SECCIÓN: BARRA LATERAL DE FILTROS (Manejo Dinámico con Pandas)
+# =========================================================================
+st.sidebar.header("🎯 Filtros de Datos (Pandas)")
+filtro_prioridad = st.sidebar.multiselect(
+    "Filtrar por Prioridad:",
+    options=df_base["priority"].unique(),
+    default=df_base["priority"].unique()
+)
+
+filtro_estado = st.sidebar.multiselect(
+    "Filtrar por Estado:",
+    options=df_base["status"].unique(),
+    default=df_base["status"].unique()
+)
+
+# Aplicamos los filtros al DataFrame usando la lógica de Pandas
+df = df_base[df_base["priority"].isin(filtro_prioridad) & df_base["status"].isin(filtro_estado)]
+# =========================================================================
+
+# 2. CÁLCULO DE KPIs CON PANDAS (Ahora sobre el DataFrame filtrado)
 total_tasks = len(df)
 completed_tasks = len(df[df['status'] == 'Completada'])
 completion_rate = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
-avg_time_resolution = df['days_to_complete'].mean()
+avg_time_resolution = df['days_to_complete'].mean() if total_tasks > 0 else 0
 high_priority_blockers = len(df[(df['priority'] == 'Alta') & (df['status'] == 'Pendiente')])
 
 # 3. MOSTRAR KPIs (PANEL DE INSIGHTS)
 st.markdown("### 📊 Panel de Insights & KPIs (Métricas en Tiempo Real)")
 col1, col2, col3, col4 = st.columns(4)
-with col1: st.metric(label="Total de Tareas", value=total_tasks)
+with col1: st.metric(label="Tareas Visibles", value=total_tasks)
 with col2: st.metric(label="Tasa de Finalización", value=f"{completion_rate:.1f}%")
-with col3: st.metric(label="Tiempo Promedio de Cierre", value=f"{avg_time_resolution:.1f} días")
+with col3: 
+    # Validar si el promedio es nulo
+    val_promedio = f"{avg_time_resolution:.1f} días" if not pd.isna(avg_time_resolution) else "N/A"
+    st.metric(label="Tiempo Promedio de Cierre", value=val_promedio)
 with col4: st.metric(label="Bloqueadores Críticos (Alta)", value=high_priority_blockers)
 
 st.markdown("---")
 
-# =========================================================================
-# NUEVA SECCIÓN: GRÁFICAS DE ANALÍTICA CON PANDAS
-# =========================================================================
+# 4. GRÁFICAS DE ANALÍTICA CON PANDAS
 st.markdown("### 📈 Visualización y Distribución de Datos")
-grafica_col1, grafica_col2 = st.columns(2)
-
-with grafica_col1:
-    st.markdown("**Cantidad de Tareas por Prioridad**")
-    # Agrupamos con Pandas el conteo de prioridades
-    priority_counts = df['priority'].value_counts()
-    st.bar_chart(priority_counts, color="#29b5e8")
-
-with grafica_col2:
-    st.markdown("**Estado Actual de los Entregables**")
-    # Agrupamos con Pandas el conteo de estados (Pendiente vs Completada)
-    status_counts = df['status'].value_counts()
-    st.bar_chart(status_counts, color="#ff4b4b")
+if total_tasks > 0:
+    grafica_col1, grafica_col2 = st.columns(2)
+    with grafica_col1:
+        st.markdown("**Cantidad de Tareas por Prioridad**")
+        priority_counts = df['priority'].value_counts()
+        st.bar_chart(priority_counts, color="#29b5e8")
+    with grafica_col2:
+        st.markdown("**Estado Actual de los Entregables**")
+        status_counts = df['status'].value_counts()
+        st.bar_chart(status_counts, color="#ff4b4b")
+else:
+    st.warning("⚠️ No hay datos que coincidan con los filtros seleccionados en la barra lateral.")
 
 st.markdown("---")
-# =========================================================================
 
-# 4. VISTA DE DATOS Y FORMULARIO
+# 5. VISTA DE DATOS AND FORMULARIO
 col_left, col_right = st.columns([2, 1])
 with col_left:
-    st.markdown("### 📝 Listado Actual de Tareas (DataFrame)")
+    st.markdown("### 📝 Listado Actual de Tareas (DataFrame Filtrado)")
     st.dataframe(df, use_container_width=True)
 with col_right:
     st.markdown("### ➕ Añadir Nueva Tarea")
