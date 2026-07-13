@@ -77,7 +77,7 @@ st.markdown("---")
 # 5. VISTA DE DATOS EDITABLE Y FORMULARIO
 col_left, col_right = st.columns([2, 1])
 with col_left:
-    st.markdown("### 📝 Listado Actual de Tareas (¡Doble clic en 'task_name' para renombrar!)")
+    st.markdown("### 📝 Listado Actual de Tareas (¡Doble clic para renombrar!)")
     
     # Tabla configurada para permitir renombrar los nombres libremente
     edited_df = st.data_editor(
