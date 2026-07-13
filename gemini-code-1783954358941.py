@@ -48,7 +48,7 @@ with col_right:
     with st.form("new_task_form", clear_on_submit=True):
         new_name = st.text_input("Nombre de la tarea:")
         new_priority = st.selectbox("Prioridad:", ["Alta", "Media", "Baja"])
-        submitted = st.form_submit_with_button("Registrar Tarea")
+        submitted = st.form_submit_button("Registrar Tarea")
         if submitted and new_name:
             st.session_state.tasks_data.append({
                 "task_id": len(st.session_state.tasks_data) + 1,
