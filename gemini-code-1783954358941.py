@@ -4,12 +4,12 @@ import pandas as pd
 # 1. SIMULACIÓN DE DATOS (Tu "Base de Datos" manual en Pandas)
 if 'tasks_data' not in st.session_state:
     st.session_state.tasks_data = [
-        {"task_id": 1, "task_name": "Configurar repositorio GitHub", "priority": "Alta", "status": "Completada", "days_to_complete": 1},
-        {"task_id": 2, "task_name": "Diseñar base de datos", "priority": "Alta", "status": "Completada", "days_to_complete": 3},
+        {"task_id": 1, "task_name": "Configurar repositorio GitHub", "priority": "Alta", "status": "Completada", "days_to_complete": 1.0},
+        {"task_id": 2, "task_name": "Diseñar base de datos", "priority": "Alta", "status": "Completada", "days_to_complete": 3.0},
         {"task_id": 3, "task_name": "Maquetar vista principal", "priority": "Media", "status": "Pendiente", "days_to_complete": None},
         {"task_id": 4, "task_name": "Integrar API de pagos", "priority": "Alta", "status": "Pendiente", "days_to_complete": None},
-        {"task_id": 5, "task_name": "Escribir pruebas unitarias", "priority": "Baja", "status": "Completada", "days_to_complete": 2},
-        {"task_id": 6, "task_name": "Optimizar carga de imágenes", "priority": "Media", "status": "Completada", "days_to_complete": 1},
+        {"task_id": 5, "task_name": "Escribir pruebas unitarias", "priority": "Baja", "status": "Completada", "days_to_complete": 2.0},
+        {"task_id": 6, "task_name": "Optimizar carga de imágenes", "priority": "Media", "status": "Completada", "days_to_complete": 1.0},
         {"task_id": 7, "task_name": "Configurar despliegue web", "priority": "Alta", "status": "Pendiente", "days_to_complete": None},
     ]
 
@@ -64,23 +64,40 @@ if total_tasks > 0:
     with grafica_col1:
         st.markdown("**Tendencia/Distribución por Prioridad**")
         priority_counts = df['priority'].value_counts()
-        # Cambiado a gráfica de área
         st.area_chart(priority_counts, color="#29b5e8")
     with grafica_col2:
         st.markdown("**Volumen por Estado de los Entregables**")
         status_counts = df['status'].value_counts()
-        # Cambiado a gráfica de área
         st.area_chart(status_counts, color="#ff4b4b")
 else:
     st.warning("⚠️ No hay datos que coincidan con los filtros seleccionados en la barra lateral.")
 
 st.markdown("---")
 
-# 5. VISTA DE DATOS Y FORMULARIO
+# 5. VISTA DE DATOS EDITABLE Y FORMULARIO
 col_left, col_right = st.columns([2, 1])
 with col_left:
-    st.markdown("### 📝 Listado Actual de Tareas (DataFrame Filtrado)")
-    st.dataframe(df, use_container_width=True)
+    st.markdown("### 📝 Listado Actual de Tareas (¡Doble clic para editar!)")
+    
+    # Usamos st.data_editor para permitir la edición interactiva
+    edited_df = st.data_editor(
+        df, 
+        use_container_width=True,
+        disabled=["task_id"], # Evitamos que editen el ID
+        column_config={
+            "priority": st.column_config.SelectboxColumn("Priority", options=["Alta", "Media", "Baja"]),
+            "status": st.column_config.SelectboxColumn("Status", options=["Pendiente", "Completada"])
+        }
+    )
+    
+    # Si el usuario edita la tabla, guardamos los cambios en el estado de la app
+    if not edited_df.equals(df):
+        for index, row in edited_df.iterrows():
+            idx_original = next((i for i, item in enumerate(st.session_state.tasks_data) if item["task_id"] == row["task_id"]), None)
+            if idx_original is not None:
+                st.session_state.tasks_data[idx_original] = row.to_dict()
+        st.rerun()
+
 with col_right:
     st.markdown("### ➕ Añadir Nueva Tarea")
     with st.form("new_task_form", clear_on_submit=True):
