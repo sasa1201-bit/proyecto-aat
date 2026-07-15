@@ -932,9 +932,7 @@ with kpi3:
 
 
     """,
-    unsafe_allow_html=True
-    )
-
+    unsafe_allow_html=True)
         col_izq, col_der = st.columns(2)
         with col_izq:
             
