@@ -9,27 +9,23 @@ st.title("⚽ Forza Fútbol: Marcadores en Vivo")
 st.caption("Consumiendo datos reales al instante con API-Football y análisis estadístico con Pandas")
 
 # =========================================================================
-# CONFIGURACIÓN DE LA API (Barra lateral)
+# CONFIGURACIÓN DE LA API (Tu API Key ya integrada de forma fija)
 # =========================================================================
-st.sidebar.header("⚙️ Configuración de API")
-api_key = st.sidebar.text_input(
-    "Ingresa tu API Key de API-Football:", 
-    type="password", 
-    placeholder="Pega tu x-apisports-key aquí"
-)
+API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 
-# Botón para forzar actualización de los datos
-st.sidebar.markdown("---")
-btn_refresh = st.sidebar.button("🔄 Actualizar Marcadores Ahora")
+# Botón para forzar actualización de los datos en la barra lateral
+st.sidebar.header("🔄 Control de Datos")
+st.sidebar.write("La base de datos se actualiza automáticamente, pero puedes forzar una recarga aquí:")
+btn_refresh = st.sidebar.button("Actualizar Marcadores Ahora")
+
+if btn_refresh:
+    st.cache_data.clear()  # Limpia la caché para obligar a traer datos frescos de la API
 
 # =========================================================================
 # LLAMADAS EN VIVO A LA API
 # =========================================================================
-@st.cache_data(ttl=15, show_spinner=False) # Guardamos en caché solo por 15 segundos para no quemar tus consultas
+@st.cache_data(ttl=15, show_spinner=False) # Guardamos en caché por 15 segundos para proteger tu cuota diaria
 def obtener_partidos_en_vivo(key_api):
-    if not key_api:
-        return None
-    
     url = "https://v3.football.api-sports.io/fixtures?live=all"
     headers = {
         'x-apisports-key': key_api,
@@ -47,56 +43,51 @@ def obtener_partidos_en_vivo(key_api):
 # =========================================================================
 # FLUJO DE DATOS PRINCIPAL
 # =========================================================================
-live_fixtures = obtener_partidos_en_vivo(api_key)
+live_fixtures = obtener_partidos_en_vivo(API_KEY)
 
 # Pestañas de Navegación
 tab1, tab2, tab3 = st.tabs(["🔴 En Vivo Ahora", "⭐ Mis Equipos", "📊 Análisis Estadístico (Pandas)"])
 
+# Procesamos los datos con Pandas si hay partidos en vivo
+records = []
+if live_fixtures:
+    for match in live_fixtures:
+        records.append({
+            "Liga": match['league']['name'],
+            "País": match['league']['country'],
+            "Local": match['teams']['home']['name'],
+            "Goles L": match['goals']['home'],
+            "Visita": match['teams']['away']['name'],
+            "Goles V": match['goals']['away'],
+            "Minuto": match['fixture']['status']['elapsed']
+        })
+
+df_live = pd.DataFrame(records) if records else pd.DataFrame()
+
 # -------------------------------------------------------------------------
-# PESTAÑA 1: PARTIDOS EN VIVO (Mundo Real)
+# PESTAÑA 1: PARTIDOS EN VIVO
 # -------------------------------------------------------------------------
 with tab1:
     st.header("⚽ Marcadores en Tiempo Real")
     
-    if not api_key:
-        st.warning("⚠️ Ingresa tu API Key en la barra lateral para ver los partidos que se están jugando EN VIVO en este instante.")
-        st.markdown("""
-        **¿Cómo conseguir una clave gratis?**
-        1. Regístrate gratis en [api-football.com](https://www.api-football.com/)
-        2. Copia tu clave de la sección API-Keys.
-        3. Pégala a la izquierda para conectar tu app al satélite de datos en vivo.
-        """)
-    elif live_fixtures is None or len(live_fixtures) == 0:
-        st.info("ℹ️ No hay partidos jugándose en vivo en este momento, o has alcanzado el límite de tu API Key.")
+    if df_live.empty:
+        st.info("ℹ️ No hay partidos jugándose en vivo en este momento en ninguna parte del mundo (o la API está refrescando sus credenciales).")
     else:
-        st.success(f"¡Conectado! Mostrando {len(live_fixtures)} partidos jugándose en vivo ahora mismo:")
+        st.success(f"¡Conexión Exitosa! Mostrando {len(df_live)} partidos en juego en este instante:")
         
-        # Procesamos los datos con Pandas para poder buscar/filtrar rápido
-        records = []
-        for match in live_fixtures:
-            records.append({
-                "Liga": match['league']['name'],
-                "País": match['league']['country'],
-                "Local": match['teams']['home']['name'],
-                "Goles L": match['goals']['home'],
-                "Visita": match['teams']['away']['name'],
-                "Goles V": match['goals']['away'],
-                "Minuto": match['fixture']['status']['elapsed']
-            })
-        
-        df_live = pd.DataFrame(records)
-        
-        # Buscador de partidos de Pandas
+        # Buscador interactivo con Pandas
         search_team = st.text_input("🔍 Filtrar marcadores en vivo por equipo o liga:", "")
         if search_team:
-            df_live = df_live[
+            df_live_filtered = df_live[
                 df_live['Local'].str.contains(search_team, case=False) | 
                 df_live['Visita'].str.contains(search_team, case=False) |
                 df_live['Liga'].str.contains(search_team, case=False)
             ]
+        else:
+            df_live_filtered = df_live
             
-        # Renderizado estético de marcadores
-        for index, row in df_live.iterrows():
+        # Renderizado de los marcadores en vivo filtrados
+        for index, row in df_live_filtered.iterrows():
             col_match, col_meta = st.columns([3, 1])
             with col_match:
                 st.markdown(
@@ -112,53 +103,50 @@ with tab1:
 # -------------------------------------------------------------------------
 with tab2:
     st.header("⭐ Seguimiento de tus Equipos")
-    st.write("Registra tus clubes favoritos para aislar sus datos de manera inteligente:")
+    st.write("Registra tus clubes favoritos para aislar sus partidos de manera inteligente usando Pandas:")
     
     if 'mis_favoritos' not in st.session_state:
-        st.session_state.mis_favoritos = ["Real Madrid", "Barcelona", "Manchester City", "PSG"]
+        st.session_state.mis_favoritos = ["Real Madrid", "Barcelona", "Manchester City", "PSG", "Chelsea", "Arsenal"]
         
     nuevos_favs = st.multiselect(
         "Edita tu lista de equipos favoritos:",
-        options=["Real Madrid", "Barcelona", "Manchester City", "PSG", "Liverpool", "Juventus", "Bayern Munich", "Boca Juniors", "River Plate", "América", "Chivas"],
+        options=["Real Madrid", "Barcelona", "Manchester City", "PSG", "Chelsea", "Arsenal", "Liverpool", "Juventus", "Bayern Munich", "Boca Juniors", "River Plate", "América", "Chivas"],
         default=st.session_state.mis_favoritos
     )
     st.session_state.mis_favoritos = nuevos_favs
     
-    if api_key and live_fixtures:
-        # Filtramos los partidos en vivo usando la lista de favoritos de forma dinámica con Pandas
+    if not df_live.empty:
+        # Filtramos los partidos en vivo usando la lista de favoritos de forma dinámica con Pandas (.isin)
         df_fav_matches = df_live[df_live['Local'].isin(nuevos_favs) | df_live['Visita'].isin(nuevos_favs)]
         
         if not df_fav_matches.empty:
             st.subheader("🚨 ¡Tus equipos están jugando ahora mismo!")
             st.dataframe(df_fav_matches, use_container_width=True)
         else:
-            st.info("Ninguno de tus equipos favoritos está en la cancha ahora mismo.")
+            st.info("Ninguno de tus equipos favoritos está en la cancha jugando en vivo en este minuto.")
     else:
-        st.info("Conecta tu API Key para rastrear a tus favoritos en directo.")
+        st.info("No hay partidos en curso actualmente para contrastar con tus favoritos.")
 
 # -------------------------------------------------------------------------
-# PESTAÑA 3: ANALÍTICA CON PANDAS (Para el maestro)
+# PESTAÑA 3: ANALÍTICA CON PANDAS
 # -------------------------------------------------------------------------
 with tab3:
     st.header("📊 Analítica del Tablero (Mapeo Estadístico de Pandas)")
     
-    if api_key and live_fixtures and len(live_fixtures) > 0:
-        # Convertimos toda la data en vivo en un DataFrame para análisis pesado
-        df_stats = pd.DataFrame(records)
-        
+    if not df_live.empty:
         col_m1, col_m2 = st.columns(2)
         with col_m1:
-            total_goles = df_stats['Goles L'].sum() + df_stats['Goles V'].sum()
+            total_goles = df_live['Goles L'].sum() + df_live['Goles V'].sum()
             st.metric(label="Total de Goles Marcados en Vivo", value=int(total_goles))
         with col_m2:
-            promedio_min = df_stats['Minuto'].mean()
+            promedio_min = df_live['Minuto'].mean()
             st.metric(label="Minuto Promedio de los partidos", value=f"{promedio_min:.1f}'")
             
         st.markdown("---")
         
-        # Gráfica interactiva de Pandas con las ligas más activas en vivo
+        # Gráfica interactiva con Pandas que cuenta cuántos partidos en vivo hay por liga
         st.markdown("**Ligas con más partidos disputándose ahora mismo:**")
-        liga_activity = df_stats['Liga'].value_counts()
+        liga_activity = df_live['Liga'].value_counts()
         st.bar_chart(liga_activity, color="#ff4b4b")
     else:
-        st.info("Esta sección analizará y generará gráficos de barras automáticos de goles y actividad de ligas en cuanto conectes tu API Key.")
+        st.info("Cuando haya partidos jugándose en vivo, aquí verás gráficos de barras automáticos de goles y actividad por liga calculados con Pandas.")
