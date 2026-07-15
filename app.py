@@ -778,12 +778,52 @@ unsafe_allow_html=True
 )
 
 id_activo = st.session_state["id_seleccionado"]
+
 nombre_activo = st.session_state["nombre_seleccionado"]
+
 pais_activo = st.session_state["pais_seleccionado"]
-logo_activo = st.session_state.get(
-    "logo_seleccionado",
-    ""
+
+
+
+historial_raw, origen_datos = obtener_calendario_equipo(
+    id_activo,
+    nombre_activo,
+    pais_activo
 )
+
+
+
+records_historial = []
+
+
+for f in historial_raw:
+
+    if "fixture" in f:
+
+        records_historial.append({
+
+            "Fecha": pd.to_datetime(
+                f["fixture"]["date"]
+            ).strftime("%Y-%m-%d %H:%M"),
+
+            "Competencia": f["league"]["name"],
+
+            "Local": f["teams"]["home"]["name"],
+
+            "Goles Local": f["goals"]["home"],
+
+            "Goles Visita": f["goals"]["away"],
+
+            "Visita": f["teams"]["away"]["name"],
+
+            "Estado": f["fixture"]["status"]["short"]
+
+        })
+
+
+    else:
+
+        records_historial.append(f)
 
 def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
     pais_normalizado = str(pais_equipo).strip().lower()
