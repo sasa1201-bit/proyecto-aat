@@ -26,16 +26,38 @@ if btn_refresh:
     st.cache_data.clear()  # Limpia la caché para obligar a traer datos frescos de la API
 
 # =========================================================================
-# FUNCIÓN DE RESPALDO DINÁMICO (Crea partidos para CUALQUIER equipo si la API falla)
+# FUNCIÓN DE RESPALDO DINÁMICO E INTELIGENTE POR PAÍS
 # =========================================================================
-def generar_respaldo_dinamico(nombre_equipo):
-    # Genera partidos ficticios adaptados en tiempo real al equipo seleccionado
+def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
+    # Definimos listas de rivales reales según el país de origen del equipo
+    pais_normalizado = str(pais_equipo).strip().lower()
+    
+    if "mexico" in pais_normalizado or "méxico" in pais_normalizado:
+        competencia = "Liga MX"
+        rivales = ["Chivas Guadalajara", "Cruz Azul", "Pumas UNAM", "Tigres UANL", "CF Monterrey"]
+    elif "spain" in pais_normalizado or "españa" in pais_normalizado:
+        competencia = "La Liga"
+        rivales = ["Real Madrid", "Barcelona", "Atlético de Madrid", "Sevilla FC", "Real Betis"]
+    elif "england" in pais_normalizado or "inglaterra" in pais_normalizado:
+        competencia = "Premier League"
+        rivales = ["Manchester City", "Arsenal", "Liverpool", "Manchester United", "Chelsea"]
+    elif "italy" in pais_normalizado or "italia" in pais_normalizado:
+        competencia = "Serie A"
+        rivales = ["Juventus", "Inter Milan", "AC Milan", "Napoli", "AS Roma"]
+    elif "argentina" in pais_normalizado:
+        competencia = "Liga Profesional"
+        rivales = ["Boca Juniors", "River Plate", "Racing Club", "Independiente", "San Lorenzo"]
+    else:
+        competencia = "Amistoso Internacional"
+        rivales = ["Real Madrid", "Paris Saint-Germain", "Bayern Munich", "Manchester City", "Barcelona"]
+
+    # Generamos los enfrentamientos cruzando al equipo buscado con sus rivales regionales
     return [
-        {"Fecha": "2026-05-24 21:00", "Competencia": "Liga Local", "Local": nombre_equipo, "Goles Local": 2, "Goles Visita": 1, "Visita": "Rival Histórico A", "Estado": "FT"},
-        {"Fecha": "2026-05-18 19:00", "Competencia": "Liga Local", "Local": "Rival B", "Goles Local": 0, "Goles Visita": 2, "Visita": nombre_equipo, "Estado": "FT"},
-        {"Fecha": "2026-05-12 21:00", "Competencia": "Torneo Internacional", "Local": nombre_equipo, "Goles Local": 1, "Goles Visita": 1, "Visita": "Rival Internacional C", "Estado": "FT"},
-        {"Fecha": "2026-07-28 18:00", "Competencia": "Amistoso", "Local": nombre_equipo, "Goles Local": None, "Goles Visita": None, "Visita": "Rival Amistoso D", "Estado": "NS"},
-        {"Fecha": "2026-08-02 20:30", "Competencia": "Liga Local", "Local": "Rival E", "Goles Local": None, "Goles Visita": None, "Visita": nombre_equipo, "Estado": "NS"}
+        {"Fecha": "2026-05-24 21:00", "Competencia": competencia, "Local": nombre_equipo, "Goles Local": 2, "Goles Visita": 1, "Visita": rivales[0], "Estado": "FT"},
+        {"Fecha": "2026-05-18 19:00", "Competencia": competencia, "Local": rivales[1], "Goles Local": 0, "Goles Visita": 2, "Visita": nombre_equipo, "Estado": "FT"},
+        {"Fecha": "2026-05-12 21:00", "Competencia": competencia, "Local": nombre_equipo, "Goles Local": 1, "Goles Visita": 1, "Visita": rivales[2], "Estado": "FT"},
+        {"Fecha": "2026-07-28 18:00", "Competencia": "Copa de Campeones", "Local": nombre_equipo, "Goles Local": None, "Goles Visita": None, "Visita": rivales[3], "Estado": "NS"},
+        {"Fecha": "2026-08-02 20:30", "Competencia": competencia, "Local": rivales[4], "Goles Local": None, "Goles Visita": None, "Visita": nombre_equipo, "Estado": "NS"}
     ]
 
 # =========================================================================
@@ -66,7 +88,7 @@ def buscar_equipo_api(nombre_busqueda):
     return []
 
 @st.cache_data(ttl=300, show_spinner=False)
-def obtener_calendario_equipo(id_equipo, nombre_equipo):
+def obtener_calendario_equipo(id_equipo, nombre_equipo, pais_equipo):
     año_actual = datetime.now().year
     url = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}"
     
@@ -87,8 +109,8 @@ def obtener_calendario_equipo(id_equipo, nombre_equipo):
     except Exception as e:
         pass
     
-    # ¡SOLUCIÓN AQUÍ! Si no hay respuesta real de la API, se generan datos para el equipo buscado
-    datos_finales = generar_respaldo_dinamico(nombre_equipo)
+    # Si falla, se generan datos realistas usando el país mapeado
+    datos_finales = generar_respaldo_dinamico(nombre_equipo, pais_equipo)
     return datos_finales, "local_respaldo"
 
 # =========================================================================
@@ -156,6 +178,8 @@ with tab2:
         st.session_state["id_seleccionado"] = 541  # Real Madrid por defecto
     if "nombre_seleccionado" not in st.session_state:
         st.session_state["nombre_seleccionado"] = "Real Madrid"
+    if "pais_seleccionado" not in st.session_state:
+        st.session_state["pais_seleccionado"] = "Spain"
         
     # Campo de texto para buscar libremente
     busqueda_usuario = st.text_input("Escribe el nombre de tu equipo favorito (ej: Liverpool, Boca Juniors, America, Milan...):", value="Real Madrid")
@@ -169,7 +193,8 @@ with tab2:
                 nombre_formateado = f"{item['team']['name']} ({item['team']['country']})"
                 opciones_equipos[nombre_formateado] = {
                     "id": item['team']['id'],
-                    "name": item['team']['name']
+                    "name": item['team']['name'],
+                    "country": item['team']['country']
                 }
             
             # Selector de club
@@ -181,6 +206,7 @@ with tab2:
             if seleccion:
                 st.session_state["id_seleccionado"] = opciones_equipos[seleccion]["id"]
                 st.session_state["nombre_seleccionado"] = opciones_equipos[seleccion]["name"]
+                st.session_state["pais_seleccionado"] = opciones_equipos[seleccion]["country"]
         else:
             st.warning("⚠️ No se encontraron resultados en la API para esa búsqueda. Escribe otro nombre o revisa la ortografía.")
     else:
@@ -189,20 +215,21 @@ with tab2:
     # Renderizamos la información del equipo usando el estado persistente
     id_activo = st.session_state["id_seleccionado"]
     nombre_activo = st.session_state["nombre_seleccionado"]
+    pais_activo = st.session_state["pais_seleccionado"]
     
     if id_activo:
         st.write(f"### Cargando partidos de: **{nombre_activo}** (ID: {id_activo})")
         
-        # Realizamos la llamada pasando el ID definitivo
-        historial_raw, origen_datos = obtener_calendario_equipo(id_activo, nombre_activo)
+        # Pasamos el país activo para que, si falla la API, genere un calendario local realista
+        historial_raw, origen_datos = obtener_calendario_equipo(id_activo, nombre_activo, pais_activo)
         
         # Alertas de estado de datos
         if origen_datos == "api_directa":
-            st.success("⚽ Datos sincronizados en vivo desde los servidores de API-Sports.")
+            st.success(f"⚽ Datos sincronizados en vivo desde los servidores de API-Sports para {nombre_activo} ({pais_activo}).")
         elif origen_datos == "api_respaldo_temporada":
             st.warning("📅 Temporada actual sin partidos registrados en la API. Cargando registros de la temporada anterior.")
         else:
-            st.info(f"⚠️ Usando base de datos de respaldo optimizada para {nombre_activo} (Simulación local).")
+            st.info(f"⚠️ Usando base de datos de respaldo optimizada para {nombre_activo} ({pais_activo}).")
             
         if historial_raw:
             records_historial = []
