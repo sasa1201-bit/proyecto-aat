@@ -1,94 +1,432 @@
 import streamlit as st
 import pandas as pd
 import requests
+import plotly.express as px
 from datetime import datetime
+from streamlit_autorefresh import st_autorefresh
+
 
 # =========================================================================
-# CONFIGURACIÓN ESTÉTICA PREMIUM (Texto Negro y Fondos Integrados)
+# CONFIGURACIÓN GENERAL
 # =========================================================================
-st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-# CSS para forzar textos negros en menús, pestañas y cajas de selección
+st.set_page_config(
+    page_title="Forza Football Live",
+    page_icon="⚽",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+
+# =========================================================================
+# AUTO REFRESH (ESTILO MARCADORES EN VIVO)
+# =========================================================================
+
+st_autorefresh(
+    interval=30000,
+    key="football_refresh"
+)
+
+
+# =========================================================================
+# DISEÑO PREMIUM ESTILO ESPN / SOFASCORE
+# =========================================================================
+
 st.markdown("""
-    <style>
-        /* Fondo general de la app */
-        .stApp {
-            background-color: #f8fafc !important;
-        }
-        
-        /* Forzar texto negro general */
-        .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
-            color: #000000 !important;
-        }
+<style>
 
-        /* Texto negro y en negrita para las pestañas (Tabs) */
-        button[data-baseweb="tab"] {
-            color: #000000 !important;
-        }
-        button[data-baseweb="tab"] p {
-            color: #000000 !important;
-            font-weight: 700 !important;
-            font-size: 1.05rem !important;
-        }
-        
-        /* Texto negro para el selector (Selectbox) */
-        .stSelectbox div[data-baseweb="select"] {
-            color: #000000 !important;
-            background-color: #ffffff !important;
-        }
-        .stSelectbox div[data-baseweb="select"] span {
-            color: #000000 !important;
-        }
 
-        /* Estilo para contenedores tipo Tarjeta Blanca */
-        .premium-card {
-            background-color: #ffffff !important;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .section-title {
-            color: #000000 !important;
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-        
-        .premium-card p, .premium-card span, .premium-card div, .premium-card label, .premium-card h2, .premium-card h3 {
-            color: #000000 !important;
-        }
-        
-        .live-team-name {
-            color: #000000 !important;
-            font-weight: 800 !important;
-            font-size: 1.15rem !important;
-        }
-        
-        .live-score {
-            color: #4f46e5 !important;
-            font-weight: 900 !important;
-            font-size: 1.3rem !important;
-            margin: 0 15px !important;
-        }
-        
-        .live-league-label {
-            color: #000000 !important;
-            font-weight: 600 !important;
-            font-size: 0.85rem !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
+/* Fondo principal */
 
-# Encabezado principal
+.stApp {
+    background:
+    linear-gradient(
+        135deg,
+        #f8fafc 0%,
+        #e2e8f0 100%
+    );
+}
+
+
+/* Texto general */
+
+html, body, [class*="css"] {
+
+    font-family:
+    'Inter',
+    'Segoe UI',
+    sans-serif;
+
+}
+
+
+p, span, label, div, h1, h2, h3 {
+
+    color:#111827 !important;
+
+}
+
+
+/* HEADER */
+
+.hero {
+
+    background:
+    linear-gradient(
+        135deg,
+        #020617,
+        #1e293b
+    );
+
+    padding:35px;
+
+    border-radius:25px;
+
+    margin-bottom:30px;
+
+    box-shadow:
+    0px 15px 40px rgba(0,0,0,.15);
+
+}
+
+
+.hero h1 {
+
+    color:white !important;
+
+    font-size:42px;
+
+    font-weight:900;
+
+    margin-bottom:5px;
+
+}
+
+
+.hero p {
+
+    color:#cbd5e1 !important;
+
+    font-size:18px;
+
+}
+
+
+/* TARJETAS */
+
+.card {
+
+
+background:white;
+
+
+padding:25px;
+
+
+border-radius:20px;
+
+
+box-shadow:
+
+0px 10px 25px rgba(15,23,42,.08);
+
+
+border:
+
+1px solid #e2e8f0;
+
+
+margin-bottom:20px;
+
+
+}
+
+
+
+/* TITULOS */
+
+.section-title {
+
+
+font-size:22px;
+
+
+font-weight:800;
+
+
+margin-bottom:15px;
+
+
+}
+
+
+
+/* KPI */
+
+.kpi {
+
+
+background:white;
+
+
+border-radius:18px;
+
+
+padding:22px;
+
+
+border-left:
+
+6px solid #2563eb;
+
+
+box-shadow:
+
+0px 8px 20px rgba(0,0,0,.08);
+
+
+}
+
+
+
+.kpi-title {
+
+
+font-size:13px;
+
+
+font-weight:700;
+
+
+color:#64748b !important;
+
+
+}
+
+
+
+.kpi-value {
+
+
+font-size:30px;
+
+
+font-weight:900;
+
+
+color:#0f172a !important;
+
+
+}
+
+
+
+/* SIDEBAR */
+
+
+section[data-testid="stSidebar"] {
+
+
+background:
+
+linear-gradient(
+
+180deg,
+
+#020617,
+
+#111827
+
+);
+
+
+}
+
+
+
+section[data-testid="stSidebar"] * {
+
+
+color:white !important;
+
+
+}
+
+
+/* BOTONES */
+
+
+.stButton button {
+
+
+background:
+
+linear-gradient(
+
+90deg,
+
+#2563eb,
+
+#4f46e5
+
+);
+
+
+color:white !important;
+
+
+border:none;
+
+
+border-radius:12px;
+
+
+font-weight:800;
+
+
+padding:10px 20px;
+
+
+}
+
+
+.stButton button:hover {
+
+
+transform:scale(1.03);
+
+
+}
+
+
+/* SELECTORES */
+
+
+.stSelectbox div[data-baseweb="select"],
+
+.stTextInput input {
+
+
+border-radius:12px !important;
+
+
+background:white !important;
+
+
+}
+
+
+/* TABLAS */
+
+
+thead tr th {
+
+
+background:#0f172a !important;
+
+
+color:white !important;
+
+
+}
+
+
+</style>
+
+""",
+unsafe_allow_html=True)
+
+
+
+# =========================================================================
+# HEADER PRINCIPAL
+# =========================================================================
+
+
 st.markdown("""
-    <div style='margin-bottom: 30px;'>
-        <h1 style='color: #000000 !important; font-size: 2.2rem; font-weight: 800; margin-bottom: 4px;'>⚽ Forza Fútbol Live</h1>
-        <p style='color: #000000 !important; font-size: 1rem;'>Procesamiento analítico avanzado y monitoreo de escuadras globales</p>
-    </div>
-""", unsafe_allow_html=True)
+<div class="hero">
+
+<h1>
+⚽ Forza Football Live
+</h1>
+
+<p>
+Plataforma avanzada de análisis futbolístico,
+marcadores en vivo y seguimiento global de equipos.
+</p>
+
+</div>
+
+""",
+unsafe_allow_html=True)
+
+
+
+# =========================================================================
+# SIDEBAR PROFESIONAL
+# =========================================================================
+
+
+with st.sidebar:
+
+
+    st.markdown(
+    """
+
+    <h1 style="
+    color:white;
+    text-align:center;
+    ">
+    ⚽ FORZA
+    </h1>
+
+
+    <p style="
+    text-align:center;
+    color:#94a3b8;
+    ">
+    Football Analytics
+    </p>
+
+
+    <hr>
+
+    """,
+    unsafe_allow_html=True
+    )
+
+
+    st.markdown("### 🔄 Centro de Control")
+
+
+    if st.button("🚀 Sincronizar Datos"):
+
+        st.cache_data.clear()
+
+        st.success(
+            "Datos actualizados"
+        )
+
+
+
+    st.markdown("---")
+
+
+    st.markdown(
+    """
+
+    ### 📊 Módulos
+
+    ⚽ Seguimiento de equipos
+
+    🔴 Partidos en vivo
+
+    📈 Estadísticas
+
+
+    """
+
+    )
 
 # =========================================================================
 # CONFIGURACIÓN DE LA API Y RESPALDO
