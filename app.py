@@ -792,7 +792,6 @@ historial_raw, origen_datos = obtener_calendario_equipo(
 )
 
 
-
 records_historial = []
 
 
