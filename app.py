@@ -105,6 +105,9 @@ if st.sidebar.button("Forzar Sincronización"):
 
 def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
     pais_normalizado = str(pais_equipo).strip().lower()
+    # NUEVO: Logo genérico por defecto para el modo respaldo
+    logo_generico = "https://cdn-icons-png.flaticon.com/512/825/825588.png"
+    
     if "mexico" in pais_normalizado or "méxico" in pais_normalizado:
         competencia = "Liga MX - Apertura 2026"
         rivales = ["Chivas Guadalajara", "Cruz Azul", "Pumas UNAM", "Tigres UANL", "CF Monterrey"]
@@ -118,12 +121,13 @@ def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
         competencia = "Amistoso Internacional"
         rivales = ["Real Madrid", "Paris Saint-Germain", "Bayern Munich", "Manchester City", "Barcelona"]
 
+    # NUEVO: Se agregaron campos de "Logo Local" y "Logo Visita"
     return [
-        {"Fecha": "2026-07-12 18:00", "Competencia": competencia, "Local": rivales[1], "Goles Local": 1, "Goles Visita": 3, "Visita": nombre_equipo, "Estado": "FT"},
-        {"Fecha": "2026-07-15 20:00", "Competencia": competencia, "Local": nombre_equipo, "Goles Local": 2, "Goles Visita": 2, "Visita": rivales[2], "Estado": "FT"},
-        {"Fecha": "2026-07-19 19:30", "Competencia": "Copa de Campeones", "Local": nombre_equipo, "Goles Local": 1, "Goles Visita": 0, "Visita": rivales[0], "Estado": "FT"},
-        {"Fecha": "2026-07-26 17:00", "Competencia": competencia, "Local": nombre_equipo, "Goles Local": None, "Goles Visita": None, "Visita": rivales[3], "Estado": "NS"},
-        {"Fecha": "2026-08-01 21:00", "Competencia": competencia, "Local": rivales[4], "Goles Local": None, "Goles Visita": None, "Visita": nombre_equipo, "Estado": "NS"}
+        {"Fecha": "2026-07-12 18:00", "Competencia": competencia, "Local": rivales[1], "Logo Local": logo_generico, "Goles Local": 1, "Goles Visita": 3, "Visita": nombre_equipo, "Logo Visita": logo_generico, "Estado": "FT"},
+        {"Fecha": "2026-07-15 20:00", "Competencia": competencia, "Local": nombre_equipo, "Logo Local": logo_generico, "Goles Local": 2, "Goles Visita": 2, "Visita": rivales[2], "Logo Visita": logo_generico, "Estado": "FT"},
+        {"Fecha": "2026-07-19 19:30", "Competencia": "Copa de Campeones", "Local": nombre_equipo, "Logo Local": logo_generico, "Goles Local": 1, "Goles Visita": 0, "Visita": rivales[0], "Logo Visita": logo_generico, "Estado": "FT"},
+        {"Fecha": "2026-07-26 17:00", "Competencia": competencia, "Local": nombre_equipo, "Logo Local": logo_generico, "Goles Local": None, "Goles Visita": None, "Visita": rivales[3], "Logo Visita": logo_generico, "Estado": "NS"},
+        {"Fecha": "2026-08-01 21:00", "Competencia": competencia, "Local": rivales[4], "Logo Local": logo_generico, "Goles Local": None, "Goles Visita": None, "Visita": nombre_equipo, "Logo Visita": logo_generico, "Estado": "NS"}
     ]
 
 # Funciones de consulta a la API de Deportes
@@ -173,8 +177,10 @@ if live_fixtures:
             "Liga": match['league']['name'],
             "País": match['league']['country'],
             "Local": match['teams']['home']['name'],
+            "Logo L": match['teams']['home']['logo'], # NUEVO: Capturar logo local
             "Goles L": match['goals']['home'],
             "Visita": match['teams']['away']['name'],
+            "Logo V": match['teams']['away']['logo'], # NUEVO: Capturar logo visita
             "Goles V": match['goals']['away'],
             "Minuto": match['fixture']['status']['elapsed']
         })
@@ -190,12 +196,15 @@ with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🔍 Selector Global de Escuadras</div>", unsafe_allow_html=True)
     
+    # Valores por defecto en Session State
     if "id_seleccionado" not in st.session_state:
-        st.session_state["id_seleccionado"] = 541  # Real Madrid por defecto
+        st.session_state["id_seleccionado"] = 541  
     if "nombre_seleccionado" not in st.session_state:
         st.session_state["nombre_seleccionado"] = "Real Madrid"
     if "pais_seleccionado" not in st.session_state:
         st.session_state["pais_seleccionado"] = "Spain"
+    if "logo_seleccionado" not in st.session_state: # NUEVO: Logo por defecto
+        st.session_state["logo_seleccionado"] = "https://media.api-sports.io/football/teams/541.png"
         
     busqueda_usuario = st.text_input(
         "Busca cualquier club en la base de datos:", 
@@ -212,7 +221,8 @@ with tab1:
                 opciones_equipos[nombre_formateado] = {
                     "id": item['team']['id'],
                     "name": item['team']['name'],
-                    "country": item['team']['country']
+                    "country": item['team']['country'],
+                    "logo": item['team']['logo'] # NUEVO: Almacenar logo
                 }
             
             seleccion = st.selectbox("Selecciona el club coincidente para actualizar el tablero:", options=list(opciones_equipos.keys()))
@@ -220,11 +230,13 @@ with tab1:
                 st.session_state["id_seleccionado"] = opciones_equipos[seleccion]["id"]
                 st.session_state["nombre_seleccionado"] = opciones_equipos[seleccion]["name"]
                 st.session_state["pais_seleccionado"] = opciones_equipos[seleccion]["country"]
+                st.session_state["logo_seleccionado"] = opciones_equipos[seleccion]["logo"] # NUEVO: Actualizar estado
     st.markdown("</div>", unsafe_allow_html=True)
 
     id_activo = st.session_state["id_seleccionado"]
     nombre_activo = st.session_state["nombre_seleccionado"]
     pais_activo = st.session_state["pais_seleccionado"]
+    logo_activo = st.session_state["logo_seleccionado"] # NUEVO: Recuperar logo
     
     if id_activo:
         historial_raw, origen_datos = obtener_calendario_equipo(id_activo, nombre_activo, pais_activo)
@@ -235,9 +247,11 @@ with tab1:
                     "Fecha": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
                     "Competencia": f['league']['name'],
                     "Local": f['teams']['home']['name'],
+                    "Logo Local": f['teams']['home']['logo'], # NUEVO
                     "Goles Local": f['goals']['home'],
                     "Goles Visita": f['goals']['away'],
                     "Visita": f['teams']['away']['name'],
+                    "Logo Visita": f['teams']['away']['logo'], # NUEVO
                     "Estado": f['fixture']['status']['short']
                 })
             else:
@@ -261,7 +275,19 @@ with tab1:
                         
         kpi1, kpi2, kpi3 = st.columns(3)
         with kpi1:
-            st.markdown(f"<div class='premium-card' style='border-left: 5px solid #4f46e5;'><p style='font-size: 0.85rem; margin:0; font-weight: 600;'>EQUIPO SELECCIONADO</p><h2 style='margin: 4px 0;'>{nombre_activo}</h2><span style='color: #4f46e5 !important; font-weight: 700;'>📍 {pais_activo}</span></div>", unsafe_allow_html=True)
+            # NUEVO: Etiqueta img incrustada en el nombre del equipo para el KPI 1
+            html_kpi1 = f"""
+            <div class='premium-card' style='border-left: 5px solid #4f46e5;'>
+                <p style='font-size: 0.85rem; margin:0; font-weight: 600;'>EQUIPO SELECCIONADO</p>
+                <div style='display: flex; align-items: center; margin: 8px 0;'>
+                    <img src='{logo_activo}' width='45' style='margin-right: 12px;'>
+                    <h2 style='margin: 0;'>{nombre_activo}</h2>
+                </div>
+                <span style='color: #4f46e5 !important; font-weight: 700;'>📍 {pais_activo}</span>
+            </div>
+            """
+            st.markdown(html_kpi1, unsafe_allow_html=True)
+            
         with kpi2:
             st.markdown(f"<div class='premium-card' style='border-left: 5px solid #22c55e;'><p style='font-size: 0.85rem; margin:0; font-weight: 600;'>RENDIMIENTO RECIENTE</p><h2 style='color: #22c55e !important; margin: 4px 0;'>{victorias} Victorias</h2><span style='color: #22c55e !important; font-weight: 600;'>↑ Eficacia activa</span></div>", unsafe_allow_html=True)
         with kpi3:
@@ -274,7 +300,23 @@ with tab1:
             df_ultimos = df_finalizados.head(5)
             if not df_ultimos.empty:
                 for idx, row in df_ultimos.iterrows():
-                    st.markdown(f"<div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'><div style='display: flex; justify-content: space-between;'><span style='font-weight: 700;'>{row['Local']} vs {row['Visita']}</span><span style='font-weight: 800; color: #4f46e5 !important;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</span></div><div style='display: flex; justify-content: space-between; margin-top: 4px;'><span style='font-size: 0.8rem; font-weight: 500;'>🏆 {row['Competencia']}</span><span style='font-size: 0.8rem;'>📅 {row['Fecha']}</span></div></div>", unsafe_allow_html=True)
+                    # NUEVO: Logos incrustados en los nombres de los equipos
+                    st.markdown(f"""
+                        <div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'>
+                            <div style='display: flex; justify-content: space-between; align-items: center;'>
+                                <span style='font-weight: 700; display: flex; align-items: center;'>
+                                    <img src="{row.get('Logo Local', '')}" width="24" style="margin-right: 8px;"> {row['Local']} 
+                                    <span style='margin: 0 8px; color: #94a3b8;'>vs</span> 
+                                    {row['Visita']} <img src="{row.get('Logo Visita', '')}" width="24" style="margin-left: 8px;">
+                                </span>
+                                <span style='font-weight: 800; color: #4f46e5 !important; font-size: 1.1rem;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</span>
+                            </div>
+                            <div style='display: flex; justify-content: space-between; margin-top: 8px;'>
+                                <span style='font-size: 0.8rem; font-weight: 500;'>🏆 {row['Competencia']}</span>
+                                <span style='font-size: 0.8rem;'>📅 {row['Fecha']}</span>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
             else:
                 st.info("No hay registros finalizados.")
             st.markdown("</div>", unsafe_allow_html=True)
@@ -285,7 +327,20 @@ with tab1:
             df_proximos = df_historial[~df_historial['Estado'].isin(estados_finalizados)].tail(5)
             if not df_proximos.empty:
                 for idx, row in df_proximos.iloc[::-1].iterrows():
-                    st.markdown(f"<div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'><div style='font-weight: 700;'>{row['Local']} vs {row['Visita']}</div><div style='display: flex; justify-content: space-between; margin-top: 4px;'><span style='font-size: 0.8rem; font-weight: 500;'>🏆 {row['Competencia']}</span><span style='font-size: 0.8rem; color: #4f46e5 !important; font-weight: 700;'>📅 {row['Fecha']}</span></div></div>", unsafe_allow_html=True)
+                    # NUEVO: Logos incrustados para futuros encuentros
+                    st.markdown(f"""
+                        <div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'>
+                            <div style='font-weight: 700; display: flex; align-items: center;'>
+                                <img src="{row.get('Logo Local', '')}" width="24" style="margin-right: 8px;"> {row['Local']} 
+                                <span style='margin: 0 8px; color: #94a3b8;'>vs</span> 
+                                {row['Visita']} <img src="{row.get('Logo Visita', '')}" width="24" style="margin-left: 8px;">
+                            </div>
+                            <div style='display: flex; justify-content: space-between; margin-top: 8px;'>
+                                <span style='font-size: 0.8rem; font-weight: 500;'>🏆 {row['Competencia']}</span>
+                                <span style='font-size: 0.8rem; color: #4f46e5 !important; font-weight: 700;'>📅 {row['Fecha']}</span>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
             else:
                 st.info("Sin partidos programados.")
             st.markdown("</div>", unsafe_allow_html=True)
@@ -304,7 +359,24 @@ with tab2:
         filtro = st.text_input("Buscar por equipo o liga:", "")
         df_live_filtered = df_live[df_live['Local'].str.contains(filtro, case=False) | df_live['Visita'].str.contains(filtro, case=False) | df_live['Liga'].str.contains(filtro, case=False)] if filtro else df_live
         for idx, row in df_live_filtered.iterrows():
-            st.markdown(f"<div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1;'><div style='display: flex; justify-content: space-between; align-items: center;'><div><span class='live-team-name'>{row['Local']}</span><span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><span class='live-team-name'>{row['Visita']}</span></div><div style='text-align: right;'><span style='background-color: #ef4444; color: #ffffff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;'>⏱️ {row['Minuto']}'</span><div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div></div></div></div>", unsafe_allow_html=True)
+            # NUEVO: Formato actualizado con flexbox para que los logos se vean alineados con el marcador
+            st.markdown(f"""
+                <div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1;'>
+                    <div style='display: flex; justify-content: space-between; align-items: center;'>
+                        <div style='display: flex; align-items: center;'>
+                            <img src="{row.get('Logo L', '')}" width="30" style="margin-right: 12px;">
+                            <span class='live-team-name'>{row['Local']}</span>
+                            <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span>
+                            <span class='live-team-name'>{row['Visita']}</span>
+                            <img src="{row.get('Logo V', '')}" width="30" style="margin-left: 12px;">
+                        </div>
+                        <div style='text-align: right;'>
+                            <span style='background-color: #ef4444; color: #ffffff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;'>⏱️ {row['Minuto']}'</span>
+                            <div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div>
+                        </div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 # PESTAÑA 3: Analítica Visual con Gráficos Nativos Integrados
@@ -324,13 +396,11 @@ with tab3:
 
     col_izq, col_der = st.columns(2)
     
-    # LAS GRÁFICAS SE METEN DENTRO DE LAS TARJETAS (PREMIUM-CARD) PARA VERSE INTEGRADAS Y NO PARCHADAS
     with col_izq:
         st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
         st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📊 Distribución de Partidos</div>", unsafe_allow_html=True)
         st.caption("Frecuencia de encuentros monitoreados por cada liga.")
         st.write("")
-        # Graficador nativo usando el ancho total del contenedor blanco
         st.bar_chart(chart_data, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -339,6 +409,5 @@ with tab3:
         st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📈 Tendencia de Volumen</div>", unsafe_allow_html=True)
         st.caption("Visualización de densidad de eventos actuales.")
         st.write("")
-        # Graficador nativo usando el ancho total del contenedor blanco
         st.area_chart(chart_data, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
