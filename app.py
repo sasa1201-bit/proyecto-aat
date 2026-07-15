@@ -359,6 +359,16 @@ marcadores en vivo y seguimiento global de equipos.
 """,
 unsafe_allow_html=True)
 
+# =========================================================================
+# NAVEGACIÓN PRINCIPAL
+# =========================================================================
+
+tab1, tab2, tab3 = st.tabs(
+    [
+        "📊 Buscador & Seguimiento",
+        "🔴 Marcadores en Vivo",
+        "📈 Estadísticas de Liga")
+
 
 with tab1:
 
