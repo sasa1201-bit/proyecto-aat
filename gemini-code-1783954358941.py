@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime
-import plotly.express as px  # Mantenemos la importación para evitar el ModuleNotFoundError
 
 # =========================================================================
 # CONFIGURACIÓN ESTÉTICA PREMIUM (Texto Negro y Fondos Integrados)
@@ -300,7 +299,7 @@ with tab2:
             st.markdown(f"<div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1;'><div style='display: flex; justify-content: space-between; align-items: center;'><div><span class='live-team-name'>{row['Local']}</span><span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><span class='live-team-name'>{row['Visita']}</span></div><div style='text-align: right;'><span style='background-color: #ef4444; color: #ffffff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;'>⏱️ {row['Minuto']}'</span><div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div></div></div></div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# PESTAÑA 3: Analítica Visual (Gráficos perfectamente integrados sin fondos sobrepuestos)
+# PESTAÑA 3: Analítica Visual con Gráficos Nativos de Streamlit (CERO DEPENDENCIAS, CERO ERRORES)
 with tab3:
     st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Volumen y Ligas</div>", unsafe_allow_html=True)
     
@@ -313,38 +312,21 @@ with tab3:
             'Partidos': [12, 8, 5, 4, 3]
         })
 
+    # Convertimos los datos para que Streamlit los dibuje de forma nativa sin Plotly
+    chart_data = data_grafica.set_index('Liga')
+
     col_izq, col_der = st.columns(2)
     
     with col_izq:
-        st.markdown("<div style='margin-left: 10px; margin-bottom: 15px; font-weight: 700; color: #000000;'>📊 Distribución de Partidos</div>", unsafe_allow_html=True)
-        fig_bar = px.bar(data_grafica, x='Liga', y='Partidos', color_discrete_sequence=['#4f46e5'])
-        
-        # El fondo #f8fafc integra la gráfica perfectamente con el fondo de la página
-        fig_bar.update_layout(
-            plot_bgcolor='#f8fafc',
-            paper_bgcolor='#f8fafc',
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=320,
-            xaxis=dict(showgrid=False, title_font=dict(color='#000000', size=12), tickfont=dict(color='#000000')),
-            yaxis=dict(showgrid=True, gridcolor='#cbd5e1', title_font=dict(color='#000000', size=12), tickfont=dict(color='#000000'))
-        )
-        st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+        st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #000000;'>📊 Distribución de Partidos (Barras)</div>", unsafe_allow_html=True)
+        # Gráfico de barras nativo: adopta automáticamente el fondo claro y el color de marca
+        st.bar_chart(chart_data)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col_der:
-        st.markdown("<div style='margin-left: 10px; margin-bottom: 15px; font-weight: 700; color: #000000;'>🍕 Participación en el Mercado</div>", unsafe_allow_html=True)
-        fig_pie = px.pie(data_grafica, names='Liga', values='Partidos', color_discrete_sequence=px.colors.qualitative.Prism)
-        
-        # Mismo fondo #f8fafc e indicadores de texto forzados en negro
-        fig_pie.update_layout(
-            plot_bgcolor='#f8fafc',
-            paper_bgcolor='#f8fafc',
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=320,
-            legend=dict(font=dict(color='#000000', size=11))
-        )
-        fig_pie.update_traces(
-            textposition='inside', 
-            textinfo='percent+label',
-            textfont=dict(color='#000000', size=11)
-        )
-        st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
+        st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #000000;'>📈 Tendencia de Volumen (Área)</div>", unsafe_allow_html=True)
+        # Gráfico de área nativo: limpio, ultra rápido y perfectamente integrado con el diseño
+        st.area_chart(chart_data)
+        st.markdown("</div>", unsafe_allow_html=True)
