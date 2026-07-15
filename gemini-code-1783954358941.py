@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+from datetime import datetime
 
 # Configuración de la página estilo Deportivo Premium
 st.set_page_config(page_title="Forza Fútbol Live & Tracker", page_icon="⚽", layout="wide")
@@ -33,7 +34,6 @@ MAPA_EQUIPOS_IDS = {
     "Chelsea": 49,
     "Arsenal": 42,
     "Liverpool": 40,
-    "Juventus": 496,
     "Bayern Munich": 157,
     "Boca Juniors": 451,
     "River Plate": 435,
@@ -55,14 +55,24 @@ def obtener_partidos_en_vivo(key_api):
         st.error(f"Error de conexión en vivo: {e}")
     return None
 
-@st.cache_data(ttl=300, show_spinner=False) # Guardamos 5 minutos el calendario histórico para no agotar la API
+@st.cache_data(ttl=300, show_spinner=False) # Guardamos 5 minutos el calendario histórico
 def obtener_calendario_equipo(id_equipo):
-    # Trae los 20 partidos más recientes y próximos del equipo seleccionado
-    url = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=20"
+    # Usamos la temporada actual para asegurar que traiga resultados válidos
+    año_actual = datetime.now().year
+    url = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}"
+    
     try:
         response = requests.get(url, headers=HEADERS)
         if response.status_code == 200:
-            return response.json().get("response", [])
+            res_json = response.json()
+            # Si la temporada actual aún no tiene suficientes partidos o está vacía, buscamos la anterior
+            if not res_json.get("response"):
+                url_backup = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual - 1}"
+                response = requests.get(url_backup, headers=HEADERS)
+                res_json = response.json()
+            return res_json.get("response", [])
+        else:
+            st.error(f"Error de API: Código de estado {response.status_code}")
     except Exception as e:
         st.error(f"Error de conexión al historial: {e}")
     return []
@@ -149,12 +159,15 @@ with tab2:
                 "Goles Local": f['goals']['home'],
                 "Goles Visita": f['goals']['away'],
                 "Visita": f['teams']['away']['name'],
-                "Estado": f['fixture']['status']['long']
+                "Estado": f['fixture']['status']['short']  # Usamos el código corto (FT, NS, etc.)
             })
         
         df_historial = pd.DataFrame(records_historial)
         
-        # 1. ¿Está jugando en vivo ahorita? (Buscar en df_live usando Pandas)
+        # Ordenamos las fechas para tener consistencia cronológica
+        df_historial = df_historial.sort_values(by="Fecha", ascending=False)
+        
+        # 1. ¿Está jugando en vivo ahorita?
         if not df_live.empty:
             partido_en_vivo = df_live[(df_live['Local'] == equipo_favorito) | (df_live['Visita'] == equipo_favorito)]
             if not partido_en_vivo.empty:
@@ -163,8 +176,10 @@ with tab2:
                 st.markdown("---")
         
         # Separar partidos usando lógica condicional de Pandas
-        df_finalizados = df_historial[df_historial['Estado'] == 'Match Finished'].head(5)
-        df_proximos = df_historial[df_historial['Estado'] != 'Match Finished'].head(5)
+        # FT = Full Time (Finalizado), AET = Extra Time, PEN = Penales
+        estados_finalizados = ['FT', 'AET', 'PEN']
+        df_finalizados = df_historial[df_historial['Estado'].isin(estados_finalizados)].head(5)
+        df_proximos = df_historial[~df_historial['Estado'].isin(estados_finalizados)].tail(5) # Los más cercanos en el tiempo
         
         col_izq, col_der = st.columns(2)
         
@@ -172,24 +187,27 @@ with tab2:
             st.subheader("⏮️ Últimos 5 Resultados")
             if not df_finalizados.empty:
                 for idx, row in df_finalizados.iterrows():
-                    # Definimos un formato visual amigable
-                    st.markdown(f"**{row['Local']} {int(row['Goles Local'])} - {int(row['Goles Visita'])} {row['Visita']}**")
+                    # Evitamos errores de conversión de decimales en los goles mostrándolos limpios
+                    gol_l = int(row['Goles Local']) if not pd.isna(row['Goles Local']) else 0
+                    gol_v = int(row['Goles Visita']) if not pd.isna(row['Goles Visita']) else 0
+                    st.markdown(f"**{row['Local']} {gol_l} - {gol_v} {row['Visita']}**")
                     st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
                     st.markdown("---")
             else:
-                st.info("No hay registros recientes finalizados.")
+                st.info("No hay partidos finalizados registrados en esta temporada.")
                 
         with col_der:
             st.subheader("⏭️ Próximos Encuentros")
             if not df_proximos.empty:
-                for idx, row in df_proximos.iterrows():
+                # Invertimos el orden para mostrar el más cercano primero
+                for idx, row in df_proximos.iloc[::-1].iterrows():
                     st.markdown(f"**{row['Local']} vs {row['Visita']}**")
-                    st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']} ({row['Estado']})")
+                    st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
                     st.markdown("---")
             else:
-                st.info("No hay partidos programados en el calendario próximo.")
+                st.info("No hay partidos próximos programados en el calendario de esta temporada.")
     else:
-        st.warning("No se pudieron cargar datos para este equipo desde la API.")
+        st.error("No se pudieron obtener registros válidos. Verifica si tu límite diario de la API-Key se agotó o si hay problemas de conexión con API-Sports.")
 
 # -------------------------------------------------------------------------
 # PESTAÑA 3: ANALÍTICA CON PANDAS
