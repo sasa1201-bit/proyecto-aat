@@ -887,12 +887,6 @@ df_finalizados = df_historial[
 ]
 
 
-# Aquí empiezan tus cálculos
-
-total_partidos = len(df_finalizados)
-
-promedio_goles = 0
-
 
 promedio_goles = 0
 
