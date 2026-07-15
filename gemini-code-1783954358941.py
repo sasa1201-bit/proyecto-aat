@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-from datetime import datetime
+from datetime import datetime 
 
 # Configuración de la página estilo Deportivo Premium
 st.set_page_config(page_title="Forza Fútbol Live & Tracker", page_icon="⚽", layout="wide")
