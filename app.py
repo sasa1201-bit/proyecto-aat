@@ -5,7 +5,6 @@ import plotly.express as px
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 
-
 # =========================================================================
 # CONFIGURACIÓN GENERAL
 # =========================================================================
