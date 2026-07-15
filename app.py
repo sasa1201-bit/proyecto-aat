@@ -8,49 +8,37 @@ from datetime import datetime
 # =========================================================================
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-# CSS modificado para la identidad visual de ESPN
+# CSS modificado para la identidad visual
 st.markdown("""
     <style>
-        /* Tipografía general y Fondo gris claro estilo web deportiva */
         .stApp {
             background-color: #F4F4F4 !important;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
         }
-        
-        /* Forzar texto negro general */
         .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
             color: #000000 !important;
         }
-
-        /* Pestañas (Tabs) estilo deportivo */
-        button[data-baseweb="tab"] {
-            color: #000000 !important;
-        }
+        button[data-baseweb="tab"] { color: #000000 !important; }
         button[data-baseweb="tab"] p {
             color: #000000 !important;
             font-weight: 800 !important;
             font-size: 1.05rem !important;
             text-transform: uppercase !important;
         }
-        
-        /* Selector (Selectbox) */
         .stSelectbox div[data-baseweb="select"] {
             color: #000000 !important;
             background-color: #ffffff !important;
             border-radius: 4px !important;
             border: 1px solid #cccccc !important;
         }
-
-        /* Tarjeta Blanca estilo ESPN (Bordes más cuadrados y sombras sutiles) */
         .premium-card {
             background-color: #ffffff !important;
             padding: 24px;
-            border-radius: 4px; /* Bordes menos redondeados, más corporativos */
+            border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
-            border-top: 4px solid #CC0000; /* Acento rojo superior característico */
+            border-top: 4px solid #CC0000;
         }
-        
         .section-title {
             color: #000000 !important;
             font-size: 1.3rem;
@@ -59,21 +47,18 @@ st.markdown("""
             margin-bottom: 16px;
             letter-spacing: -0.5px;
         }
-        
         .live-team-name {
             color: #000000 !important;
             font-weight: 800 !important;
             font-size: 1.15rem !important;
             text-transform: uppercase;
         }
-        
         .live-score {
-            color: #CC0000 !important; /* Rojo ESPN */
+            color: #CC0000 !important;
             font-weight: 900 !important;
             font-size: 1.4rem !important;
             margin: 0 15px !important;
         }
-        
         .live-league-label {
             color: #666666 !important;
             font-weight: 700 !important;
@@ -83,7 +68,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Encabezado principal (Estilo Noticiero)
+# Encabezado principal
 st.markdown("""
     <div style='margin-bottom: 30px; border-bottom: 4px solid #000000; padding-bottom: 10px;'>
         <h1 style='color: #CC0000 !important; font-size: 2.8rem; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 0px;'>⚽ FORZA FÚTBOL</h1>
@@ -92,8 +77,93 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================================
+# FUNCIONES MODULARES DE INTERFAZ (UI) - NUEVAS
+# =========================================================================
+def dibujar_cabecera_equipo(nombre, logo, pais):
+    """Genera un encabezado profesional para el perfil del equipo seleccionado"""
+    html = f"""
+    <div style="display: flex; align-items: center; padding: 25px; background-color: #ffffff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 25px; border-top: 4px solid #CC0000;">
+        <div style="flex-shrink: 0; margin-right: 30px; background: #F4F4F4; padding: 15px; border-radius: 50%; width: 110px; height: 110px; display: flex; justify-content: center; align-items: center; border: 1px solid #E5E5E5;">
+            <!-- El object-fit: contain asegura que el logo nunca se deforme -->
+            <img src="{logo}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
+        </div>
+        <div style="flex-grow: 1;">
+            <p style="font-size: 0.85rem; margin:0; font-weight: 800; text-transform: uppercase; color: #666666 !important;">PERFIL DEL CLUB</p>
+            <h1 style="margin: 0; color: #000000 !important; font-size: 2.8rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase;">
+                {nombre}
+            </h1>
+            <div style="margin-top: 10px; display: flex; gap: 15px; flex-wrap: wrap;">
+                <span style="background-color: #CC0000; color: #ffffff !important; padding: 6px 12px; border-radius: 3px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;">
+                    📍 {pais}
+                </span>
+            </div>
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def dibujar_tarjeta_previo(row):
+    """Renderiza el HTML para un partido ya finalizado (con resultados)"""
+    html = f"""
+    <div style='padding: 14px 0; border-bottom: 1px solid #E5E5E5;'>
+        <div style='display: flex; justify-content: space-between; align-items: center;'>
+            <span style='font-weight: 800; display: flex; align-items: center; font-size: 1.05rem;'>
+                <img src="{row.get('Logo Local', '')}" width="28" height="28" style="margin-right: 8px; object-fit: contain;"> {row['Local']} 
+                <span style='margin: 0 8px; color: #999999; font-weight: 500;'>vs</span> 
+                {row['Visita']} <img src="{row.get('Logo Visita', '')}" width="28" height="28" style="margin-left: 8px; object-fit: contain;">
+            </span>
+            <span style='font-weight: 900; color: #CC0000 !important; font-size: 1.2rem;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</span>
+        </div>
+        <div style='display: flex; justify-content: space-between; margin-top: 6px;'>
+            <span style='font-size: 0.75rem; font-weight: 800; color: #666666 !important; text-transform: uppercase;'>🏆 {row['Competencia']}</span>
+            <span style='font-size: 0.75rem; font-weight: 700; color: #999999 !important;'>📅 {row['Fecha']}</span>
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def dibujar_tarjeta_proximo(row):
+    """Renderiza el HTML para un partido que aún no se juega"""
+    html = f"""
+    <div style='padding: 14px 0; border-bottom: 1px solid #E5E5E5;'>
+        <div style='font-weight: 800; display: flex; align-items: center; font-size: 1.05rem;'>
+            <img src="{row.get('Logo Local', '')}" width="28" height="28" style="margin-right: 8px; object-fit: contain;"> {row['Local']} 
+            <span style='margin: 0 8px; color: #999999; font-weight: 500;'>vs</span> 
+            {row['Visita']} <img src="{row.get('Logo Visita', '')}" width="28" height="28" style="margin-left: 8px; object-fit: contain;">
+        </div>
+        <div style='display: flex; justify-content: space-between; margin-top: 6px;'>
+            <span style='font-size: 0.75rem; font-weight: 800; color: #666666 !important; text-transform: uppercase;'>🏆 {row['Competencia']}</span>
+            <span style='font-size: 0.75rem; color: #CC0000 !important; font-weight: 800;'>📅 {row['Fecha']}</span>
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def dibujar_tarjeta_en_vivo(row):
+    """Renderiza la tarjeta para marcadores en vivo"""
+    html = f"""
+    <div style='padding: 18px; background-color: #ffffff; border-radius: 4px; margin-bottom: 14px; border: 1px solid #E5E5E5; border-left: 4px solid #CC0000;'>
+        <div style='display: flex; justify-content: space-between; align-items: center;'>
+            <div style='display: flex; align-items: center;'>
+                <img src="{row.get('Logo L', '')}" width="32" height="32" style="margin-right: 12px; object-fit: contain;">
+                <span class='live-team-name'>{row['Local']}</span>
+                <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span>
+                <span class='live-team-name'>{row['Visita']}</span>
+                <img src="{row.get('Logo V', '')}" width="32" height="32" style="margin-left: 12px; object-fit: contain;">
+            </div>
+            <div style='text-align: right;'>
+                <span style='background-color: #CC0000; color: #ffffff !important; padding: 4px 12px; border-radius: 2px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;'>⏱️ {row['Minuto']}'</span>
+                <div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div>
+            </div>
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+# =========================================================================
 # CONFIGURACIÓN DE LA API Y RESPALDO
 # =========================================================================
+# Sugerencia a futuro: Cambia esto por API_KEY = st.secrets["API_SPORTS_KEY"] por seguridad.
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {
     'x-apisports-key': API_KEY,
@@ -236,6 +306,9 @@ with tab1:
     logo_activo = st.session_state["logo_seleccionado"] 
     
     if id_activo:
+        # Dibujamos el nuevo encabezado gigante y elegante del equipo
+        dibujar_cabecera_equipo(nombre_activo, logo_activo, pais_activo)
+        
         historial_raw, origen_datos = obtener_calendario_equipo(id_activo, nombre_activo, pais_activo)
         records_historial = []
         for f in historial_raw:
@@ -260,6 +333,8 @@ with tab1:
         
         victorias = 0
         goles_favor = 0
+        partidos_jugados = len(df_finalizados)
+        
         if not df_finalizados.empty:
             for _, row in df_finalizados.iterrows():
                 es_local = row['Local'] == nombre_activo
@@ -270,51 +345,26 @@ with tab1:
                     if g_propio > g_rival:
                         victorias += 1
                         
+        # Tarjetas de KPI usando st.columns
         kpi1, kpi2, kpi3 = st.columns(3)
         with kpi1:
-            # Color Rojo (#CC0000)
-            html_kpi1 = f"""
-            <div class='premium-card' style='border-left: 6px solid #CC0000; border-top: none;'>
-                <p style='font-size: 0.85rem; margin:0; font-weight: 800; text-transform: uppercase; color: #666666 !important;'>CLUB SELECCIONADO</p>
-                <div style='display: flex; align-items: center; margin: 8px 0;'>
-                    <img src='{logo_activo}' width='45' style='margin-right: 12px;'>
-                    <h2 style='margin: 0; text-transform: uppercase; font-weight: 900; font-size: 1.5rem;'>{nombre_activo}</h2>
-                </div>
-                <span style='color: #CC0000 !important; font-weight: 900; text-transform: uppercase;'>📍 {pais_activo}</span>
-            </div>
-            """
-            st.markdown(html_kpi1, unsafe_allow_html=True)
+            st.markdown(f"<div class='premium-card' style='border-left: 6px solid #CC0000; border-top: none;'><p style='font-size: 0.85rem; margin:0; font-weight: 800; text-transform: uppercase; color: #666666 !important;'>PARTIDOS JUGADOS</p><h2 style='color: #000000 !important; margin: 4px 0; font-weight: 900; font-size: 2.2rem;'>{partidos_jugados}</h2><span style='color: #CC0000 !important; font-weight: 800; text-transform: uppercase;'>📊 Registros Actuales</span></div>", unsafe_allow_html=True)
             
         with kpi2:
-            # Color Negro (#000000)
             st.markdown(f"<div class='premium-card' style='border-left: 6px solid #000000; border-top: none;'><p style='font-size: 0.85rem; margin:0; font-weight: 800; text-transform: uppercase; color: #666666 !important;'>VICTORIAS RECIENTES</p><h2 style='color: #000000 !important; margin: 4px 0; font-weight: 900; font-size: 2.2rem;'>{victorias}</h2><span style='color: #000000 !important; font-weight: 800; text-transform: uppercase;'>📈 Racha de Triunfos</span></div>", unsafe_allow_html=True)
+            
         with kpi3:
-            # Color Gris/Plata (#666666)
             st.markdown(f"<div class='premium-card' style='border-left: 6px solid #666666; border-top: none;'><p style='font-size: 0.85rem; margin:0; font-weight: 800; text-transform: uppercase; color: #666666 !important;'>GOLES A FAVOR</p><h2 style='color: #000000 !important; margin: 4px 0; font-weight: 900; font-size: 2.2rem;'>{goles_favor}</h2><span style='color: #666666 !important; font-weight: 800; text-transform: uppercase;'>⚽ Poder Ofensivo</span></div>", unsafe_allow_html=True)
 
+        # Tablas de resultados (Usando las funciones modulares ultralimpias)
         col_izq, col_der = st.columns(2)
         with col_izq:
             st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
             st.markdown("<div class='section-title'>⏮️ Resultados Previos</div>", unsafe_allow_html=True)
             df_ultimos = df_finalizados.head(5)
             if not df_ultimos.empty:
-                for idx, row in df_ultimos.iterrows():
-                    st.markdown(f"""
-                        <div style='padding: 14px 0; border-bottom: 1px solid #E5E5E5;'>
-                            <div style='display: flex; justify-content: space-between; align-items: center;'>
-                                <span style='font-weight: 800; display: flex; align-items: center; font-size: 1.05rem;'>
-                                    <img src="{row.get('Logo Local', '')}" width="24" style="margin-right: 8px;"> {row['Local']} 
-                                    <span style='margin: 0 8px; color: #999999; font-weight: 500;'>vs</span> 
-                                    {row['Visita']} <img src="{row.get('Logo Visita', '')}" width="24" style="margin-left: 8px;">
-                                </span>
-                                <span style='font-weight: 900; color: #CC0000 !important; font-size: 1.2rem;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</span>
-                            </div>
-                            <div style='display: flex; justify-content: space-between; margin-top: 6px;'>
-                                <span style='font-size: 0.75rem; font-weight: 800; color: #666666 !important; text-transform: uppercase;'>🏆 {row['Competencia']}</span>
-                                <span style='font-size: 0.75rem; font-weight: 700; color: #999999 !important;'>📅 {row['Fecha']}</span>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                for _, row in df_ultimos.iterrows():
+                    dibujar_tarjeta_previo(row)  # <--- LLamada súper limpia
             else:
                 st.info("No hay registros finalizados.")
             st.markdown("</div>", unsafe_allow_html=True)
@@ -324,20 +374,8 @@ with tab1:
             st.markdown("<div class='section-title'>⏭️ Próximos Encuentros</div>", unsafe_allow_html=True)
             df_proximos = df_historial[~df_historial['Estado'].isin(estados_finalizados)].tail(5)
             if not df_proximos.empty:
-                for idx, row in df_proximos.iloc[::-1].iterrows():
-                    st.markdown(f"""
-                        <div style='padding: 14px 0; border-bottom: 1px solid #E5E5E5;'>
-                            <div style='font-weight: 800; display: flex; align-items: center; font-size: 1.05rem;'>
-                                <img src="{row.get('Logo Local', '')}" width="24" style="margin-right: 8px;"> {row['Local']} 
-                                <span style='margin: 0 8px; color: #999999; font-weight: 500;'>vs</span> 
-                                {row['Visita']} <img src="{row.get('Logo Visita', '')}" width="24" style="margin-left: 8px;">
-                            </div>
-                            <div style='display: flex; justify-content: space-between; margin-top: 6px;'>
-                                <span style='font-size: 0.75rem; font-weight: 800; color: #666666 !important; text-transform: uppercase;'>🏆 {row['Competencia']}</span>
-                                <span style='font-size: 0.75rem; color: #CC0000 !important; font-weight: 800;'>📅 {row['Fecha']}</span>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                for _, row in df_proximos.iloc[::-1].iterrows():
+                    dibujar_tarjeta_proximo(row)  # <--- LLamada súper limpia
             else:
                 st.info("Sin partidos programados.")
             st.markdown("</div>", unsafe_allow_html=True)
@@ -346,7 +384,6 @@ with tab1:
 with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🔴 En Juego</div>", unsafe_allow_html=True)
-    
     st.caption("🟢 Conexión activa. Los datos se actualizan en tiempo real.")
     st.write("") 
     
@@ -355,24 +392,10 @@ with tab2:
     else:
         filtro = st.text_input("Buscar por equipo o liga:", "")
         df_live_filtered = df_live[df_live['Local'].str.contains(filtro, case=False) | df_live['Visita'].str.contains(filtro, case=False) | df_live['Liga'].str.contains(filtro, case=False)] if filtro else df_live
-        for idx, row in df_live_filtered.iterrows():
-            st.markdown(f"""
-                <div style='padding: 18px; background-color: #ffffff; border-radius: 4px; margin-bottom: 14px; border: 1px solid #E5E5E5; border-left: 4px solid #CC0000;'>
-                    <div style='display: flex; justify-content: space-between; align-items: center;'>
-                        <div style='display: flex; align-items: center;'>
-                            <img src="{row.get('Logo L', '')}" width="30" style="margin-right: 12px;">
-                            <span class='live-team-name'>{row['Local']}</span>
-                            <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span>
-                            <span class='live-team-name'>{row['Visita']}</span>
-                            <img src="{row.get('Logo V', '')}" width="30" style="margin-left: 12px;">
-                        </div>
-                        <div style='text-align: right;'>
-                            <span style='background-color: #CC0000; color: #ffffff !important; padding: 4px 12px; border-radius: 2px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;'>⏱️ {row['Minuto']}'</span>
-                            <div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div>
-                        </div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+        
+        for _, row in df_live_filtered.iterrows():
+            dibujar_tarjeta_en_vivo(row) # <--- LLamada súper limpia
+            
     st.markdown("</div>", unsafe_allow_html=True)
 
 # PESTAÑA 3: Analítica Global
@@ -395,11 +418,11 @@ with tab3:
     with col_izq:
         st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
         st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📊 Frecuencia por Liga</div>", unsafe_allow_html=True)
-        st.bar_chart(chart_data, use_container_width=True, color="#CC0000") # Gráfico en rojo ESPN
+        st.bar_chart(chart_data, use_container_width=True, color="#CC0000")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_der:
         st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
         st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📈 Densidad de Eventos</div>", unsafe_allow_html=True)
-        st.area_chart(chart_data, use_container_width=True, color="#000000") # Gráfico en negro ESPN
+        st.area_chart(chart_data, use_container_width=True, color="#000000")
         st.markdown("</div>", unsafe_allow_html=True)
