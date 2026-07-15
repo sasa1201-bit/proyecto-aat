@@ -1,866 +1,107 @@
 import streamlit as st
 import pandas as pd
 import requests
-import plotly.express as px
 from datetime import datetime
-from streamlit_autorefresh import st_autorefresh
 
 # =========================================================================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN ESTÉTICA PREMIUM (Texto Negro y Fondos Integrados)
 # =========================================================================
+st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-st.set_page_config(
-    page_title="Forza Football Live",
-    page_icon="⚽",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-
-# =========================================================================
-# AUTO REFRESH (ESTILO MARCADORES EN VIVO)
-# =========================================================================
-
-st_autorefresh(
-    interval=30000,
-    key="football_refresh"
-)
-
-
-# =========================================================================
-# DISEÑO PREMIUM ESTILO ESPN / SOFASCORE
-# =========================================================================
-
+# CSS para forzar textos negros en menús, pestañas y cajas de selección
 st.markdown("""
-<style>
-
-
-/* Fondo principal */
-
-.stApp {
-    background:
-    linear-gradient(
-        135deg,
-        #f8fafc 0%,
-        #e2e8f0 100%
-    );
-}
-
-
-/* Texto general */
-
-html, body, [class*="css"] {
-
-    font-family:
-    'Inter',
-    'Segoe UI',
-    sans-serif;
-
-}
-
-
-p, span, label, div, h1, h2, h3 {
-
-    color:#111827 !important;
-
-}
-
-
-/* HEADER */
-
-.hero {
-
-    background:
-    linear-gradient(
-        135deg,
-        #020617,
-        #1e293b
-    );
-
-    padding:35px;
-
-    border-radius:25px;
-
-    margin-bottom:30px;
-
-    box-shadow:
-    0px 15px 40px rgba(0,0,0,.15);
-
-}
-
-
-.hero h1 {
-
-    color:white !important;
-
-    font-size:42px;
-
-    font-weight:900;
-
-    margin-bottom:5px;
-
-}
-
-
-.hero p {
-
-    color:#cbd5e1 !important;
-
-    font-size:18px;
-
-}
-
-
-/* TARJETAS */
-
-.card {
-
-
-background:white;
-
-
-padding:25px;
-
-
-border-radius:20px;
-
-
-box-shadow:
-
-0px 10px 25px rgba(15,23,42,.08);
-
-
-border:
-
-1px solid #e2e8f0;
-
-
-margin-bottom:20px;
-
-
-}
-
-
-
-/* TITULOS */
-
-.section-title {
-
-
-font-size:22px;
-
-
-font-weight:800;
-
-
-margin-bottom:15px;
-
-
-}
-
-
-
-/* KPI */
-
-.kpi {
-
-
-background:white;
-
-
-border-radius:18px;
-
-
-padding:22px;
-
-
-border-left:
-
-6px solid #2563eb;
-
-
-box-shadow:
-
-0px 8px 20px rgba(0,0,0,.08);
-
-
-}
-
-
-
-.kpi-title {
-
-
-font-size:13px;
-
-
-font-weight:700;
-
-
-color:#64748b !important;
-
-
-}
-
-
-
-.kpi-value {
-
-
-font-size:30px;
-
-
-font-weight:900;
-
-
-color:#0f172a !important;
-
-
-}
-
-
-
-/* SIDEBAR */
-
-
-section[data-testid="stSidebar"] {
-
-
-background:
-
-linear-gradient(
-
-180deg,
-
-#020617,
-
-#111827
-
-);
-
-
-}
-
-
-
-section[data-testid="stSidebar"] * {
-
-
-color:white !important;
-
-
-}
-
-
-/* BOTONES */
-
-
-.stButton button {
-
-
-background:
-
-linear-gradient(
-
-90deg,
-
-#2563eb,
-
-#4f46e5
-
-);
-
-
-color:white !important;
-
-
-border:none;
-
-
-border-radius:12px;
-
-
-font-weight:800;
-
-
-padding:10px 20px;
-
-
-}
-
-
-.stButton button:hover {
-
-
-transform:scale(1.03);
-
-
-}
-
-
-/* SELECTORES */
-
-
-.stSelectbox div[data-baseweb="select"],
-
-.stTextInput input {
-
-
-border-radius:12px !important;
-
-
-background:white !important;
-
-
-}
-
-
-/* TABLAS */
-
-
-thead tr th {
-
-
-background:#0f172a !important;
-
-
-color:white !important;
-
-
-}
-
-
-</style>
-
-""",
-unsafe_allow_html=True)
-
-
-
-# =========================================================================
-# HEADER PRINCIPAL
-# =========================================================================
-
-
+    <style>
+        /* Fondo general de la app */
+        .stApp {
+            background-color: #f8fafc !important;
+        }
+        
+        /* Forzar texto negro general */
+        .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
+            color: #000000 !important;
+        }
+
+        /* Texto negro y en negrita para las pestañas (Tabs) */
+        button[data-baseweb="tab"] {
+            color: #000000 !important;
+        }
+        button[data-baseweb="tab"] p {
+            color: #000000 !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+        }
+        
+        /* Texto negro para el selector (Selectbox) */
+        .stSelectbox div[data-baseweb="select"] {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+        }
+        .stSelectbox div[data-baseweb="select"] span {
+            color: #000000 !important;
+        }
+
+        /* Estilo para contenedores tipo Tarjeta Blanca */
+        .premium-card {
+            background-color: #ffffff !important;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .section-title {
+            color: #000000 !important;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .premium-card p, .premium-card span, .premium-card div, .premium-card label, .premium-card h2, .premium-card h3 {
+            color: #000000 !important;
+        }
+        
+        .live-team-name {
+            color: #000000 !important;
+            font-weight: 800 !important;
+            font-size: 1.15rem !important;
+        }
+        
+        .live-score {
+            color: #4f46e5 !important;
+            font-weight: 900 !important;
+            font-size: 1.3rem !important;
+            margin: 0 15px !important;
+        }
+        
+        .live-league-label {
+            color: #000000 !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Encabezado principal
 st.markdown("""
-<div class="hero">
+    <div style='margin-bottom: 30px;'>
+        <h1 style='color: #000000 !important; font-size: 2.2rem; font-weight: 800; margin-bottom: 4px;'>⚽ Forza Fútbol Live</h1>
+        <p style='color: #000000 !important; font-size: 1rem;'>Procesamiento analítico avanzado y monitoreo de escuadras globales</p>
+    </div>
+""", unsafe_allow_html=True)
 
-<h1>
-⚽ Forza Football Live
-</h1>
-
-<p>
-Plataforma avanzada de análisis futbolístico,
-marcadores en vivo y seguimiento global de equipos.
-</p>
-
-</div>
-
-""",
-unsafe_allow_html=True)
-# =========================================================================
-# NAVEGACIÓN PRINCIPAL
-# =========================================================================
-
-tab1, tab2, tab3 = st.tabs(
-    [
-        "📊 Buscador & Seguimiento",
-        "🔴 Marcadores en Vivo",
-        "📈 Estadísticas de Liga"
-    ]
-)
-
-
-with tab1:
-
-
-    # VARIABLES DE SESIÓN
-
-    if "id_seleccionado" not in st.session_state:
-        st.session_state["id_seleccionado"] = 541
-
-
-    if "nombre_seleccionado" not in st.session_state:
-        st.session_state["nombre_seleccionado"] = "Real Madrid"
-
-
-    if "pais_seleccionado" not in st.session_state:
-        st.session_state["pais_seleccionado"] = "Spain"
-
-
-    if "logo_seleccionado" not in st.session_state:
-        st.session_state["logo_seleccionado"] = ""
-
-
-    # CONTINÚA TU CÓDIGO NORMAL
-
-    id_activo = st.session_state["id_seleccionado"]
-# =========================================================================
-# SIDEBAR PROFESIONAL
-# =========================================================================
-
-
-with st.sidebar:
-
-
-    st.markdown(
-    """
-
-    <h1 style="
-    color:white;
-    text-align:center;
-    ">
-    ⚽ FORZA
-    </h1>
-
-
-    <p style="
-    text-align:center;
-    color:#94a3b8;
-    ">
-    Football Analytics
-    </p>
-
-
-    <hr>
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-    st.markdown("### 🔄 Centro de Control")
-
-
-    if st.button("🚀 Sincronizar Datos"):
-
-        st.cache_data.clear()
-
-        st.success(
-            "Datos actualizados"
-        )
-
-
-
-    st.markdown("---")
-
-
-    st.markdown(
-    """
-
-    ### 📊 Módulos
-
-    ⚽ Seguimiento de equipos
-
-    🔴 Partidos en vivo
-
-    📈 Estadísticas
-
-
-    """
-
-    )
 # =========================================================================
 # CONFIGURACIÓN DE LA API Y RESPALDO
 # =========================================================================
-# =========================================================================
-# CONFIGURACIÓN API FOOTBALL
-# =========================================================================
-
-# Recomendado después:
-# guardar la clave en .streamlit/secrets.toml
-
-API_KEY = st.secrets["API_KEY"] if "API_KEY" in st.secrets else "acb867b68f5987d9c226e48c12c090e3"
-
-
+API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {
-
-    "x-apisports-key": API_KEY,
-
-    "x-rapidapi-host":
-    "v3.football.api-sports.io"
-
+    'x-apisports-key': API_KEY,
+    'x-rapidapi-host': 'v3.football.api-sports.io'
 }
 
-
-
-# =========================================================================
-# UTILIDADES VISUALES
-# =========================================================================
-
-
-# =========================================================================
-# COMPONENTE PERFIL DE EQUIPO - ESTILO ESPN / SOFASCORE
-# =========================================================================
-
-
-def calcular_forma_equipo(df_partidos, nombre_equipo):
-
-    forma = []
-
-
-    for _, partido in df_partidos.head(5).iterrows():
-
-        local = partido["Local"]
-
-        visitante = partido["Visita"]
-
-        goles_local = partido["Goles Local"]
-
-        goles_visitante = partido["Goles Visita"]
-
-
-        if pd.isna(goles_local) or pd.isna(goles_visitante):
-            continue
-
-
-        if local == nombre_equipo:
-
-            goles_favor = goles_local
-
-            goles_contra = goles_visitante
-
-        else:
-
-            goles_favor = goles_visitante
-
-            goles_contra = goles_local
-
-
-
-        if goles_favor > goles_contra:
-
-            forma.append("🟢")
-
-        elif goles_favor == goles_contra:
-
-            forma.append("🟡")
-
-        else:
-
-            forma.append("🔴")
-
-
-    while len(forma) < 5:
-
-        forma.append("⚪")
-
-
-    return forma
-
-
-
-def tarjeta_perfil_profesional(
-
-    nombre,
-
-    pais,
-
-    logo,
-
-    victorias,
-
-    goles,
-
-    partidos,
-
-    promedio_goles,
-
-    forma
-
-):
-
-
-    logo_html = ""
-
-
-    if logo:
-
-
-        logo_html = f"""
-
-        <img
-
-        src="{logo}"
-
-        width="110"
-
-        style="
-
-        border-radius:50%;
-
-        background:white;
-
-        padding:10px;
-
-        "
-
-        >
-
-        """
-
-
-
-    forma_html = " ".join(forma)
-
-
-
-    st.markdown(
-
-    f"""
-
-<div class="card">
-
-
-<div style="
-
-text-align:center;
-
-">
-
-
-{logo_html}
-
-
-
-<h1 style="
-
-font-size:32px;
-
-">
-
-{nombre}
-
-</h1>
-
-
-
-<p>
-
-🌎 {pais}
-
-</p>
-
-
-</div>
-
-
-
-<hr>
-
-
-
-<div style="
-
-display:flex;
-
-justify-content:space-around;
-
-text-align:center;
-
-">
-
-
-
-<div>
-
-<h2>
-
-🏆 {victorias}
-
-</h2>
-
-<p>
-
-Victorias
-
-</p>
-
-</div>
-
-
-
-
-<div>
-
-<h2>
-
-⚽ {goles}
-
-</h2>
-
-<p>
-
-Goles
-
-</p>
-
-</div>
-
-
-
-
-<div>
-
-<h2>
-
-📅 {partidos}
-
-</h2>
-
-<p>
-
-Partidos
-
-</p>
-
-</div>
-
-
-
-</div>
-
-
-
-<hr>
-
-
-
-
-<div style="
-
-text-align:center;
-
-">
-
-
-<h3>
-
-🔥 Forma reciente
-
-</h3>
-
-
-<h2>
-
-{forma_html}
-
-</h2>
-
-
-
-<p>
-
-Promedio ofensivo:
-
-<b>
-
-{promedio_goles}
-
-</b>
-
-goles / partido
-
-</p>
-
-
-
-</div>
-
-
-
-</div>
-
-""",
-
-unsafe_allow_html=True
-
-)
-
-id_activo = st.session_state["id_seleccionado"]
-
-nombre_activo = st.session_state["nombre_seleccionado"]
-
-pais_activo = st.session_state["pais_seleccionado"]
-
-
-# ==========================================================
-# RESPALDO DE DATOS
-# ==========================================================
-
-def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
-
-    pais_normalizado = str(pais_equipo).lower()
-
-    if "mexico" in pais_normalizado:
-
-        competencia = "Liga MX"
-
-        rivales = [
-            "Chivas Guadalajara",
-            "Cruz Azul",
-            "Pumas UNAM",
-            "Tigres UANL",
-            "Monterrey"
-        ]
-
-    else:
-
-        competencia = "Amistoso Internacional"
-
-        rivales = [
-            "Real Madrid",
-            "Barcelona",
-            "Manchester City",
-            "Bayern Munich",
-            "PSG"
-        ]
-
-
-    return [
-        {
-            "Fecha": "2026-07-12 18:00",
-            "Competencia": competencia,
-            "Local": rivales[0],
-            "Goles Local": 1,
-            "Goles Visita": 2,
-            "Visita": nombre_equipo,
-            "Estado": "FT"
-        }
-    ]
-
-
-records_historial = []
-
-
-for f in historial_raw:
-
-    if "fixture" in f:
-
-        records_historial.append({
-
-            "Fecha": pd.to_datetime(
-                f["fixture"]["date"]
-            ).strftime("%Y-%m-%d %H:%M"),
-
-            "Competencia": f["league"]["name"],
-
-            "Local": f["teams"]["home"]["name"],
-
-            "Goles Local": f["goals"]["home"],
-
-            "Goles Visita": f["goals"]["away"],
-
-            "Visita": f["teams"]["away"]["name"],
-
-            "Estado": f["fixture"]["status"]["short"]
-
-        })
-
-
-    else:
-
-        records_historial.append(f)
+st.sidebar.markdown("### 🔄 Control de Datos")
+if st.sidebar.button("Forzar Sincronización"):
+    st.cache_data.clear()
 
 def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
     pais_normalizado = str(pais_equipo).strip().lower()
@@ -938,60 +179,7 @@ if live_fixtures:
             "Minuto": match['fixture']['status']['elapsed']
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
-# =========================================================================
-# MÉTRICAS AVANZADAS DEL EQUIPO
-# =========================================================================
 
-
-df_historial = pd.DataFrame(records_historial)
-
-
-if not df_historial.empty:
-
-
-    df_historial = df_historial.sort_values(
-        by="Fecha",
-        ascending=False
-    )
-
-
-    estados_finalizados = [
-        "FT",
-        "AET",
-        "PEN"
-    ]
-
-
-    df_finalizados = df_historial[
-        df_historial["Estado"].isin(estados_finalizados)
-    ]
-
-
-else:
-
-    df_finalizados = pd.DataFrame()
-
-
-
-total_partidos = len(df_finalizados)
-
-
-
-promedio_goles = 0
-
-
-if total_partidos > 0:
-
-    promedio_goles = round(
-        goles_favor / total_partidos,
-        2
-    )
-
-
-forma_equipo = calcular_forma_equipo(
-    df_finalizados,
-    nombre_activo
-)
 # =========================================================================
 # RENDERIZADO DE LAS PESTAÑAS (TABS)
 # =========================================================================
@@ -1071,704 +259,86 @@ with tab1:
                     if g_propio > g_rival:
                         victorias += 1
                         
-tarjeta_perfil_profesional(
-
-    nombre_activo,
-
-    pais_activo,
-
-    logo_activo,
-
-    victorias,
-
-    goles_favor,
-
-    total_partidos,
-
-    promedio_goles,
-
-    forma_equipo
-
-)
-        # =========================================================================
-# TARJETAS KPI ESTILO SOFASCORE
-# =========================================================================
-
-
-st.markdown(
-"""
-<div class="section-title">
-📊 Rendimiento del Equipo
-</div>
-""",
-unsafe_allow_html=True
-)
-
-
-
-kpi1, kpi2, kpi3 = st.columns(3)
-
-
-
-with kpi1:
-
-    st.markdown(
-    f"""
-
-    <div class="kpi">
-
-        <div class="kpi-title">
-        ⚽ EQUIPO ACTUAL
-        </div>
-
-
-        <div class="kpi-value">
-        {nombre_activo}
-        </div>
-
-
-        <p>
-        🌎 {pais_activo}
-        </p>
-
-    </div>
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-
-with kpi2:
-
-
-    st.markdown(
-    f"""
-
-    <div class="kpi"
-    style="
-    border-left-color:#16a34a;
-    ">
-
-
-        <div class="kpi-title">
-        🏆 VICTORIAS RECIENTES
-        </div>
-
-
-        <div class="kpi-value"
-        style="
-        color:#16a34a !important;
-        ">
-        {victorias}
-        </div>
-
-
-        <p>
-        Rendimiento positivo
-        </p>
-
-
-    </div>
-
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-
-with kpi3:
-
-
-    st.markdown(
-    f"""
-
-    <div class="kpi"
-    style="
-    border-left-color:#f59e0b;
-    ">
-
-
-        <div class="kpi-title">
-        ⚽ GOLES ANOTADOS
-        </div>
-
-
-        <div class="kpi-value"
-        style="
-        color:#f59e0b !important;
-        ">
-        {goles_favor}
-        </div>
-
-
-        <p>
-        Poder ofensivo
-        </p>
-
-
-    </div>
-
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-# ==========================================
-# AQUÍ TERMINA KPI3
-# Y EMPIEZAN LOS RESULTADOS
-# ==========================================
-
-
-col_izq, col_der = st.columns(2)
-
-
-with col_der:
-
-
-    st.markdown(
-    """
-    <div class="section-title">
-    ⏭️ Próximos Partidos
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-
-    # Próximos partidos
-    df_proximos = df_historial[
-        ~df_historial['Estado'].isin(estados_finalizados)
-    ].head(5)
-
-
-
-    for idx, row in df_proximos.iloc[::-1].iterrows():
-
-        tarjeta_partido(
-
-            row['Local'],
-
-            row['Visita'],
-
-            None,
-
-            None,
-
-            row['Competencia']
-
-        )
-
-with col_der:
-
-
-    st.markdown(
-    """
-    <div class="section-title">
-    ⏭️ Próximos Partidos
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-
-    for idx, row in df_proximos.iloc[::-1].iterrows():
-
-        tarjeta_partido(
-
-            row['Local'],
-
-            row['Visita'],
-
-            None,
-
-            None,
-
-            row['Competencia']
-
-        )
-# =========================================================================
-# PESTAÑA 2: PARTIDOS EN VIVO ESTILO ESPN / SOFASCORE
-# =========================================================================
-
+        kpi1, kpi2, kpi3 = st.columns(3)
+        with kpi1:
+            st.markdown(f"<div class='premium-card' style='border-left: 5px solid #4f46e5;'><p style='font-size: 0.85rem; margin:0; font-weight: 600;'>EQUIPO SELECCIONADO</p><h2 style='margin: 4px 0;'>{nombre_activo}</h2><span style='color: #4f46e5 !important; font-weight: 700;'>📍 {pais_activo}</span></div>", unsafe_allow_html=True)
+        with kpi2:
+            st.markdown(f"<div class='premium-card' style='border-left: 5px solid #22c55e;'><p style='font-size: 0.85rem; margin:0; font-weight: 600;'>RENDIMIENTO RECIENTE</p><h2 style='color: #22c55e !important; margin: 4px 0;'>{victorias} Victorias</h2><span style='color: #22c55e !important; font-weight: 600;'>↑ Eficacia activa</span></div>", unsafe_allow_html=True)
+        with kpi3:
+            st.markdown(f"<div class='premium-card' style='border-left: 5px solid #3b82f6;'><p style='font-size: 0.85rem; margin:0; font-weight: 600;'>TOTAL DE GOLES</p><h2 style='color: #3b82f6 !important; margin: 4px 0;'>{goles_favor} Anotados</h2><span style='color: #3b82f6 !important; font-weight: 600;'>📈 Ofensiva analizada</span></div>", unsafe_allow_html=True)
+
+        col_izq, col_der = st.columns(2)
+        with col_izq:
+            st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
+            df_ultimos = df_finalizados.head(5)
+            if not df_ultimos.empty:
+                for idx, row in df_ultimos.iterrows():
+                    st.markdown(f"<div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'><div style='display: flex; justify-content: space-between;'><span style='font-weight: 700;'>{row['Local']} vs {row['Visita']}</span><span style='font-weight: 800; color: #4f46e5 !important;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</span></div><div style='display: flex; justify-content: space-between; margin-top: 4px;'><span style='font-size: 0.8rem; font-weight: 500;'>🏆 {row['Competencia']}</span><span style='font-size: 0.8rem;'>📅 {row['Fecha']}</span></div></div>", unsafe_allow_html=True)
+            else:
+                st.info("No hay registros finalizados.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+        with col_der:
+            st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='section-title'>⏭️ Siguientes Partidos</div>", unsafe_allow_html=True)
+            df_proximos = df_historial[~df_historial['Estado'].isin(estados_finalizados)].tail(5)
+            if not df_proximos.empty:
+                for idx, row in df_proximos.iloc[::-1].iterrows():
+                    st.markdown(f"<div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'><div style='font-weight: 700;'>{row['Local']} vs {row['Visita']}</div><div style='display: flex; justify-content: space-between; margin-top: 4px;'><span style='font-size: 0.8rem; font-weight: 500;'>🏆 {row['Competencia']}</span><span style='font-size: 0.8rem; color: #4f46e5 !important; font-weight: 700;'>📅 {row['Fecha']}</span></div></div>", unsafe_allow_html=True)
+            else:
+                st.info("Sin partidos programados.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+# PESTAÑA 2: Partidos en vivo
 with tab2:
-
-
-    st.markdown(
-    """
-    <div class="section-title">
-    🔴 Marcadores en Tiempo Real
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-
-    st.markdown(
-    """
-    <div class="card">
-
-    🛰️ Conexión activa con API Football
-
-    <br>
-
-    Los partidos se actualizan automáticamente.
-
-    </div>
-
-    """,
-    unsafe_allow_html=True
-    )
-
-
-
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🔴 Marcadores en Tiempo Real</div>", unsafe_allow_html=True)
+    
+    st.caption("🟢 Conexión activa con el servidor de satélite. Los datos se refrescan de manera autónoma.")
+    st.write("") 
+    
     if df_live.empty:
-
-
-        st.markdown(
-        """
-        <div class="card">
-
-        ⚽
-
-        <h2>
-        No hay partidos en vivo actualmente
-        </h2>
-
-
-        <p>
-        El sistema continuará monitoreando eventos.
-        </p>
-
-
-        </div>
-
-        """,
-        unsafe_allow_html=True
-        )
-
-
+        st.info("No hay partidos disputándose en vivo en este momento.")
     else:
+        filtro = st.text_input("Buscar por equipo o liga:", "")
+        df_live_filtered = df_live[df_live['Local'].str.contains(filtro, case=False) | df_live['Visita'].str.contains(filtro, case=False) | df_live['Liga'].str.contains(filtro, case=False)] if filtro else df_live
+        for idx, row in df_live_filtered.iterrows():
+            st.markdown(f"<div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1;'><div style='display: flex; justify-content: space-between; align-items: center;'><div><span class='live-team-name'>{row['Local']}</span><span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><span class='live-team-name'>{row['Visita']}</span></div><div style='text-align: right;'><span style='background-color: #ef4444; color: #ffffff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;'>⏱️ {row['Minuto']}'</span><div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div></div></div></div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-
-        # FILTRO
-
-        filtro_live = st.text_input(
-
-            "🔎 Buscar equipo o competición:",
-
-            placeholder="Ejemplo: Real Madrid, Premier League..."
-
-        )
-
-
-
-        df_filtrado = df_live.copy()
-
-
-
-        if filtro_live:
-
-
-            df_filtrado = df_filtrado[
-
-                df_filtrado["Local"].str.contains(
-                    filtro_live,
-                    case=False,
-                    na=False
-                )
-
-                |
-
-                df_filtrado["Visita"].str.contains(
-                    filtro_live,
-                    case=False,
-                    na=False
-                )
-
-                |
-
-                df_filtrado["Liga"].str.contains(
-                    filtro_live,
-                    case=False,
-                    na=False
-                )
-
-            ]
-
-
-
-        for _, partido in df_filtrado.iterrows():
-
-
-            tarjeta_partido(
-
-                partido["Local"],
-
-                partido["Visita"],
-
-                partido["Goles L"],
-
-                partido["Goles V"],
-
-                partido["Liga"],
-
-                partido["Minuto"]
-
-            )
-
-
-# =========================================================================
-# PESTAÑA 3: ANALÍTICA AVANZADA
-# =========================================================================
-
+# PESTAÑA 3: Analítica Visual con Gráficos Nativos Integrados
 with tab3:
-
-
-    st.markdown(
-    """
-    <div class="section-title">
-    📈 Centro de Analítica Futbolística
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-
-    # ---------------------------------------------------------------
-    # PREPARACIÓN DE DATOS
-    # ---------------------------------------------------------------
-
-
+    st.markdown("<div class='section-title' style='margin-left: 10px; margin-bottom: 18px;'>📈 Analítica de Volumen y Ligas</div>", unsafe_allow_html=True)
+    
     if not df_live.empty:
-
-
-        datos_ligas = (
-            df_live["Liga"]
-            .value_counts()
-            .reset_index()
-        )
-
-
-        datos_ligas.columns = [
-
-            "Liga",
-
-            "Partidos"
-
-        ]
-
-
+        data_grafica = df_live['Liga'].value_counts().reset_index()
+        data_grafica.columns = ['Liga', 'Partidos']
     else:
-
-
-        datos_ligas = pd.DataFrame({
-
-            "Liga":[
-
-                "Premier League",
-
-                "LaLiga",
-
-                "Serie A",
-
-                "Bundesliga",
-
-                "Ligue 1"
-
-            ],
-
-
-            "Partidos":[
-
-                15,
-
-                12,
-
-                9,
-
-                7,
-
-                5
-
-            ]
-
+        data_grafica = pd.DataFrame({
+            'Liga': ['LaLiga España', 'Premier League', 'Serie A Italia', 'Bundesliga', 'Ligue 1 Francia'],
+            'Partidos': [12, 8, 5, 4, 3]
         })
 
-
-
-    # ---------------------------------------------------------------
-    # KPIs GENERALES
-    # ---------------------------------------------------------------
-
-
-    total_partidos = int(
-        datos_ligas["Partidos"].sum()
-    )
-
-
-    liga_top = (
-        datos_ligas
-        .sort_values(
-            "Partidos",
-            ascending=False
-        )
-        .iloc[0]["Liga"]
-    )
-
-
-    cantidad_ligas = len(datos_ligas)
-
-
-
-    c1,c2,c3 = st.columns(3)
-
-
-
-    with c1:
-
-        st.markdown(
-        f"""
-
-        <div class="kpi">
-
-
-        <div class="kpi-title">
-        ⚽ PARTIDOS ANALIZADOS
-        </div>
-
-
-        <div class="kpi-value">
-
-        {total_partidos}
-
-        </div>
-
-
-        </div>
-
-        """,
-        unsafe_allow_html=True
-        )
-
-
-
-    with c2:
-
-
-        st.markdown(
-        f"""
-
-        <div class="kpi"
-        style="border-left-color:#16a34a">
-
-
-        <div class="kpi-title">
-
-        🌎 LIGAS MONITOREADAS
-
-        </div>
-
-
-        <div class="kpi-value">
-
-        {cantidad_ligas}
-
-        </div>
-
-
-        </div>
-
-        """,
-        unsafe_allow_html=True
-        )
-
-
-
-    with c3:
-
-
-        st.markdown(
-        f"""
-
-        <div class="kpi"
-        style="border-left-color:#f59e0b">
-
-
-        <div class="kpi-title">
-
-        🏆 LIGA MÁS ACTIVA
-
-        </div>
-
-
-        <div class="kpi-value"
-        style="font-size:22px">
-
-        {liga_top}
-
-        </div>
-
-
-        </div>
-
-        """,
-        unsafe_allow_html=True
-        )
-
-
-
-    st.write("")
-
-
-
-    # ---------------------------------------------------------------
-    # GRÁFICAS PLOTLY
-    # ---------------------------------------------------------------
-
-
-    col1,col2 = st.columns(2)
-
-
-
-    with col1:
-
-
-        st.markdown(
-        """
-        <div class="card">
-
-        <h3>
-        📊 Distribución por Competición
-        </h3>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-        )
-
-
-        grafica_barras = px.bar(
-
-            datos_ligas,
-
-            x="Liga",
-
-            y="Partidos",
-
-            text="Partidos",
-
-            title=None
-
-        )
-
-
-        grafica_barras.update_layout(
-
-            height=400,
-
-            xaxis_title="",
-
-            yaxis_title="Partidos",
-
-            template="plotly_white"
-
-        )
-
-
-        st.plotly_chart(
-
-            grafica_barras,
-
-            use_container_width=True
-
-        )
-
-
-
-    with col2:
-
-
-        st.markdown(
-        """
-        <div class="card">
-
-        <h3>
-        🌎 Participación Mundial
-        </h3>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-        )
-
-
-        grafica_pie = px.pie(
-
-            datos_ligas,
-
-            names="Liga",
-
-            values="Partidos",
-
-            hole=.45
-
-        )
-
-
-        grafica_pie.update_layout(
-
-            height=400,
-
-            template="plotly_white"
-
-        )
-
-
-        st.plotly_chart(
-
-            grafica_pie,
-
-            use_container_width=True
-
-        )
-
-
-
-    # ---------------------------------------------------------------
-    # TABLA DETALLADA
-    # ---------------------------------------------------------------
-
-
-    st.markdown(
-    """
-    <div class="section-title">
-    📋 Ranking de Competiciones
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-
-
-    tabla = datos_ligas.sort_values(
-
-        "Partidos",
-
-        ascending=False
-
-    )
-
-
-
-    st.dataframe(
-
-        tabla,
-
-        use_container_width=True,
-
-        hide_index=True
-
-    )
+    chart_data = data_grafica.set_index('Liga')
+
+    col_izq, col_der = st.columns(2)
+    
+    # LAS GRÁFICAS SE METEN DENTRO DE LAS TARJETAS (PREMIUM-CARD) PARA VERSE INTEGRADAS Y NO PARCHADAS
+    with col_izq:
+        st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📊 Distribución de Partidos</div>", unsafe_allow_html=True)
+        st.caption("Frecuencia de encuentros monitoreados por cada liga.")
+        st.write("")
+        # Graficador nativo usando el ancho total del contenedor blanco
+        st.bar_chart(chart_data, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_der:
+        st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📈 Tendencia de Volumen</div>", unsafe_allow_html=True)
+        st.caption("Visualización de densidad de eventos actuales.")
+        st.write("")
+        # Graficador nativo usando el ancho total del contenedor blanco
+        st.area_chart(chart_data, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
