@@ -79,20 +79,22 @@ def obtener_calendario_equipo(id_equipo, nombre_equipo):
         response = requests.get(url, headers=HEADERS)
         if response.status_code == 200:
             res_json = response.json()
-            if res_json.get("response"):
-                return res_json.get("response")
+            if res_json.get("response") and len(res_json.get("response")) > 0:
+                return res_json.get("response"), "api_directa"
             
             # Intento con temporada anterior si la actual está vacía
             url_backup = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual - 1}"
             response_backup = requests.get(url_backup, headers=HEADERS)
-            if response_backup.status_code == 200 and response_backup.json().get("response"):
-                return response_backup.json().get("response")
+            if response_backup.status_code == 200:
+                res_backup_json = response_backup.json()
+                if res_backup_json.get("response") and len(res_backup_json.get("response")) > 0:
+                    return res_backup_json.get("response"), "api_respaldo_temporada"
     except Exception as e:
         pass
     
-    # Datos simulados si falla la conexión
-    st.info("⚠️ Usando base de datos de respaldo para el equipo seleccionado.")
-    return DATOS_RESPALDO.get(nombre_equipo, DATOS_RESPALDO["Real Madrid"])
+    # Datos simulados de respaldo si falla todo lo demás
+    datos_finales = DATOS_RESPALDO.get(nombre_equipo, DATOS_RESPALDO["Real Madrid"])
+    return datos_finales, "local_respaldo"
 
 # =========================================================================
 # FLUJO DE DATOS PRINCIPAL
@@ -148,23 +150,25 @@ with tab1:
             st.markdown("---")
 
 # -------------------------------------------------------------------------
-# PESTAÑA 2: BUSCADOR GLOBAL Y SEGUIMIENTO COMPLETO
+# PESTAÑA 2: BUSCADOR GLOBAL Y SEGUIMIENTO COMPLETO (Corregido con State)
 # -------------------------------------------------------------------------
 with tab2:
     st.header("🔍 Buscador Global de Equipos")
     st.write("Escribe el nombre de **cualquier equipo del mundo** para buscarlo en la API y consultar su agenda entera:")
     
+    # Inicialización segura de variables en el Estado de la sesión
+    if "id_seleccionado" not in st.session_state:
+        st.session_state["id_seleccionado"] = 541  # Real Madrid por defecto
+    if "nombre_seleccionado" not in st.session_state:
+        st.session_state["nombre_seleccionado"] = "Real Madrid"
+        
     # Campo de texto para buscar libremente
     busqueda_usuario = st.text_input("Escribe el nombre de tu equipo favorito (ej: Liverpool, Boca Juniors, America, Milan...):", value="Real Madrid")
-    
-    id_seleccionado = None
-    nombre_seleccionado = None
     
     if len(busqueda_usuario) >= 3:
         resultados_busqueda = buscar_equipo_api(busqueda_usuario)
         
         if resultados_busqueda:
-            # Creamos un diccionario para mapear el "Nombre (País)" con su ID real de la API
             opciones_equipos = {}
             for item in resultados_busqueda:
                 nombre_formateado = f"{item['team']['name']} ({item['team']['country']})"
@@ -173,24 +177,39 @@ with tab2:
                     "name": item['team']['name']
                 }
             
+            # Selector de club
             seleccion = st.selectbox(
                 "Coincidencias encontradas. Selecciona el club exacto para cargar sus partidos:",
                 options=list(opciones_equipos.keys())
             )
             
             if seleccion:
-                id_seleccionado = opciones_equipos[seleccion]["id"]
-                nombre_seleccionado = opciones_equipos[seleccion]["name"]
+                # Guardamos las selecciones en el session_state para evitar que se pierdan o queden cargando infinitamente
+                st.session_state["id_seleccionado"] = opciones_equipos[seleccion]["id"]
+                st.session_state["nombre_seleccionado"] = opciones_equipos[seleccion]["name"]
         else:
             st.warning("⚠️ No se encontraron resultados en la API para esa búsqueda. Escribe otro nombre o revisa la ortografía.")
     else:
         st.info("Escribe al menos 3 letras para comenzar la búsqueda en la base de datos de la API.")
 
-    # Si encontramos un ID válido, cargamos su calendario completo
-    if id_seleccionado:
-        st.write(f"### Cargando partidos de: **{nombre_seleccionado}** (ID: {id_seleccionado})")
-        historial_raw = obtener_calendario_equipo(id_seleccionado, nombre_seleccionado)
+    # Renderizamos la información del equipo usando el estado persistente
+    id_activo = st.session_state["id_seleccionado"]
+    nombre_activo = st.session_state["nombre_seleccionado"]
+    
+    if id_activo:
+        st.write(f"### Cargando partidos de: **{nombre_activo}** (ID: {id_activo})")
         
+        # Realizamos la llamada pasando el ID definitivo
+        historial_raw, origen_datos = obtener_calendario_equipo(id_activo, nombre_activo)
+        
+        # Alertas de estado de datos para informar al usuario de dónde viene la info
+        if origen_datos == "api_directa":
+            st.success("⚽ Datos sincronizados en vivo desde los servidores de API-Sports.")
+        elif origen_datos == "api_respaldo_temporada":
+            st.warning("📅 Temporada actual sin partidos registrados en la API. Cargando registros de la temporada anterior.")
+        else:
+            st.info("⚠️ Usando base de datos de respaldo optimizada (Simulación local).")
+            
         if historial_raw:
             records_historial = []
             for f in historial_raw:
@@ -212,9 +231,9 @@ with tab2:
             
             # Verificar si está jugando en vivo ahorita
             if not df_live.empty:
-                partido_en_vivo = df_live[(df_live['Local'] == nombre_seleccionado) | (df_live['Visita'] == nombre_seleccionado)]
+                partido_en_vivo = df_live[(df_live['Local'] == nombre_activo) | (df_live['Visita'] == nombre_activo)]
                 if not partido_en_vivo.empty:
-                    st.warning(f"🚨 ¡{nombre_seleccionado} ESTÁ JUGANDO EN VIVO AHORA MISMO!")
+                    st.warning(f"🚨 ¡{nombre_activo} ESTÁ JUGANDO EN VIVO AHORA MISMO!")
                     st.dataframe(partido_en_vivo, use_container_width=True)
                     st.markdown("---")
             
@@ -235,7 +254,7 @@ with tab2:
                         st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
                         st.markdown("---")
                 else:
-                    st.info("No hay partidos finalizados en la temporada actual para este club.")
+                    st.info("No hay partidos finalizados registrados recientemente para este club.")
                     
             with col_der:
                 st.subheader("⏭️ Próximos Encuentros")
