@@ -957,6 +957,10 @@ with col_izq:
     )
 
 
+    # Últimos partidos jugados
+    df_ultimos = df_finalizados.head(5)
+
+
     for idx, row in df_ultimos.iterrows():
 
         tarjeta_partido(
@@ -972,7 +976,6 @@ with col_izq:
             row['Competencia']
 
         )
-
 
 
 with col_der:
