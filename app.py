@@ -112,10 +112,10 @@ def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
         competencia = "Liga MX - Apertura 2026"
         rivales = ["Chivas Guadalajara", "Cruz Azul", "Pumas UNAM", "Tigres UANL", "CF Monterrey"]
     elif "spain" in pais_normalizado or "españa" in pais_normalizado:
-        competencia = "La Liga (Pretemporada)"
+        competencia = "La Liga "
         rivales = ["Real Madrid", "Barcelona", "Atlético de Madrid", "Sevilla FC", "Real Betis"]
     elif "england" in pais_normalizado or "inglaterra" in pais_normalizado:
-        competencia = "Premier League (Pretemporada)"
+        competencia = "Premier League "
         rivales = ["Manchester City", "Arsenal", "Liverpool", "Manchester United", "Chelsea"]
     else:
         competencia = "Amistoso Internacional"
