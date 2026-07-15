@@ -360,7 +360,30 @@ marcadores en vivo y seguimiento global de equipos.
 unsafe_allow_html=True)
 
 
+with tab1:
 
+
+    # VARIABLES DE SESIÓN
+
+    if "id_seleccionado" not in st.session_state:
+        st.session_state["id_seleccionado"] = 541
+
+
+    if "nombre_seleccionado" not in st.session_state:
+        st.session_state["nombre_seleccionado"] = "Real Madrid"
+
+
+    if "pais_seleccionado" not in st.session_state:
+        st.session_state["pais_seleccionado"] = "Spain"
+
+
+    if "logo_seleccionado" not in st.session_state:
+        st.session_state["logo_seleccionado"] = ""
+
+
+    # CONTINÚA TU CÓDIGO NORMAL
+
+    id_activo = st.session_state["id_seleccionado"]
 # =========================================================================
 # SIDEBAR PROFESIONAL
 # =========================================================================
