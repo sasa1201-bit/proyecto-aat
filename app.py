@@ -867,6 +867,31 @@ df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
 
 total_partidos = len(df_finalizados)
+df_historial = pd.DataFrame(records_historial)
+
+df_historial = df_historial.sort_values(
+    by="Fecha",
+    ascending=False
+)
+
+
+estados_finalizados = [
+    "FT",
+    "AET",
+    "PEN"
+]
+
+
+df_finalizados = df_historial[
+    df_historial["Estado"].isin(estados_finalizados)
+]
+
+
+# Aquí empiezan tus cálculos
+
+total_partidos = len(df_finalizados)
+
+promedio_goles = 0
 
 
 promedio_goles = 0
