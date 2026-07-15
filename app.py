@@ -197,6 +197,7 @@ with tab1:
     if "pais_seleccionado" not in st.session_state:
         st.session_state["pais_seleccionado"] = "Spain"
         
+    # MEJORA 3: Placeholder elegante con ejemplos de clubes reales
     busqueda_usuario = st.text_input(
         "Busca cualquier club en la base de datos:", 
         value="Real Madrid",
@@ -259,6 +260,7 @@ with tab1:
                     if g_propio > g_rival:
                         victorias += 1
                         
+        # MEJORA 1: KPIs con deltas e indicadores dinámicos profesionales
         kpi1, kpi2, kpi3 = st.columns(3)
         with kpi1:
             st.markdown(f"<div class='premium-card' style='border-left: 5px solid #4f46e5;'><p style='font-size: 0.85rem; margin:0; font-weight: 600;'>EQUIPO SELECCIONADO</p><h2 style='margin: 4px 0;'>{nombre_activo}</h2><span style='color: #4f46e5 !important; font-weight: 700;'>📍 {pais_activo}</span></div>", unsafe_allow_html=True)
@@ -295,8 +297,9 @@ with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🔴 Marcadores en Tiempo Real</div>", unsafe_allow_html=True)
     
+    # MEJORA 2: Mensaje de estatus para certificar que todo funciona en vivo
     st.caption("🟢 Conexión activa con el servidor de satélite. Los datos se refrescan de manera autónoma.")
-    st.write("") 
+    st.write("") # Pequeño espacio estético
     
     if df_live.empty:
         st.info("No hay partidos disputándose en vivo en este momento.")
@@ -307,9 +310,9 @@ with tab2:
             st.markdown(f"<div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1;'><div style='display: flex; justify-content: space-between; align-items: center;'><div><span class='live-team-name'>{row['Local']}</span><span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><span class='live-team-name'>{row['Visita']}</span></div><div style='text-align: right;'><span style='background-color: #ef4444; color: #ffffff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;'>⏱️ {row['Minuto']}'</span><div class='live-league-label' style='margin-top: 8px;'>🏆 {row['Liga']}</div></div></div></div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# PESTAÑA 3: Analítica Visual con Gráficos Nativos Integrados
+# PESTAÑA 3: Analítica Visual con Gráficos Nativos
 with tab3:
-    st.markdown("<div class='section-title' style='margin-left: 10px; margin-bottom: 18px;'>📈 Analítica de Volumen y Ligas</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Volumen y Ligas</div>", unsafe_allow_html=True)
     
     if not df_live.empty:
         data_grafica = df_live['Liga'].value_counts().reset_index()
@@ -324,21 +327,14 @@ with tab3:
 
     col_izq, col_der = st.columns(2)
     
-    # LAS GRÁFICAS SE METEN DENTRO DE LAS TARJETAS (PREMIUM-CARD) PARA VERSE INTEGRADAS Y NO PARCHADAS
     with col_izq:
         st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-        st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📊 Distribución de Partidos</div>", unsafe_allow_html=True)
-        st.caption("Frecuencia de encuentros monitoreados por cada liga.")
-        st.write("")
-        # Graficador nativo usando el ancho total del contenedor blanco
-        st.bar_chart(chart_data, use_container_width=True)
+        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #000000;'>📊 Distribución de Partidos (Barras)</div>", unsafe_allow_html=True)
+        st.bar_chart(chart_data)
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_der:
         st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-        st.markdown("<div class='section-title' style='font-size: 1.15rem;'>📈 Tendencia de Volumen</div>", unsafe_allow_html=True)
-        st.caption("Visualización de densidad de eventos actuales.")
-        st.write("")
-        # Graficador nativo usando el ancho total del contenedor blanco
-        st.area_chart(chart_data, use_container_width=True)
+        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #000000;'>📈 Tendencia de Volumen (Área)</div>", unsafe_allow_html=True)
+        st.area_chart(chart_data)
         st.markdown("</div>", unsafe_allow_html=True)
