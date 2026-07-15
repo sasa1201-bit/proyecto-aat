@@ -932,37 +932,78 @@ with kpi3:
 
 
     """,
-    unsafe_allow_html=True)
-        col_izq, col_der = st.columns(2)
-        with col_izq:
-            
-               tarjeta_partido(
+    unsafe_allow_html=True
+    )
 
-    row['Local'],
 
-    row['Visita'],
+# ==========================================
+# AQUÍ TERMINA KPI3
+# Y EMPIEZAN LOS RESULTADOS
+# ==========================================
 
-    int(row['Goles Local']),
 
-    int(row['Goles Visita']),
+col_izq, col_der = st.columns(2)
 
-    row['Competencia']
 
-)
-               tarjeta_partido(
+with col_izq:
 
-    row['Local'],
 
-    row['Visita'],
+    st.markdown(
+    """
+    <div class="section-title">
+    ⏮️ Últimos Resultados
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
 
-    None,
 
-    None,
+    for idx, row in df_ultimos.iterrows():
 
-    row['Competencia']
+        tarjeta_partido(
 
-)
+            row['Local'],
 
+            row['Visita'],
+
+            int(row['Goles Local']),
+
+            int(row['Goles Visita']),
+
+            row['Competencia']
+
+        )
+
+
+
+with col_der:
+
+
+    st.markdown(
+    """
+    <div class="section-title">
+    ⏭️ Próximos Partidos
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
+
+
+    for idx, row in df_proximos.iloc[::-1].iterrows():
+
+        tarjeta_partido(
+
+            row['Local'],
+
+            row['Visita'],
+
+            None,
+
+            None,
+
+            row['Competencia']
+
+        )
 # =========================================================================
 # PESTAÑA 2: PARTIDOS EN VIVO ESTILO ESPN / SOFASCORE
 # =========================================================================
