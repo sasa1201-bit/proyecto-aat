@@ -784,7 +784,7 @@ nombre_activo = st.session_state["nombre_seleccionado"]
 pais_activo = st.session_state["pais_seleccionado"]
 
 
-
+def obtener_calendario_equipo
 historial_raw, origen_datos = obtener_calendario_equipo(
     id_activo,
     nombre_activo,
