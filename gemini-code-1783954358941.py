@@ -25,24 +25,8 @@ btn_refresh = st.sidebar.button("Actualizar Todo Ahora")
 if btn_refresh:
     st.cache_data.clear()  # Limpia la caché para obligar a traer datos frescos de la API
 
-# Mapas de IDs internos de la API para traer datos de los equipos favoritos de forma exacta
-MAPA_EQUIPOS_IDS = {
-    "Real Madrid": 541,
-    "Barcelona": 529,
-    "Manchester City": 50,
-    "PSG": 85,
-    "Chelsea": 49,
-    "Arsenal": 42,
-    "Liverpool": 40,
-    "Bayern Munich": 157,
-    "Boca Juniors": 451,
-    "River Plate": 435,
-    "América": 2281,
-    "Chivas": 2288
-}
-
 # =========================================================================
-# DATOS DE RESPALDO (Por si la API Key falla o está inactiva)
+# DATOS DE RESPALDO (Por si la API Key falla, excede el límite o no encuentra el equipo)
 # =========================================================================
 DATOS_RESPALDO = {
     "Real Madrid": [
@@ -56,16 +40,11 @@ DATOS_RESPALDO = {
         {"Fecha": "2026-05-24 21:00", "Competencia": "La Liga", "Local": "Real Madrid", "Goles Local": 3, "Goles Visita": 1, "Visita": "Barcelona", "Estado": "FT"},
         {"Fecha": "2026-05-19 20:00", "Competencia": "La Liga", "Local": "Barcelona", "Goles Local": 4, "Goles Visita": 0, "Visita": "Sevilla FC", "Estado": "FT"},
         {"Fecha": "2026-07-25 19:00", "Competencia": "Amistoso", "Local": "Barcelona", "Goles Local": None, "Goles Visita": None, "Visita": "Manchester City", "Estado": "NS"}
-    ],
-    "Manchester City": [
-        {"Fecha": "2026-05-20 16:00", "Competencia": "Premier League", "Local": "Manchester City", "Goles Local": 2, "Goles Visita": 0, "Visita": "West Ham", "Estado": "FT"},
-        {"Fecha": "2026-05-25 15:00", "Competencia": "FA Cup", "Local": "Manchester City", "Goles Local": 1, "Goles Visita": 2, "Visita": "Manchester United", "Estado": "FT"},
-        {"Fecha": "2026-07-25 19:00", "Competencia": "Amistoso", "Local": "Barcelona", "Goles Local": None, "Goles Visita": None, "Visita": "Manchester City", "Estado": "NS"}
     ]
 }
 
 # =========================================================================
-# LLAMADAS EN VIVO E HISTÓRICAS A LA API
+# LLAMADAS EN VIVO, BÚSQUEDA Y CALENDARIOS EN LA API
 # =========================================================================
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo(key_api):
@@ -78,6 +57,19 @@ def obtener_partidos_en_vivo(key_api):
         pass
     return None
 
+@st.cache_data(ttl=600, show_spinner=False) # Guardamos búsquedas de equipos por 10 minutos
+def buscar_equipo_api(nombre_busqueda):
+    if not nombre_busqueda or len(nombre_busqueda) < 3:
+        return []
+    url = f"https://v3.football.api-sports.io/teams?search={nombre_busqueda}"
+    try:
+        response = requests.get(url, headers=HEADERS)
+        if response.status_code == 200:
+            return response.json().get("response", [])
+    except Exception as e:
+        pass
+    return []
+
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo, nombre_equipo):
     año_actual = datetime.now().year
@@ -87,20 +79,19 @@ def obtener_calendario_equipo(id_equipo, nombre_equipo):
         response = requests.get(url, headers=HEADERS)
         if response.status_code == 200:
             res_json = response.json()
-            # Si hay respuesta de la API, la usamos
             if res_json.get("response"):
                 return res_json.get("response")
             
-            # Intento de respaldo con temporada anterior si la actual está vacía
+            # Intento con temporada anterior si la actual está vacía
             url_backup = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual - 1}"
             response_backup = requests.get(url_backup, headers=HEADERS)
             if response_backup.status_code == 200 and response_backup.json().get("response"):
                 return response_backup.json().get("response")
     except Exception as e:
-        st.warning(f"Conexión con API-Sports limitada. Usando base de datos de respaldo local.")
+        pass
     
-    # Si la API falla, cargamos los datos locales simulados para que la página NUNCA se vea vacía
-    st.info("⚠️ Los servidores de la API están procesando tu clave de acceso. Mostrando datos optimizados del sistema de respaldo.")
+    # Datos simulados si falla la conexión
+    st.info("⚠️ Usando base de datos de respaldo para el equipo seleccionado.")
     return DATOS_RESPALDO.get(nombre_equipo, DATOS_RESPALDO["Real Madrid"])
 
 # =========================================================================
@@ -124,7 +115,7 @@ if live_fixtures:
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
 # Pestañas de Navegación
-tab1, tab2, tab3 = st.tabs(["🔴 En Vivo Ahora", "⭐ Mis Equipos (Seguimiento Completo)", "📊 Análisis Estadístico (Pandas)"])
+tab1, tab2, tab3 = st.tabs(["🔴 En Vivo Ahora", "⭐ Buscador Global de Equipos", "📊 Análisis Estadístico (Pandas)"])
 
 # -------------------------------------------------------------------------
 # PESTAÑA 1: PARTIDOS EN VIVO
@@ -133,22 +124,20 @@ with tab1:
     st.header("⚽ Marcadores en Tiempo Real")
     
     if df_live.empty:
-        st.info("ℹ️ No hay partidos jugándose en vivo en este momento. Revisa la pestaña de 'Mis Equipos' para ver calendarios e historial.")
+        st.info("ℹ️ No hay partidos jugándose en vivo en este momento. Revisa la pestaña de 'Buscador Global de Equipos' para ver calendarios.")
     else:
         st.success(f"¡Conexión Exitosa! Mostrando {len(df_live)} partidos en juego en este instante:")
         
-        # Buscador interactivo con Pandas
         search_team = st.text_input("🔍 Filtrar marcadores en vivo por equipo o liga:", "")
         if search_team:
             df_live_filtered = df_live[
                 df_live['Local'].str.contains(search_team, case=False) | 
-                df_live['Visita'].str.contains(search_team, case=False) |
+                df_live_filtered = df_live[df_live['Visita'].str.contains(search_team, case=False)] |
                 df_live['Liga'].str.contains(search_team, case=False)
             ]
         else:
             df_live_filtered = df_live
             
-        # Renderizado de los marcadores en vivo
         for index, row in df_live_filtered.iterrows():
             col_match, col_meta = st.columns([3, 1])
             with col_match:
@@ -159,84 +148,104 @@ with tab1:
             st.markdown("---")
 
 # -------------------------------------------------------------------------
-# PESTAÑA 2: SEGUIMIENTO COMPLETO DE FAVORITOS (Historial y Próximos)
+# PESTAÑA 2: BUSCADOR GLOBAL Y SEGUIMIENTO COMPLETO
 # -------------------------------------------------------------------------
 with tab2:
-    st.header("⭐ Zona de Seguimiento Avanzado")
-    st.write("Selecciona un equipo de tus favoritos para auditar todos sus partidos recientes y próximos compromisos:")
+    st.header("🔍 Buscador Global de Equipos")
+    st.write("Escribe el nombre de **cualquier equipo del mundo** para buscarlo en la API y consultar su agenda entera:")
     
-    # Selector único para enfocar el análisis en un equipo
-    equipo_favorito = st.selectbox(
-        "Selecciona el equipo a inspeccionar de manera profunda:",
-        options=list(MAPA_EQUIPOS_IDS.keys())
-    )
+    # Campo de texto para buscar libremente
+    busqueda_usuario = st.text_input("Escribe el nombre de tu equipo favorito (ej: Liverpool, Boca Juniors, America, Milan...):", value="Real Madrid")
     
-    id_fav = MAPA_EQUIPOS_IDS[equipo_favorito]
-    historial_raw = obtener_calendario_equipo(id_fav, equipo_favorito)
+    id_seleccionado = None
+    nombre_seleccionado = None
     
-    if historial_raw:
-        # Convertimos el historial a un DataFrame estructurado usando Pandas
-        records_historial = []
-        for f in historial_raw:
-            # Si viene de la API real
-            if 'fixture' in f:
-                records_historial.append({
-                    "Fecha": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
-                    "Competencia": f['league']['name'],
-                    "Local": f['teams']['home']['name'],
-                    "Goles Local": f['goals']['home'],
-                    "Goles Visita": f['goals']['away'],
-                    "Visita": f['teams']['away']['name'],
-                    "Estado": f['fixture']['status']['short']
-                })
-            # Si viene del diccionario de respaldo local
-            else:
-                records_historial.append(f)
+    if len(busqueda_usuario) >= 3:
+        resultados_busqueda = buscar_equipo_api(busqueda_usuario)
         
-        df_historial = pd.DataFrame(records_historial)
-        
-        # Ordenamos las fechas para tener consistencia cronológica
-        df_historial = df_historial.sort_values(by="Fecha", ascending=False)
-        
-        # 1. ¿Está jugando en vivo ahorita?
-        if not df_live.empty:
-            partido_en_vivo = df_live[(df_live['Local'] == equipo_favorito) | (df_live['Visita'] == equipo_favorito)]
-            if not partido_en_vivo.empty:
-                st.warning(f"🚨 ¡{equipo_favorito} ESTÁ JUGANDO EN VIVO AHORA MISMO!")
-                st.dataframe(partido_en_vivo, use_container_width=True)
-                st.markdown("---")
-        
-        # Separar partidos usando lógica condicional de Pandas
-        estados_finalizados = ['FT', 'AET', 'PEN']
-        df_finalizados = df_historial[df_historial['Estado'].isin(estados_finalizados)].head(5)
-        df_proximos = df_historial[~df_historial['Estado'].isin(estados_finalizados)].tail(5) # Los más cercanos en el tiempo
-        
-        col_izq, col_der = st.columns(2)
-        
-        with col_izq:
-            st.subheader("⏮️ Últimos 5 Resultados")
-            if not df_finalizados.empty:
-                for idx, row in df_finalizados.iterrows():
-                    gol_l = int(row['Goles Local']) if not pd.isna(row['Goles Local']) else 0
-                    gol_v = int(row['Goles Visita']) if not pd.isna(row['Goles Visita']) else 0
-                    st.markdown(f"**{row['Local']} {gol_l} - {gol_v} {row['Visita']}**")
-                    st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
-                    st.markdown("---")
-            else:
-                st.info("No hay partidos finalizados registrados recientemente.")
-                
-        with col_der:
-            st.subheader("⏭️ Próximos Encuentros")
-            if not df_proximos.empty:
-                # Invertimos el orden para mostrar el más cercano primero
-                for idx, row in df_proximos.iloc[::-1].iterrows():
-                    st.markdown(f"**{row['Local']} vs {row['Visita']}**")
-                    st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
-                    st.markdown("---")
-            else:
-                st.info("No hay partidos programados en el calendario próximo.")
+        if resultados_busqueda:
+            # Creamos un diccionario para mapear el "Nombre (País)" con su ID real de la API
+            opciones_equipos = {}
+            for item in resultados_busqueda:
+                nombre_formateado = f"{item['team']['name']} ({item['team']['country']})"
+                opciones_equipos[nombre_formateado] = {
+                    "id": item['team']['id'],
+                    "name": item['team']['name']
+                }
+            
+            seleccion = st.selectbox(
+                "Coincidencias encontradas. Selecciona el club exacto para cargar sus partidos:",
+                options=list(opciones_equipos.keys())
+            )
+            
+            if seleccion:
+                id_seleccionado = opciones_equipos[seleccion]["id"]
+                nombre_seleccionado = opciones_equipos[seleccion]["name"]
+        else:
+            st.warning("⚠️ No se encontraron resultados en la API para esa búsqueda. Escribe otro nombre o revisa la ortografía.")
     else:
-        st.error("No se pudieron cargar datos para este equipo.")
+        st.info("Escribe al menos 3 letras para comenzar la búsqueda en la base de datos de la API.")
+
+    # Si encontramos un ID válido, cargamos su calendario completo
+    if id_seleccionado:
+        st.write(f"### Cargando partidos de: **{nombre_seleccionado}** (ID: {id_seleccionado})")
+        historial_raw = obtener_calendario_equipo(id_seleccionado, nombre_seleccionado)
+        
+        if historial_raw:
+            records_historial = []
+            for f in historial_raw:
+                if 'fixture' in f:
+                    records_historial.append({
+                        "Fecha": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
+                        "Competencia": f['league']['name'],
+                        "Local": f['teams']['home']['name'],
+                        "Goles Local": f['goals']['home'],
+                        "Goles Visita": f['goals']['away'],
+                        "Visita": f['teams']['away']['name'],
+                        "Estado": f['fixture']['status']['short']
+                    })
+                else:
+                    records_historial.append(f)
+            
+            df_historial = pd.DataFrame(records_historial)
+            df_historial = df_historial.sort_values(by="Fecha", ascending=False)
+            
+            # Verificar si está jugando en vivo ahorita
+            if not df_live.empty:
+                partido_en_vivo = df_live[(df_live['Local'] == nombre_seleccionado) | (df_live['Visita'] == nombre_seleccionado)]
+                if not partido_en_vivo.empty:
+                    st.warning(f"🚨 ¡{nombre_seleccionado} ESTÁ JUGANDO EN VIVO AHORA MISMO!")
+                    st.dataframe(partido_en_vivo, use_container_width=True)
+                    st.markdown("---")
+            
+            # Separar partidos con Pandas
+            estados_finalizados = ['FT', 'AET', 'PEN']
+            df_finalizados = df_historial[df_historial['Estado'].isin(estados_finalizados)].head(5)
+            df_proximos = df_historial[~df_historial['Estado'].isin(estados_finalizados)].tail(5)
+            
+            col_izq, col_der = st.columns(2)
+            
+            with col_izq:
+                st.subheader("⏮️ Últimos 5 Resultados")
+                if not df_finalizados.empty:
+                    for idx, row in df_finalizados.iterrows():
+                        gol_l = int(row['Goles Local']) if not pd.isna(row['Goles Local']) else 0
+                        gol_v = int(row['Goles Visita']) if not pd.isna(row['Goles Visita']) else 0
+                        st.markdown(f"**{row['Local']} {gol_l} - {gol_v} {row['Visita']}**")
+                        st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
+                        st.markdown("---")
+                else:
+                    st.info("No hay partidos finalizados en la temporada actual para este club.")
+                    
+            with col_der:
+                st.subheader("⏭️ Próximos Encuentros")
+                if not df_proximos.empty:
+                    for idx, row in df_proximos.iloc[::-1].iterrows():
+                        st.markdown(f"**{row['Local']} vs {row['Visita']}**")
+                        st.caption(f"📅 {row['Fecha']} | 🏆 {row['Competencia']}")
+                        st.markdown("---")
+                else:
+                    st.info("No hay partidos programados próximamente.")
 
 # -------------------------------------------------------------------------
 # PESTAÑA 3: ANALÍTICA CON PANDAS
@@ -259,7 +268,6 @@ with tab3:
         liga_activity = df_live['Liga'].value_counts()
         st.bar_chart(liga_activity, color="#ff4b4b")
     else:
-        # Gráfica simulada si la API no tiene partidos en vivo ahora mismo
         st.info("Muestra del rendimiento estadístico de las ligas principales (Modo simulación):")
         ligas_mock = pd.Series([12, 8, 5, 4, 3], index=["La Liga", "Premier League", "Serie A", "Ligue 1", "Bundesliga"])
         st.bar_chart(ligas_mock, color="#ff4b4b")
