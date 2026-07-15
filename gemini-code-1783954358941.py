@@ -2,19 +2,45 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime
+import plotly.express as px
 
 # =========================================================================
-# CONFIGURACIÓN ESTÉTICA PREMIUM (Optimización de Contraste)
+# CONFIGURACIÓN ESTÉTICA PREMIUM (Optimización de Contraste con Texto Negro)
 # =========================================================================
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-# CSS Ajustado para asegurar legibilidad absoluta (Textos oscuros garantizados)
+# CSS Ajustado para asegurar legibilidad absoluta (Fuerza color negro/oscuro en textos)
 st.markdown("""
     <style>
         /* Fondo general de la app */
         .stApp {
             background-color: #f8fafc !important;
         }
+        
+        /* Forzar texto negro general en la app */
+        .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
+            color: #000000 !important;
+        }
+
+        /* FORZAR TEXTO NEGRO EN PESTAÑAS (TABS) DE STREAMLIT */
+        button[data-baseweb="tab"] {
+            color: #000000 !important;
+        }
+        button[data-baseweb="tab"] p {
+            color: #000000 !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+        }
+        
+        /* FORZAR TEXTO NEGRO EN SELECTBOX (DESPLEGABLE) */
+        .stSelectbox div[data-baseweb="select"] {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+        }
+        .stSelectbox div[data-baseweb="select"] span {
+            color: #000000 !important;
+        }
+
         /* Estilo para contenedores tipo Tarjeta Blanca */
         .premium-card {
             background-color: #ffffff !important;
@@ -24,28 +50,51 @@ st.markdown("""
             margin-bottom: 20px;
             border: 1px solid #e2e8f0;
         }
-        /* Títulos de sección */
+        
+        /* Títulos de sección en negro puro */
         .section-title {
-            color: #0f172a !important;
+            color: #000000 !important;
             font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 16px;
         }
-        /* Asegurar que los textos dentro de HTML personalizado sean visibles */
-        .premium-card p, .premium-card span, .premium-card div {
-            color: #1e293b !important;
+        
+        /* Asegurar legibilidad extrema en tarjetas */
+        .premium-card p, .premium-card span, .premium-card div, .premium-card label {
+            color: #000000 !important;
         }
+        
         .premium-card h2, .premium-card h3 {
-            color: #0f172a !important;
+            color: #000000 !important;
+        }
+        
+        /* Clases específicas para la pestaña de "Partidos en Vivo" */
+        .live-team-name {
+            color: #000000 !important;
+            font-weight: 800 !important;
+            font-size: 1.15rem !important;
+        }
+        
+        .live-score {
+            color: #4f46e5 !important;
+            font-weight: 900 !important;
+            font-size: 1.3rem !important;
+            margin: 0 15px !important;
+        }
+        
+        .live-league-label {
+            color: #000000 !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Encabezado estilo Dashboard Ejecutivo con contraste fuerte
+# Encabezado con fuerte contraste
 st.markdown("""
     <div style='margin-bottom: 30px;'>
-        <h1 style='color: #0f172a; font-size: 2.2rem; font-weight: 800; margin-bottom: 4px;'>⚽ Forza Fútbol Live</h1>
-        <p style='color: #475569; font-size: 1rem;'>Procesamiento analítico avanzado y monitoreo de escuadras globales</p>
+        <h1 style='color: #000000 !important; font-size: 2.2rem; font-weight: 800; margin-bottom: 4px;'>⚽ Forza Fútbol Live</h1>
+        <p style='color: #000000 !important; font-size: 1rem;'>Procesamiento analítico avanzado y monitoreo de escuadras globales</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -68,7 +117,6 @@ if st.sidebar.button("Forzar Sincronización"):
 def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
     pais_normalizado = str(pais_equipo).strip().lower()
     
-    # 1. Definir rivales y competencias reales por país
     if "mexico" in pais_normalizado or "méxico" in pais_normalizado:
         competencia = "Liga MX - Apertura 2026"
         rivales = ["Chivas Guadalajara", "Cruz Azul", "Pumas UNAM", "Tigres UANL", "CF Monterrey"]
@@ -88,7 +136,6 @@ def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
         competencia = "Amistoso Internacional"
         rivales = ["Real Madrid", "Paris Saint-Germain", "Bayern Munich", "Manchester City", "Barcelona"]
 
-    # 2. Calendario con partidos de pretemporada y fechas verídicas de Julio y Agosto de 2026
     return [
         {"Fecha": "2026-07-12 18:00", "Competencia": competencia, "Local": rivales[1], "Goles Local": 1, "Goles Visita": 3, "Visita": nombre_equipo, "Estado": "FT"},
         {"Fecha": "2026-07-15 20:00", "Competencia": competencia, "Local": nombre_equipo, "Goles Local": 2, "Goles Visita": 2, "Visita": rivales[2], "Estado": "FT"},
@@ -173,7 +220,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Buscador & Seguimiento", "🔴 Marcadores en V
 # -------------------------------------------------------------------------
 with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title' style='color: #0f172a !important;'>🔍 Selector Global de Escuadras</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🔍 Selector Global de Escuadras</div>", unsafe_allow_html=True)
     
     if "id_seleccionado" not in st.session_state:
         st.session_state["id_seleccionado"] = 541  # Real Madrid por defecto
@@ -247,25 +294,25 @@ with tab1:
         with kpi1:
             st.markdown(f"""
                 <div class='premium-card' style='border-left: 5px solid #4f46e5;'>
-                    <p style='color: #475569 !important; font-size: 0.85rem; margin:0; font-weight: 600;'>EQUIPO SELECCIONADO</p>
-                    <h2 style='color: #0f172a !important; margin: 4px 0;'>{nombre_activo}</h2>
+                    <p style='color: #000000 !important; font-size: 0.85rem; margin:0; font-weight: 600;'>EQUIPO SELECCIONADO</p>
+                    <h2 style='color: #000000 !important; margin: 4px 0;'>{nombre_activo}</h2>
                     <span style='color: #4f46e5 !important; font-size: 0.85rem; font-weight: 700;'>📍 {pais_activo}</span>
                 </div>
             """, unsafe_allow_html=True)
         with kpi2:
             st.markdown(f"""
                 <div class='premium-card' style='border-left: 5px solid #22c55e;'>
-                    <p style='color: #475569 !important; font-size: 0.85rem; margin:0; font-weight: 600;'>VICTORIAS REGISTRADAS</p>
+                    <p style='color: #000000 !important; font-size: 0.85rem; margin:0; font-weight: 600;'>VICTORIAS REGISTRADAS</p>
                     <h2 style='color: #22c55e !important; margin: 4px 0;'>{victorias}</h2>
-                    <span style='color: #475569 !important; font-size: 0.85rem;'>Partidos analizados</span>
+                    <span style='color: #000000 !important; font-size: 0.85rem;'>Partidos analizados</span>
                 </div>
             """, unsafe_allow_html=True)
         with kpi3:
             st.markdown(f"""
                 <div class='premium-card' style='border-left: 5px solid #3b82f6;'>
-                    <p style='color: #475569 !important; font-size: 0.85rem; margin:0; font-weight: 600;'>GOLES MARCADOS</p>
+                    <p style='color: #000000 !important; font-size: 0.85rem; margin:0; font-weight: 600;'>GOLES MARCADOS</p>
                     <h2 style='color: #3b82f6 !important; margin: 4px 0;'>{goles_favor}</h2>
-                    <span style='color: #475569 !important; font-size: 0.85rem;'>Rendimiento ofensivo</span>
+                    <span style='color: #000000 !important; font-size: 0.85rem;'>Rendimiento ofensivo</span>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -280,12 +327,12 @@ with tab1:
                     st.markdown(f"""
                         <div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'>
                             <div style='display: flex; justify-content: space-between;'>
-                                <span style='font-weight: 700; color: #0f172a !important;'>{row['Local']} vs {row['Visita']}</span>
+                                <span style='font-weight: 700; color: #000000 !important;'>{row['Local']} vs {row['Visita']}</span>
                                 <span style='font-weight: 800; color: #4f46e5 !important;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</span>
                             </div>
                             <div style='display: flex; justify-content: space-between; margin-top: 4px;'>
-                                <span style='font-size: 0.8rem; color: #475569 !important; font-weight: 500;'>🏆 {row['Competencia']}</span>
-                                <span style='font-size: 0.8rem; color: #64748b !important;'>📅 {row['Fecha']}</span>
+                                <span style='font-size: 0.8rem; color: #000000 !important; font-weight: 500;'>🏆 {row['Competencia']}</span>
+                                <span style='font-size: 0.8rem; color: #000000 !important;'>📅 {row['Fecha']}</span>
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -301,9 +348,9 @@ with tab1:
                 for idx, row in df_proximos.iloc[::-1].iterrows():
                     st.markdown(f"""
                         <div style='padding: 12px 0; border-bottom: 1px solid #e2e8f0;'>
-                            <div style='font-weight: 700; color: #0f172a !important;'>{row['Local']} vs {row['Visita']}</div>
+                            <div style='font-weight: 700; color: #000000 !important;'>{row['Local']} vs {row['Visita']}</div>
                             <div style='display: flex; justify-content: space-between; margin-top: 4px;'>
-                                <span style='font-size: 0.8rem; color: #475569 !important; font-weight: 500;'>🏆 {row['Competencia']}</span>
+                                <span style='font-size: 0.8rem; color: #000000 !important; font-weight: 500;'>🏆 {row['Competencia']}</span>
                                 <span style='font-size: 0.8rem; color: #4f46e5 !important; font-weight: 700;'>📅 {row['Fecha']}</span>
                             </div>
                         </div>
@@ -313,7 +360,7 @@ with tab1:
             st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------------
-# PESTAÑA 2: PARTIDOS EN VIVO (Formato de lista limpia y visible)
+# PESTAÑA 2: PARTIDOS EN VIVO (Texto visible con contraste extremo en negro)
 # -------------------------------------------------------------------------
 with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
@@ -331,16 +378,16 @@ with tab2:
         
         for idx, row in df_live_filtered.iterrows():
             st.markdown(f"""
-                <div style='padding: 16px; background-color: #ffffff; border-radius: 12px; margin-bottom: 12px; border: 1px solid #cbd5e1;'>
+                <div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
                     <div style='display: flex; justify-content: space-between; align-items: center;'>
                         <div>
-                            <span style='font-weight: 800; color: #0f172a !important; font-size: 1.1rem;'>{row['Local']}</span>
-                            <span style='color: #4f46e5 !important; font-weight: 800; font-size: 1.2rem; margin: 0 15px;'>{row['Goles L']} - {row['Goles V']}</span>
-                            <span style='font-weight: 800; color: #0f172a !important; font-size: 1.1rem;'>{row['Visita']}</span>
+                            <span class='live-team-name' style='color: #000000 !important;'>{row['Local']}</span>
+                            <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span>
+                            <span class='live-team-name' style='color: #000000 !important;'>{row['Visita']}</span>
                         </div>
                         <div style='text-align: right;'>
-                            <span style='background-color: #ef4444; color: white !important; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;'>⏱️ {row['Minuto']}'</span>
-                            <div style='font-size: 0.8rem; color: #475569 !important; font-weight: 600; margin-top: 6px;'>🏆 {row['Liga']}</div>
+                            <span style='background-color: #ef4444; color: #ffffff !important; padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 800;'>⏱️ {row['Minuto']}'</span>
+                            <div class='live-league-label' style='margin-top: 8px; color: #000000 !important;'>🏆 {row['Liga']}</div>
                         </div>
                     </div>
                 </div>
@@ -348,33 +395,66 @@ with tab2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------------
-# PESTAÑA 3: ANALÍTICA GRÁFICA
+# PESTAÑA 3: ANALÍTICA GRÁFICA (Gráficos Plotly integrados con el Fondo)
 # -------------------------------------------------------------------------
 with tab3:
-    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>📈 Distribución y Estadísticas de Ligas</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Distribución y Estadísticas de Ligas</div>", unsafe_allow_html=True)
     
+    # Preparación de datos
     if not df_live.empty:
-        col_g1, col_g2 = st.columns([1, 2])
-        with col_g1:
-            st.write("Resumen Métrico")
-            total_goles = df_live['Goles L'].sum() + df_live['Goles V'].sum()
-            promedio_min = df_live['Minuto'].mean()
-            st.metric("Goles Totales en Directo", int(total_goles))
-            st.metric("Minuto de Juego Promedio", f"{promedio_min:.1f}'")
-        with col_g2:
-            st.write("Partidos por Competencia")
-            liga_activity = df_live['Liga'].value_counts()
-            st.bar_chart(liga_activity, color="#4f46e5")
+        data_grafica = df_live['Liga'].value_counts().reset_index()
+        data_grafica.columns = ['Liga', 'Partidos']
     else:
-        col_g1, col_g2 = st.columns([1, 2])
-        with col_g1:
-            st.write("Resumen Métrico (Simulado)")
-            st.metric("Goles Totales Estimados", 14)
-            st.metric("Minuto de Juego Promedio", "54.2'")
-        with col_g2:
-            st.write("Volumen por Liga Principal (Simulación)")
-            ligas_mock = pd.Series([12, 8, 5, 4, 3], index=["La Liga", "Premier League", "Serie A", "Ligue 1", "Bundesliga"])
-            st.bar_chart(ligas_mock, color="#4f46e5")
-            
-    st.markdown("</div>", unsafe_allow_html=True)
+        data_grafica = pd.DataFrame({
+            'Liga': ['LaLiga España', 'Premier League', 'Serie A Italia', 'Bundesliga', 'Ligue 1 Francia'],
+            'Partidos': [12, 8, 5, 4, 3]
+        })
+
+    col_izq, col_der = st.columns([1, 1])
+    
+    with col_izq:
+        st.markdown("<div style='margin-left: 10px; margin-bottom: 15px; font-weight: 700; color: #000000;'>📊 Volumen por Liga</div>", unsafe_allow_html=True)
+        
+        fig_bar = px.bar(
+            data_grafica, 
+            x='Liga', 
+            y='Partidos',
+            color_discrete_sequence=['#4f46e5']
+        )
+        
+        # El color #f8fafc coincide exactamente con el fondo de la página
+        fig_bar.update_layout(
+            plot_bgcolor='#f8fafc',
+            paper_bgcolor='#f8fafc',
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=320,
+            xaxis=dict(showgrid=False, title_font=dict(color='#000000', size=12), tickfont=dict(color='#000000')),
+            yaxis=dict(showgrid=True, gridcolor='#cbd5e1', title_font=dict(color='#000000', size=12), tickfont=dict(color='#000000'))
+        )
+        st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+
+    with col_der:
+        st.markdown("<div style='margin-left: 10px; margin-bottom: 15px; font-weight: 700; color: #000000;'>🍕 Participación en el Mercado</div>", unsafe_allow_html=True)
+        
+        fig_pie = px.pie(
+            data_grafica, 
+            names='Liga', 
+            values='Partidos',
+            color_discrete_sequence=px.colors.qualitative.Prism
+        )
+        
+        # El color #f8fafc coincide exactamente con el fondo de la página
+        fig_pie.update_layout(
+            plot_bgcolor='#f8fafc',
+            paper_bgcolor='#f8fafc',
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=320,
+            legend=dict(font=dict(color='#000000', size=11))
+        )
+        fig_pie.update_traces(
+            textposition='inside', 
+            textinfo='percent+label',
+            textfont=dict(color='#000000', size=11)
+        )
+        
+        st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
