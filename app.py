@@ -455,203 +455,301 @@ HEADERS = {
 # =========================================================================
 
 
-def mostrar_logo(url, tamaño=80):
-
-    if url:
-
-        st.image(
-            url,
-            width=tamaño
-        )
+# =========================================================================
+# COMPONENTE PERFIL DE EQUIPO - ESTILO ESPN / SOFASCORE
+# =========================================================================
 
 
+def calcular_forma_equipo(df_partidos, nombre_equipo):
 
-def tarjeta_equipo(
+    forma = []
+
+
+    for _, partido in df_partidos.head(5).iterrows():
+
+        local = partido["Local"]
+
+        visitante = partido["Visita"]
+
+        goles_local = partido["Goles Local"]
+
+        goles_visitante = partido["Goles Visita"]
+
+
+        if pd.isna(goles_local) or pd.isna(goles_visitante):
+            continue
+
+
+        if local == nombre_equipo:
+
+            goles_favor = goles_local
+
+            goles_contra = goles_visitante
+
+        else:
+
+            goles_favor = goles_visitante
+
+            goles_contra = goles_local
+
+
+
+        if goles_favor > goles_contra:
+
+            forma.append("🟢")
+
+        elif goles_favor == goles_contra:
+
+            forma.append("🟡")
+
+        else:
+
+            forma.append("🔴")
+
+
+    while len(forma) < 5:
+
+        forma.append("⚪")
+
+
+    return forma
+
+
+
+def tarjeta_perfil_profesional(
+
     nombre,
+
     pais,
-    logo=None
+
+    logo,
+
+    victorias,
+
+    goles,
+
+    partidos,
+
+    promedio_goles,
+
+    forma
+
 ):
+
 
     logo_html = ""
 
+
     if logo:
+
 
         logo_html = f"""
 
-        <img src="{logo}"
-        width="70"
+        <img
+
+        src="{logo}"
+
+        width="110"
+
         style="
+
         border-radius:50%;
-        margin-bottom:10px;
-        ">
 
-        """
+        background:white;
 
+        padding:10px;
 
-    st.markdown(
-    f"""
+        "
 
-    <div class="card"
-    style="
-    text-align:center;
-    ">
-
-    {logo_html}
-
-
-    <h2>
-    {nombre}
-    </h2>
-
-
-    <p>
-    🌎 {pais}
-    </p>
-
-
-    </div>
-
-    """,
-    unsafe_allow_html=True
-
-    )
-
-
-
-def tarjeta_partido(
-    local,
-    visitante,
-    goles_local,
-    goles_visitante,
-    liga,
-    minuto=None
-):
-
-
-    marcador = ""
-
-    if goles_local is not None:
-
-        marcador = f"""
-
-        <h1 style="
-        text-align:center;
-        color:#2563eb !important;
-        ">
-
-        {goles_local}
-
-        -
-
-        {goles_visitante}
-
-        </h1>
-
-        """
-
-    else:
-
-        marcador = """
-
-        <h3 style="
-        text-align:center;
-        ">
-        Próximamente
-        </h3>
+        >
 
         """
 
 
 
-    tiempo = ""
-
-    if minuto:
-
-        tiempo=f"""
-
-        <span style="
-        background:#ef4444;
-        color:white !important;
-        padding:6px 14px;
-        border-radius:20px;
-        font-weight:bold;
-        ">
-        🔴 {minuto}'
-        </span>
-
-        """
+    forma_html = " ".join(forma)
 
 
 
     st.markdown(
+
     f"""
 
 <div class="card">
 
 
 <div style="
-display:flex;
-justify-content:space-between;
-align-items:center;
+
+text-align:center;
+
 ">
 
 
-<div>
-
-<h3>
-⚽ {local}
-</h3>
-
-</div>
+{logo_html}
 
 
 
-<div>
+<h1 style="
 
-{marcador}
+font-size:32px;
 
-</div>
+">
+
+{nombre}
+
+</h1>
 
 
 
-<div>
+<p>
 
-<h3>
-{visitante} ⚽
-</h3>
+🌎 {pais}
 
-</div>
+</p>
 
 
 </div>
+
 
 
 <hr>
 
 
-<center>
 
-🏆 {liga}
+<div style="
 
-<br><br>
+display:flex;
 
-{tiempo}
+justify-content:space-around;
+
+text-align:center;
+
+">
 
 
-</center>
+
+<div>
+
+<h2>
+
+🏆 {victorias}
+
+</h2>
+
+<p>
+
+Victorias
+
+</p>
+
+</div>
+
+
+
+
+<div>
+
+<h2>
+
+⚽ {goles}
+
+</h2>
+
+<p>
+
+Goles
+
+</p>
+
+</div>
+
+
+
+
+<div>
+
+<h2>
+
+📅 {partidos}
+
+</h2>
+
+<p>
+
+Partidos
+
+</p>
+
+</div>
 
 
 
 </div>
 
 
+
+<hr>
+
+
+
+
+<div style="
+
+text-align:center;
+
+">
+
+
+<h3>
+
+🔥 Forma reciente
+
+</h3>
+
+
+<h2>
+
+{forma_html}
+
+</h2>
+
+
+
+<p>
+
+Promedio ofensivo:
+
+<b>
+
+{promedio_goles}
+
+</b>
+
+goles / partido
+
+</p>
+
+
+
+</div>
+
+
+
+</div>
+
 """,
+
 unsafe_allow_html=True
+
 )
 
-st.sidebar.markdown("### 🔄 Control de Datos")
-if st.sidebar.button("Forzar Sincronización"):
-    st.cache_data.clear()
+id_activo = st.session_state["id_seleccionado"]
+nombre_activo = st.session_state["nombre_seleccionado"]
+pais_activo = st.session_state["pais_seleccionado"]
+logo_activo = st.session_state.get(
+    "logo_seleccionado",
+    ""
+)
 
 def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
     pais_normalizado = str(pais_equipo).strip().lower()
@@ -729,6 +827,35 @@ if live_fixtures:
             "Minuto": match['fixture']['status']['elapsed']
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
+# =========================================================================
+# MÉTRICAS AVANZADAS DEL EQUIPO
+# =========================================================================
+
+
+total_partidos = len(df_finalizados)
+
+
+promedio_goles = 0
+
+
+if total_partidos > 0:
+
+    promedio_goles = round(
+
+        goles_favor / total_partidos,
+
+        2
+
+    )
+
+
+forma_equipo = calcular_forma_equipo(
+
+    df_finalizados,
+
+    nombre_activo
+
+)
 
 # =========================================================================
 # RENDERIZADO DE LAS PESTAÑAS (TABS)
@@ -809,6 +936,25 @@ with tab1:
                     if g_propio > g_rival:
                         victorias += 1
                         
+tarjeta_perfil_profesional(
+
+    nombre_activo,
+
+    pais_activo,
+
+    logo_activo,
+
+    victorias,
+
+    goles_favor,
+
+    total_partidos,
+
+    promedio_goles,
+
+    forma_equipo
+
+)
         # =========================================================================
 # TARJETAS KPI ESTILO SOFASCORE
 # =========================================================================
