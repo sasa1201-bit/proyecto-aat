@@ -132,7 +132,7 @@ with tab1:
         if search_team:
             df_live_filtered = df_live[
                 df_live['Local'].str.contains(search_team, case=False) | 
-                df_live_filtered = df_live[df_live['Visita'].str.contains(search_team, case=False)] |
+                df_live['Visita'].str.contains(search_team, case=False) |
                 df_live['Liga'].str.contains(search_team, case=False)
             ]
         else:
