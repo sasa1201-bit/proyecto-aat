@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime
+import plotly.express as px  # Librería para gráficos limpios sin parches de fondo
 
 # =========================================================================
 # CONFIGURACIÓN ESTÉTICA PREMIUM (Optimización de Contraste)
 # =========================================================================
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-# CSS Ajustado para asegurar legibilidad absoluta y limpiar gráficos nativos
+# CSS Ajustado para asegurar legibilidad absoluta (Textos oscuros garantizados)
 st.markdown("""
     <style>
         /* Fondo general de la app */
@@ -54,12 +55,6 @@ st.markdown("""
             color: #475569 !important;
             font-weight: 600 !important;
             font-size: 0.85rem !important;
-        }
-        
-        /* Remover el borde gris feo y fondo por defecto de los contenedores de gráficos nativos */
-        [data-testid="stChart"] {
-            background-color: transparent !important;
-            border: none !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -352,6 +347,7 @@ with tab2:
         ] if filtro else df_live
         
         for idx, row in df_live_filtered.iterrows():
+            # Forzamos los textos del marcador y equipos para que usen color oscuro e impidan que se pinten de blanco
             st.markdown(f"""
                 <div style='padding: 18px; background-color: #ffffff; border-radius: 12px; margin-bottom: 14px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
                     <div style='display: flex; justify-content: space-between; align-items: center;'>
@@ -370,33 +366,74 @@ with tab2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------------
-# PESTAÑA 3: ANALÍTICA GRÁFICA (Visualizaciones nativas limpiadas mediante CSS)
+# PESTAÑA 3: ANALÍTICA GRÁFICA (Visualizaciones Plotly Ultra-Limpias)
 # -------------------------------------------------------------------------
 with tab3:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>📈 Distribución de Ligas</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>📈 Distribución y Estadísticas de Ligas</div>", unsafe_allow_html=True)
     
-    # Datos para renderizar
+    # 1. Preparación de datos (reales o simulados)
     if not df_live.empty:
-        data_grafica = df_live['Liga'].value_counts()
+        data_grafica = df_live['Liga'].value_counts().reset_index()
+        data_grafica.columns = ['Liga', 'Partidos']
+        total_goles = df_live['Goles L'].sum() + df_live['Goles V'].sum()
+        promedio_min = df_live['Minuto'].mean()
     else:
-        # Datos simulados limpios
-        data_grafica = pd.Series([12, 8, 5, 4, 3], index=['LaLiga España', 'Premier League', 'Serie A Italia', 'Bundesliga', 'Ligue 1 Francia'])
+        # Datos simulados con nombres de Ligas Reales
+        data_grafica = pd.DataFrame({
+            'Liga': ['LaLiga España', 'Premier League', 'Serie A Italia', 'Bundesliga', 'Ligue 1 Francia'],
+            'Partidos': [12, 8, 5, 4, 3]
+        })
+        total_goles = 14
+        promedio_min = 54.2
 
-    col_izq, col_der = st.columns(2)
+    # Columnas de visualización
+    col_izq, col_der = st.columns([1, 1])
     
     with col_izq:
-        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #0f172a;'>📊 Volumen de Partidos por Liga</div>", unsafe_allow_html=True)
-        # Gráfico nativo con color personalizado (índigo)
-        st.bar_chart(data_grafica, color="#4f46e5")
+        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #0f172a;'>📊 Volumen por Liga</div>", unsafe_allow_html=True)
         
+        # Gráfico de Barras con Plotly Express
+        fig_bar = px.bar(
+            data_grafica, 
+            x='Liga', 
+            y='Partidos',
+            color_discrete_sequence=['#4f46e5'] # Color corporativo índigo
+        )
+        
+        # Eliminamos bordes y fondos para acoplar perfectamente
+        fig_bar.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=300,
+            xaxis=dict(showgrid=False, title_font=dict(color='#0f172a'), tickfont=dict(color='#475569')),
+            yaxis=dict(showgrid=True, gridcolor='#f1f5f9', title_font=dict(color='#0f172a'), tickfont=dict(color='#475569'))
+        )
+        st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+
     with col_der:
-        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #0f172a;'>💡 Información de Distribución</div>", unsafe_allow_html=True)
-        # Al no usar Plotly, podemos usar una representación limpia de progreso/distribución nativa
-        total = data_grafica.sum()
-        for liga, valor in data_grafica.items():
-            porcentaje = (valor / total) * 100
-            st.markdown(f"**{liga}** ({int(valor)} partidos)")
-            st.progress(int(porcentaje))
-            
+        st.markdown("<div style='margin-bottom: 15px; font-weight: 700; color: #0f172a;'>🍕 Participación en el Mercado</div>", unsafe_allow_html=True)
+        
+        # Gráfico de Pastel (Circular) con Plotly Express
+        fig_pie = px.pie(
+            data_grafica, 
+            names='Liga', 
+            values='Partidos',
+            color_discrete_sequence=px.colors.qualitative.Prism # Gama de colores vistosa y profesional
+        )
+        
+        # Configuración estética transparente sin parches grises
+        fig_pie.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=300,
+            legend=dict(font=dict(color='#1e293b'))
+        )
+        # Mostrar etiquetas legibles dentro de los sectores
+        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+        
+        st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
+        
     st.markdown("</div>", unsafe_allow_html=True)
