@@ -2,174 +2,163 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# Configuración de la página
-st.set_page_config(page_title="Forza Football Analytics", page_icon="⚽", layout="wide")
+# Configuración de la página estilo Deportivo Premium
+st.set_page_config(page_title="Forza Fútbol Live", page_icon="⚽", layout="wide")
 
-# Título y encabezado
-st.title("⚽ Forza Football Analytics")
-st.caption("Resultados en tiempo real, seguimiento de favoritos y análisis de rendimiento con Pandas")
-
-# =========================================================================
-# CONFIGURACIÓN DE LA API (football-data.org)
-# =========================================================================
-# El usuario o el profe puede pegar su API Key en la barra lateral
-st.sidebar.header("⚙️ Configuración")
-api_key = st.sidebar.text_input("Ingresa tu API Key de Football-Data:", type="password")
+st.title("⚽ Forza Fútbol: Marcadores en Vivo")
+st.caption("Consumiendo datos reales al instante con API-Football y análisis estadístico con Pandas")
 
 # =========================================================================
-# FUNCIONES PARA OBTENER DATOS (Con simulación de respaldo si no hay API Key)
+# CONFIGURACIÓN DE LA API (Barra lateral)
 # =========================================================================
-@st.cache_data(ttl=60) # Guarda en caché por 1 minuto para no saturar la API gratuita
-def obtener_tabla_posiciones(liga_code="PD"): # PD = Primera División de España
-    if not api_key:
-        # SIMULACIÓN si no hay API Key activa para que el profe vea cómo funciona de inmediato
-        datos_simulados = {
-            "Real Madrid": [38, 29, 8, 1, 87, 26, 95],
-            "FC Barcelona": [38, 26, 7, 5, 79, 44, 85],
-            "Girona FC": [38, 25, 6, 7, 85, 46, 81],
-            "Atlético de Madrid": [38, 24, 4, 10, 70, 43, 76],
-            "Athletic Club": [38, 19, 11, 8, 61, 37, 68],
-            "Real Sociedad": [38, 16, 12, 10, 51, 39, 60]
-        }
-        df = pd.DataFrame.from_dict(datos_simulados, orient='index', 
-                                    columns=['Jugados', 'Ganados', 'Empatados', 'Perdidos', 'Goles Favor', 'Goles Contra', 'Puntos'])
-        df.index.name = "Equipo"
-        return df.reset_index()
+st.sidebar.header("⚙️ Configuración de API")
+api_key = st.sidebar.text_input(
+    "Ingresa tu API Key de API-Football:", 
+    type="password", 
+    placeholder="Pega tu x-apisports-key aquí"
+)
+
+# Botón para forzar actualización de los datos
+st.sidebar.markdown("---")
+btn_refresh = st.sidebar.button("🔄 Actualizar Marcadores Ahora")
+
+# =========================================================================
+# LLAMADAS EN VIVO A LA API
+# =========================================================================
+@st.cache_data(ttl=15, show_spinner=False) # Guardamos en caché solo por 15 segundos para no quemar tus consultas
+def obtener_partidos_en_vivo(key_api):
+    if not key_api:
+        return None
     
-    # Llamada real a la API
-    headers = {'X-Auth-Token': api_key}
-    url = f"https://api.football-data.org/v4/competitions/{liga_code}/standings"
+    url = "https://v3.football.api-sports.io/fixtures?live=all"
+    headers = {
+        'x-apisports-key': key_api,
+        'x-rapidapi-host': 'v3.football.api-sports.io'
+    }
+    
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            data = response.json()
-            standing_list = data['standings'][0]['table']
-            records = []
-            for item in standing_list:
-                records.append({
-                    "Equipo": item['team']['name'],
-                    "Jugados": item['playedGames'],
-                    "Ganados": item['won'],
-                    "Empatados": item['draw'],
-                    "Perdidos": item['lost'],
-                    "Goles Favor": item['goalsFor'],
-                    "Goles Contra": item['goalsAgainst'],
-                    "Puntos": item['points']
-                })
-            return pd.DataFrame(records)
-        else:
-            st.sidebar.error(f"Error de API: {response.status_code}. Cargando simulación...")
-            return obtener_tabla_posiciones("") # Cae en simulación
+            return response.json().get("response", [])
     except Exception as e:
-        return obtener_tabla_posiciones("")
+        st.error(f"Error de conexión: {e}")
+    return None
 
 # =========================================================================
-# VISTA PRINCIPAL (Pestañas)
+# FLUJO DE DATOS PRINCIPAL
 # =========================================================================
-tab1, tab2, tab3 = st.tabs(["📅 Partidos y Resultados", "⭐ Mis Equipos Favoritos", "📈 Analítica Avanzada (Pandas)"])
+live_fixtures = obtener_partidos_en_vivo(api_key)
+
+# Pestañas de Navegación
+tab1, tab2, tab3 = st.tabs(["🔴 En Vivo Ahora", "⭐ Mis Equipos", "📊 Análisis Estadístico (Pandas)"])
 
 # -------------------------------------------------------------------------
-# PESTAÑA 1: Partidos y Resultados
+# PESTAÑA 1: PARTIDOS EN VIVO (Mundo Real)
 # -------------------------------------------------------------------------
 with tab1:
-    st.header("Matchday - Partidos Recientes y En Vivo")
+    st.header("⚽ Marcadores en Tiempo Real")
     
-    # Buscador de equipos rápido
-    filtro_equipo = st.text_input("🔍 Buscar partido de un equipo específico:", placeholder="Ej. Real Madrid")
-    
-    # Simulación de partidos de la jornada
-    partidos = [
-        {"Local": "Real Madrid", "Goles L": 2, "Visita": "FC Barcelona", "Goles V": 1, "Estado": "Finalizado"},
-        {"Local": "Girona FC", "Goles L": 3, "Visita": "Athletic Club", "Goles V": 3, "Estado": "En Vivo - Min 78'"},
-        {"Local": "Atlético de Madrid", "Goles L": 0, "Visita": "Real Sociedad", "Goles V": 0, "Estado": "Por Jugar (13:00)"},
-        {"Local": "Sevilla FC", "Goles L": 1, "Visita": "Real Betis", "Goles V": 2, "Estado": "Finalizado"}
-    ]
-    
-    # Filtrar si el usuario busca algo
-    if filtro_equipo:
-        partidos = [p for p in partidos if filtro_equipo.lower() in p["Local"].lower() or filtro_equipo.lower() in p["Visita"].lower()]
-
-    # Mostrar tarjetas visuales de los partidos
-    for p in partidos:
-        col_local, col_vs, col_visita, col_estado = st.columns([3, 2, 3, 2])
-        with col_local:
-            st.markdown(f"### **{p['Local']}**")
-        with col_vs:
-            if p['Estado'] != "Por Jugar (13:00)":
-                st.markdown(f"<h2 style='text-align: center; color: #ff4b4b;'>{p['Goles L']} - {p['Goles V']}</h2>", unsafe_allow_html=True)
-            else:
-                st.markdown("<h2 style='text-align: center; color: gray;'>VS</h2>", unsafe_allow_html=True)
-        with col_visita:
-            st.markdown(f"### **{p['Visita']}**")
-        with col_estado:
-            st.info(f"**{p['Estado']}**")
-        st.markdown("---")
+    if not api_key:
+        st.warning("⚠️ Ingresa tu API Key en la barra lateral para ver los partidos que se están jugando EN VIVO en este instante.")
+        st.markdown("""
+        **¿Cómo conseguir una clave gratis?**
+        1. Regístrate gratis en [api-football.com](https://www.api-football.com/)
+        2. Copia tu clave de la sección API-Keys.
+        3. Pégala a la izquierda para conectar tu app al satélite de datos en vivo.
+        """)
+    elif live_fixtures is None or len(live_fixtures) == 0:
+        st.info("ℹ️ No hay partidos jugándose en vivo en este momento, o has alcanzado el límite de tu API Key.")
+    else:
+        st.success(f"¡Conectado! Mostrando {len(live_fixtures)} partidos jugándose en vivo ahora mismo:")
+        
+        # Procesamos los datos con Pandas para poder buscar/filtrar rápido
+        records = []
+        for match in live_fixtures:
+            records.append({
+                "Liga": match['league']['name'],
+                "País": match['league']['country'],
+                "Local": match['teams']['home']['name'],
+                "Goles L": match['goals']['home'],
+                "Visita": match['teams']['away']['name'],
+                "Goles V": match['goals']['away'],
+                "Minuto": match['fixture']['status']['elapsed']
+            })
+        
+        df_live = pd.DataFrame(records)
+        
+        # Buscador de partidos de Pandas
+        search_team = st.text_input("🔍 Filtrar marcadores en vivo por equipo o liga:", "")
+        if search_team:
+            df_live = df_live[
+                df_live['Local'].str.contains(search_team, case=False) | 
+                df_live['Visita'].str.contains(search_team, case=False) |
+                df_live['Liga'].str.contains(search_team, case=False)
+            ]
+            
+        # Renderizado estético de marcadores
+        for index, row in df_live.iterrows():
+            col_match, col_meta = st.columns([3, 1])
+            with col_match:
+                st.markdown(
+                    f"### {row['Local']} **{row['Goles L']}** - **{row['Goles V']}** {row['Visita']}"
+                )
+                st.caption(f"🏆 {row['Liga']} ({row['País']})")
+            with col_meta:
+                st.metric(label="Minuto", value=f"{row['Minuto']}'", delta="En Directo", delta_color="inverse")
+            st.markdown("---")
 
 # -------------------------------------------------------------------------
-# PESTAÑA 2: Mis Equipos Favoritos
+# PESTAÑA 2: SEGUIMIENTO DE FAVORITOS
 # -------------------------------------------------------------------------
 with tab2:
-    st.header("⭐ Tu Zona Personalizada")
-    st.write("Selecciona tus clubes para hacerles un seguimiento prioritario:")
+    st.header("⭐ Seguimiento de tus Equipos")
+    st.write("Registra tus clubes favoritos para aislar sus datos de manera inteligente:")
     
-    # Inicializar favoritos en el estado de la app
-    if 'favoritos' not in st.session_state:
-        st.session_state.favoritos = ["Real Madrid", "FC Barcelona"]
+    if 'mis_favoritos' not in st.session_state:
+        st.session_state.mis_favoritos = ["Real Madrid", "Barcelona", "Manchester City", "PSG"]
         
-    df_posiciones = obtener_tabla_posiciones()
+    nuevos_favs = st.multiselect(
+        "Edita tu lista de equipos favoritos:",
+        options=["Real Madrid", "Barcelona", "Manchester City", "PSG", "Liverpool", "Juventus", "Bayern Munich", "Boca Juniors", "River Plate", "América", "Chivas"],
+        default=st.session_state.mis_favoritos
+    )
+    st.session_state.mis_favoritos = nuevos_favs
     
-    # Multiselector de favoritos conectado con Pandas
-    equipos_disponibles = df_posiciones["Equipo"].tolist()
-    seleccionados = st.multiselect("Elige tus equipos favoritos:", options=equipos_disponibles, default=st.session_state.favoritos)
-    st.session_state.favoritos = seleccionados
-    
-    if seleccionados:
-        # Filtro dinámico con Pandas (.isin)
-        df_favoritos = df_posiciones[df_posiciones["Equipo"].isin(seleccionados)]
-        st.write("📊 **Tabla de posiciones de tus favoritos:**")
-        st.dataframe(df_favoritos.set_index("Equipo"), use_container_width=True)
+    if api_key and live_fixtures:
+        # Filtramos los partidos en vivo usando la lista de favoritos de forma dinámica con Pandas
+        df_fav_matches = df_live[df_live['Local'].isin(nuevos_favs) | df_live['Visita'].isin(nuevos_favs)]
+        
+        if not df_fav_matches.empty:
+            st.subheader("🚨 ¡Tus equipos están jugando ahora mismo!")
+            st.dataframe(df_fav_matches, use_container_width=True)
+        else:
+            st.info("Ninguno de tus equipos favoritos está en la cancha ahora mismo.")
     else:
-        st.warning("Selecciona al menos un equipo en la lista de arriba para hacerle seguimiento.")
+        st.info("Conecta tu API Key para rastrear a tus favoritos en directo.")
 
 # -------------------------------------------------------------------------
-# PESTAÑA 3: Analítica Avanzada (Pandas)
+# PESTAÑA 3: ANALÍTICA CON PANDAS (Para el maestro)
 # -------------------------------------------------------------------------
 with tab3:
-    st.header("📈 Rendimiento de la Liga (Visualizaciones con Pandas)")
+    st.header("📊 Analítica del Tablero (Mapeo Estadístico de Pandas)")
     
-    df_analisis = obtener_tabla_posiciones()
-    
-    col_metric1, col_metric2, col_metric3 = st.columns(3)
-    with col_metric1:
-        # Equipo más goleador usando Pandas (.max())
-        goleador_idx = df_analisis["Goles Favor"].idxmax()
-        equipo_goleador = df_analisis.loc[goleador_idx, "Equipo"]
-        goles_max = df_analisis.loc[goleador_idx, "Goles Favor"]
-        st.metric(label="🔥 Más Goleador de la Liga", value=equipo_goleador, delta=f"{goles_max} goles")
+    if api_key and live_fixtures and len(live_fixtures) > 0:
+        # Convertimos toda la data en vivo en un DataFrame para análisis pesado
+        df_stats = pd.DataFrame(records)
         
-    with col_metric2:
-        # Mejor defensa usando Pandas (.min())
-        defensa_idx = df_analisis["Goles Contra"].idxmin()
-        equipo_defensa = df_analisis.loc[defensa_idx, "Equipo"]
-        goles_contra_min = df_analisis.loc[defensa_idx, "Goles Contra"]
-        st.metric(label="🛡️ Mejor Defensa (Menos goles encajados)", value=equipo_defensa, delta=f"{goles_contra_min} goles", delta_color="inverse")
+        col_m1, col_m2 = st.columns(2)
+        with col_m1:
+            total_goles = df_stats['Goles L'].sum() + df_stats['Goles V'].sum()
+            st.metric(label="Total de Goles Marcados en Vivo", value=int(total_goles))
+        with col_m2:
+            promedio_min = df_stats['Minuto'].mean()
+            st.metric(label="Minuto Promedio de los partidos", value=f"{promedio_min:.1f}'")
+            
+        st.markdown("---")
         
-    with col_metric3:
-        # Promedio de goles en la liga
-        promedio_goles = df_analisis["Goles Favor"].mean()
-        st.metric(label="⚽ Promedio de Goles por Equipo", value=f"{promedio_goles:.1f} goles")
-
-    st.markdown("---")
-    
-    col_grafica1, col_grafica2 = st.columns(2)
-    with col_grafica1:
-        st.markdown("**Comparativa de Puntos de los Equipos**")
-        # Gráfica interactiva de puntos usando los datos limpios de Pandas
-        df_puntos = df_analisis.set_index("Equipo")["Puntos"]
-        st.bar_chart(df_puntos, color="#10b981")
-        
-    with col_visita:
-        st.markdown("**Relación Goles a Favor vs Goles en Contra**")
-        # Mostramos una tabla con el diferencial de goles calculado mediante Pandas
-        df_analisis["Diferencial"] = df_analisis["Goles Favor"] - df_analisis["Goles Contra"]
-        st.dataframe(df_analisis[["Equipo", "Goles Favor", "Goles Contra", "Diferencial"]].set_index("Equipo"), use_container_width=True)
+        # Gráfica interactiva de Pandas con las ligas más activas en vivo
+        st.markdown("**Ligas con más partidos disputándose ahora mismo:**")
+        liga_activity = df_stats['Liga'].value_counts()
+        st.bar_chart(liga_activity, color="#ff4b4b")
+    else:
+        st.info("Esta sección analizará y generará gráficos de barras automáticos de goles y actividad de ligas en cuanto conectes tu API Key.")
