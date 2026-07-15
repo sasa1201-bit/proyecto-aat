@@ -26,22 +26,17 @@ if btn_refresh:
     st.cache_data.clear()  # Limpia la caché para obligar a traer datos frescos de la API
 
 # =========================================================================
-# DATOS DE RESPALDO (Por si la API Key falla, excede el límite o no encuentra el equipo)
+# FUNCIÓN DE RESPALDO DINÁMICO (Crea partidos para CUALQUIER equipo si la API falla)
 # =========================================================================
-DATOS_RESPALDO = {
-    "Real Madrid": [
-        {"Fecha": "2026-05-24 21:00", "Competencia": "La Liga", "Local": "Real Madrid", "Goles Local": 3, "Goles Visita": 1, "Visita": "Barcelona", "Estado": "FT"},
-        {"Fecha": "2026-05-18 19:00", "Competencia": "La Liga", "Local": "Valencia", "Goles Local": 0, "Goles Visita": 2, "Visita": "Real Madrid", "Estado": "FT"},
-        {"Fecha": "2026-05-12 21:00", "Competencia": "Champions League", "Local": "Real Madrid", "Goles Local": 1, "Goles Visita": 1, "Visita": "Bayern Munich", "Estado": "FT"},
-        {"Fecha": "2026-07-28 18:00", "Competencia": "Amistoso", "Local": "Real Madrid", "Goles Local": None, "Goles Visita": None, "Visita": "Chelsea", "Estado": "NS"},
-        {"Fecha": "2026-08-02 20:30", "Competencia": "La Liga", "Local": "Athletic Club", "Goles Local": None, "Goles Visita": None, "Visita": "Real Madrid", "Estado": "NS"}
-    ],
-    "Barcelona": [
-        {"Fecha": "2026-05-24 21:00", "Competencia": "La Liga", "Local": "Real Madrid", "Goles Local": 3, "Goles Visita": 1, "Visita": "Barcelona", "Estado": "FT"},
-        {"Fecha": "2026-05-19 20:00", "Competencia": "La Liga", "Local": "Barcelona", "Goles Local": 4, "Goles Visita": 0, "Visita": "Sevilla FC", "Estado": "FT"},
-        {"Fecha": "2026-07-25 19:00", "Competencia": "Amistoso", "Local": "Barcelona", "Goles Local": None, "Goles Visita": None, "Visita": "Manchester City", "Estado": "NS"}
+def generar_respaldo_dinamico(nombre_equipo):
+    # Genera partidos ficticios adaptados en tiempo real al equipo seleccionado
+    return [
+        {"Fecha": "2026-05-24 21:00", "Competencia": "Liga Local", "Local": nombre_equipo, "Goles Local": 2, "Goles Visita": 1, "Visita": "Rival Histórico A", "Estado": "FT"},
+        {"Fecha": "2026-05-18 19:00", "Competencia": "Liga Local", "Local": "Rival B", "Goles Local": 0, "Goles Visita": 2, "Visita": nombre_equipo, "Estado": "FT"},
+        {"Fecha": "2026-05-12 21:00", "Competencia": "Torneo Internacional", "Local": nombre_equipo, "Goles Local": 1, "Goles Visita": 1, "Visita": "Rival Internacional C", "Estado": "FT"},
+        {"Fecha": "2026-07-28 18:00", "Competencia": "Amistoso", "Local": nombre_equipo, "Goles Local": None, "Goles Visita": None, "Visita": "Rival Amistoso D", "Estado": "NS"},
+        {"Fecha": "2026-08-02 20:30", "Competencia": "Liga Local", "Local": "Rival E", "Goles Local": None, "Goles Visita": None, "Visita": nombre_equipo, "Estado": "NS"}
     ]
-}
 
 # =========================================================================
 # LLAMADAS EN VIVO, BÚSQUEDA Y CALENDARIOS EN LA API
@@ -82,7 +77,7 @@ def obtener_calendario_equipo(id_equipo, nombre_equipo):
             if res_json.get("response") and len(res_json.get("response")) > 0:
                 return res_json.get("response"), "api_directa"
             
-            # Intento con temporada anterior si la actual está vacía
+            # Intento con temporada anterior si la actual está vacía en la API
             url_backup = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual - 1}"
             response_backup = requests.get(url_backup, headers=HEADERS)
             if response_backup.status_code == 200:
@@ -92,8 +87,8 @@ def obtener_calendario_equipo(id_equipo, nombre_equipo):
     except Exception as e:
         pass
     
-    # Datos simulados de respaldo si falla todo lo demás
-    datos_finales = DATOS_RESPALDO.get(nombre_equipo, DATOS_RESPALDO["Real Madrid"])
+    # ¡SOLUCIÓN AQUÍ! Si no hay respuesta real de la API, se generan datos para el equipo buscado
+    datos_finales = generar_respaldo_dinamico(nombre_equipo)
     return datos_finales, "local_respaldo"
 
 # =========================================================================
@@ -150,7 +145,7 @@ with tab1:
             st.markdown("---")
 
 # -------------------------------------------------------------------------
-# PESTAÑA 2: BUSCADOR GLOBAL Y SEGUIMIENTO COMPLETO (Corregido con State)
+# PESTAÑA 2: BUSCADOR GLOBAL Y SEGUIMIENTO COMPLETO
 # -------------------------------------------------------------------------
 with tab2:
     st.header("🔍 Buscador Global de Equipos")
@@ -184,7 +179,6 @@ with tab2:
             )
             
             if seleccion:
-                # Guardamos las selecciones en el session_state para evitar que se pierdan o queden cargando infinitamente
                 st.session_state["id_seleccionado"] = opciones_equipos[seleccion]["id"]
                 st.session_state["nombre_seleccionado"] = opciones_equipos[seleccion]["name"]
         else:
@@ -202,13 +196,13 @@ with tab2:
         # Realizamos la llamada pasando el ID definitivo
         historial_raw, origen_datos = obtener_calendario_equipo(id_activo, nombre_activo)
         
-        # Alertas de estado de datos para informar al usuario de dónde viene la info
+        # Alertas de estado de datos
         if origen_datos == "api_directa":
             st.success("⚽ Datos sincronizados en vivo desde los servidores de API-Sports.")
         elif origen_datos == "api_respaldo_temporada":
             st.warning("📅 Temporada actual sin partidos registrados en la API. Cargando registros de la temporada anterior.")
         else:
-            st.info("⚠️ Usando base de datos de respaldo optimizada (Simulación local).")
+            st.info(f"⚠️ Usando base de datos de respaldo optimizada para {nombre_activo} (Simulación local).")
             
         if historial_raw:
             records_historial = []
