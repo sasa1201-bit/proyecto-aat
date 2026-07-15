@@ -784,7 +784,36 @@ nombre_activo = st.session_state["nombre_seleccionado"]
 pais_activo = st.session_state["pais_seleccionado"]
 
 
-def obtener_calendario_equipo
+def obtener_calendario_equipo(id_equipo, nombre_equipo, pais_equipo):
+
+    año_actual = datetime.now().year
+
+    url = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}"
+
+    try:
+
+        response = requests.get(
+            url,
+            headers=HEADERS
+        )
+
+        if response.status_code == 200:
+
+            res_json = response.json()
+
+            if res_json.get("response"):
+
+                return res_json.get("response"), "api_directa"
+
+    except Exception:
+
+        pass
+
+
+    return generar_respaldo_dinamico(
+        nombre_equipo,
+        pais_equipo
+    ), "local_respaldo"
 historial_raw, origen_datos = obtener_calendario_equipo(
     id_activo,
     nombre_activo,
