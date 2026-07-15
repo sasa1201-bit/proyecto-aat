@@ -866,25 +866,37 @@ df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 # =========================================================================
 
 
-total_partidos = len(df_finalizados)
 df_historial = pd.DataFrame(records_historial)
 
-df_historial = df_historial.sort_values(
-    by="Fecha",
-    ascending=False
-)
+
+if not df_historial.empty:
 
 
-estados_finalizados = [
-    "FT",
-    "AET",
-    "PEN"
-]
+    df_historial = df_historial.sort_values(
+        by="Fecha",
+        ascending=False
+    )
 
 
-df_finalizados = df_historial[
-    df_historial["Estado"].isin(estados_finalizados)
-]
+    estados_finalizados = [
+        "FT",
+        "AET",
+        "PEN"
+    ]
+
+
+    df_finalizados = df_historial[
+        df_historial["Estado"].isin(estados_finalizados)
+    ]
+
+
+else:
+
+    df_finalizados = pd.DataFrame()
+
+
+
+total_partidos = len(df_finalizados)
 
 
 
@@ -894,22 +906,15 @@ promedio_goles = 0
 if total_partidos > 0:
 
     promedio_goles = round(
-
         goles_favor / total_partidos,
-
         2
-
     )
 
 
 forma_equipo = calcular_forma_equipo(
-
     df_finalizados,
-
     nombre_activo
-
 )
-
 # =========================================================================
 # RENDERIZADO DE LAS PESTAÑAS (TABS)
 # =========================================================================
