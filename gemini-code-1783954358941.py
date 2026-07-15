@@ -650,8 +650,6 @@ align-items:center;
 unsafe_allow_html=True
 )
 
-}
-
 st.sidebar.markdown("### 🔄 Control de Datos")
 if st.sidebar.button("Forzar Sincronización"):
     st.cache_data.clear()
