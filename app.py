@@ -944,24 +944,27 @@ with kpi3:
 col_izq, col_der = st.columns(2)
 
 
-with col_izq:
+with col_der:
 
 
     st.markdown(
     """
     <div class="section-title">
-    ⏮️ Últimos Resultados
+    ⏭️ Próximos Partidos
     </div>
     """,
     unsafe_allow_html=True
     )
 
 
-    # Últimos partidos jugados
-    df_ultimos = df_finalizados.head(5)
+    # Próximos partidos
+    df_proximos = df_historial[
+        ~df_historial['Estado'].isin(estados_finalizados)
+    ].head(5)
 
 
-    for idx, row in df_ultimos.iterrows():
+
+    for idx, row in df_proximos.iloc[::-1].iterrows():
 
         tarjeta_partido(
 
@@ -969,14 +972,13 @@ with col_izq:
 
             row['Visita'],
 
-            int(row['Goles Local']),
+            None,
 
-            int(row['Goles Visita']),
+            None,
 
             row['Competencia']
 
         )
-
 
 with col_der:
 
