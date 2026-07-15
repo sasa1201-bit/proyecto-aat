@@ -422,20 +422,5 @@ VS
 </div>
 
 """,unsafe_allow_html=True)
-            
-        Forza-Football-Pro/
-│
-├── app.py
-├── api.py
-├── config.py
-├── dashboard.py
-├── live.py
-├── team.py
-├── players.py
-├── standings.py
-├── charts.py
-├── utils.py
-├── requirements.txt
-├── README.md
-├── assets/
-│   └── style.css
+
+
