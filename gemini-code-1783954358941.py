@@ -423,4 +423,26 @@ VS
 
 """,unsafe_allow_html=True)
 
+            st.markdown(f"""
 
+<div class="card">
+
+<b>{fecha}</b><br>
+
+🏆 {liga}<br>
+
+🏟 {estadio}<br><br>
+
+<b>{casa}</b>
+
+<br>
+
+VS
+
+<br>
+
+<b>{visita}</b>
+
+</div>
+
+""", unsafe_allow_html=True)
