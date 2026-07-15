@@ -784,41 +784,50 @@ nombre_activo = st.session_state["nombre_seleccionado"]
 pais_activo = st.session_state["pais_seleccionado"]
 
 
-def obtener_calendario_equipo(id_equipo, nombre_equipo, pais_equipo):
+# ==========================================================
+# RESPALDO DE DATOS
+# ==========================================================
 
-    año_actual = datetime.now().year
+def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
 
-    url = f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}"
+    pais_normalizado = str(pais_equipo).lower()
 
-    try:
+    if "mexico" in pais_normalizado:
 
-        response = requests.get(
-            url,
-            headers=HEADERS
-        )
+        competencia = "Liga MX"
 
-        if response.status_code == 200:
+        rivales = [
+            "Chivas Guadalajara",
+            "Cruz Azul",
+            "Pumas UNAM",
+            "Tigres UANL",
+            "Monterrey"
+        ]
 
-            res_json = response.json()
+    else:
 
-            if res_json.get("response"):
+        competencia = "Amistoso Internacional"
 
-                return res_json.get("response"), "api_directa"
+        rivales = [
+            "Real Madrid",
+            "Barcelona",
+            "Manchester City",
+            "Bayern Munich",
+            "PSG"
+        ]
 
-    except Exception:
 
-        pass
-
-
-    return generar_respaldo_dinamico(
-        nombre_equipo,
-        pais_equipo
-    ), "local_respaldo"
-historial_raw, origen_datos = obtener_calendario_equipo(
-    id_activo,
-    nombre_activo,
-    pais_activo
-)
+    return [
+        {
+            "Fecha": "2026-07-12 18:00",
+            "Competencia": competencia,
+            "Local": rivales[0],
+            "Goles Local": 1,
+            "Goles Visita": 2,
+            "Visita": nombre_equipo,
+            "Estado": "FT"
+        }
+    ]
 
 
 records_historial = []
