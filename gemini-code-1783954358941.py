@@ -21,11 +21,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='color: #000000 !important;'>⚽ Forza Fútbol Live</h1>", unsafe_allow_html=True)
-
-# =========================================================================
-# LÓGICA DE API Y DATOS
-# =========================================================================
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
@@ -38,6 +33,7 @@ def buscar_equipo_api(nombre):
 # =========================================================================
 # INTERFAZ
 # =========================================================================
+st.markdown("<h1 style='color: #000000 !important;'>⚽ Forza Fútbol Live</h1>", unsafe_allow_html=True)
 tab1, tab2, tab3 = st.tabs(["📊 Buscador & Seguimiento", "🔴 Marcadores en Vivo", "📈 Estadísticas"])
 
 with tab1:
@@ -64,11 +60,26 @@ with tab1:
         </div>
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Simulación de resultados con logo
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style='display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #e2e8f0;'>
+            <img src='{st.session_state.logo_seleccionado}' width='30' style='margin-right: 15px;'>
+            <span><b>{st.session_state.nombre_seleccionado}</b> vs Rival - 3:1</span>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    st.info("Visualizando marcadores en tiempo real.")
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🔴 Marcadores en Vivo</div>", unsafe_allow_html=True)
+    st.info("Sin partidos en vivo actualmente.")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.bar_chart(pd.DataFrame({'Partidos': [10, 5, 8]}, index=['Liga A', 'Liga B', 'Liga C']), use_container_width=True)
+    st.markdown("<div class='section-title'>📈 Analítica de Volumen</div>", unsafe_allow_html=True)
+    st.bar_chart(pd.DataFrame({'Partidos': [12, 8, 5]}, index=['Liga España', 'Premier League', 'Liga MX']), use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
