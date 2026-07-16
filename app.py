@@ -11,9 +11,7 @@ st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout
 st.markdown("""
     <style>
         /* Fondo general de la app */
-        .stApp {
-            background-color: #0F172A !important;
-        }
+        .stApp { background-color: #0F172A !important; }
         
         /* Forzar texto blanco general para contraste */
         .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
@@ -22,93 +20,67 @@ st.markdown("""
 
         /* Texto y diseño para las pestañas (Tabs) */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 10px;
-            background-color: transparent;
+            gap: 10px; background-color: transparent;
         }
         button[data-baseweb="tab"] {
             background-color: #1E293B !important;
             border-radius: 8px 8px 0 0;
-            border: 1px solid #334155;
-            border-bottom: none;
+            border: 1px solid #334155; border-bottom: none;
+            transition: all 0.3s ease; /* MEJORA: Animación suave */
         }
         button[data-baseweb="tab"] p {
-            color: #94A3B8 !important;
-            font-weight: 600 !important;
-            font-size: 1.05rem !important;
+            color: #94A3B8 !important; font-weight: 600 !important; font-size: 1.05rem !important;
+        }
+        button[data-baseweb="tab"]:hover {
+            background-color: #2D3748 !important; /* MEJORA: Efecto hover en pestañas */
         }
         button[aria-selected="true"] {
-            background-color: #3B82F6 !important;
-            border-color: #3B82F6 !important;
+            background-color: #3B82F6 !important; border-color: #3B82F6 !important;
         }
         button[aria-selected="true"] p {
-            color: #FFFFFF !important;
-            font-weight: 800 !important;
+            color: #FFFFFF !important; font-weight: 800 !important;
         }
         
         /* Estilo para contenedores tipo Tarjeta Oscura (ESPN) */
         .premium-card {
-            background-color: #1E293B !important;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            margin-bottom: 20px;
-            border: 1px solid #334155;
+            background-color: #1E293B !important; padding: 24px;
+            border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px; border: 1px solid #334155;
+            transition: transform 0.2s ease, box-shadow 0.2s ease; /* MEJORA: Animación en tarjetas */
+        }
+        .premium-card:hover {
+            transform: translateY(-2px); /* MEJORA: Las tarjetas "flotan" al pasar el mouse */
+            box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.7);
         }
         
         .section-title {
-            color: #FFFFFF !important;
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid #334155;
-            padding-bottom: 8px;
+            color: #FFFFFF !important; font-size: 1.4rem; font-weight: 800;
+            margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 2px solid #334155; padding-bottom: 8px;
         }
         
-        .live-team-name {
-            color: #FFFFFF !important;
-            font-weight: 800 !important;
-            font-size: 1.15rem !important;
-        }
-        
+        .live-team-name { color: #FFFFFF !important; font-weight: 800 !important; font-size: 1.15rem !important; }
         .live-score {
-            color: #EF4444 !important;
-            font-weight: 900 !important;
-            font-size: 1.5rem !important;
-            margin: 0 15px !important;
-            background: #000000;
-            padding: 4px 12px;
-            border-radius: 6px;
+            color: #EF4444 !important; font-weight: 900 !important; font-size: 1.5rem !important;
+            margin: 0 15px !important; background: #000000; padding: 4px 12px; border-radius: 6px;
         }
-        
-        .live-league-label {
-            color: #94A3B8 !important;
-            font-weight: 600 !important;
-            font-size: 0.85rem !important;
-        }
+        .live-league-label { color: #94A3B8 !important; font-weight: 600 !important; font-size: 0.85rem !important; }
 
         /* Efecto pulso para el minuto en vivo */
         .pulse-minute {
-            background-color: #EF4444;
-            color: #FFFFFF !important;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 800;
-            animation: pulse 2s infinite;
+            background-color: #EF4444; color: #FFFFFF !important; padding: 6px 14px;
+            border-radius: 20px; font-size: 0.85rem; font-weight: 800;
+            animation: pulse 2s infinite; display: inline-block;
         }
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); } /* MEJORA: Pulso más notorio */
+            100% { opacity: 1; transform: scale(1); }
         }
         
         /* Input y Selectbox oscuros */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-            background-color: #0F172A !important;
-            color: #FFFFFF !important;
-            border: 1px solid #334155 !important;
+            background-color: #0F172A !important; color: #FFFFFF !important; border: 1px solid #334155 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -127,24 +99,23 @@ st.markdown("""
 # =========================================================================
 # CONFIGURACIÓN DE LA API Y RESPALDO
 # =========================================================================
-API_KEY = "acb867b68f5987d9c226e48c12c090e3"
+# ¡OJO! MEJORA: Considera usar st.secrets["API_KEY"] para no exponer esto en GitHub.
+API_KEY = "acb867b68f5987d9c226e48c12c090e3" 
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
 st.sidebar.markdown("### ⚙️ Centro de Control")
 if st.sidebar.button("🔄 Refrescar Datos de API"):
     st.cache_data.clear()
+    st.sidebar.success("Datos actualizados.") # MEJORA: Feedback visual al usuario
 
 def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
     pais_normalizado = str(pais_equipo).strip().lower()
     if "mexico" in pais_normalizado or "méxico" in pais_normalizado:
-        competencia = "Liga MX"
-        rivales = ["América", "Cruz Azul", "Pumas", "Tigres", "Monterrey"]
+        competencia, rivales = "Liga MX", ["América", "Cruz Azul", "Pumas", "Tigres", "Monterrey"]
     elif "spain" in pais_normalizado or "españa" in pais_normalizado:
-        competencia = "LaLiga"
-        rivales = ["Real Madrid", "Barcelona", "Atlético", "Sevilla", "Betis"]
+        competencia, rivales = "LaLiga", ["Real Madrid", "Barcelona", "Atlético", "Sevilla", "Betis"]
     else:
-        competencia = "Champions League"
-        rivales = ["Real Madrid", "PSG", "Bayern", "Man City", "Arsenal"]
+        competencia, rivales = "Champions League", ["Real Madrid", "PSG", "Bayern", "Man City", "Arsenal"]
 
     return [
         {"Fecha": "2026-07-12 18:00", "Competencia": competencia, "Local": rivales[1], "Goles Local": 1, "Goles Visita": 3, "Visita": nombre_equipo, "Estado": "FT"},
@@ -154,32 +125,36 @@ def generar_respaldo_dinamico(nombre_equipo, pais_equipo):
         {"Fecha": "2026-08-01 21:00", "Competencia": competencia, "Local": rivales[4], "Goles Local": None, "Goles Visita": None, "Visita": nombre_equipo, "Estado": "NS"}
     ]
 
+# MEJORA: Manejo de errores más seguro en lugar de un "pass" silencioso
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo(key_api):
     try:
-        response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
+        response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS, timeout=5)
         if response.status_code == 200: return response.json().get("response", [])
-    except: pass
+    except Exception as e:
+        print(f"Error en API Live: {e}") 
     return None
 
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_equipo_api(nombre_busqueda):
     if not nombre_busqueda or len(nombre_busqueda) < 3: return []
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS)
+        response = requests.get(f"https://v3.football.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS, timeout=5)
         if response.status_code == 200: return response.json().get("response", [])
-    except: pass
+    except Exception:
+        pass
     return []
 
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo, nombre_equipo, pais_equipo):
     año_actual = datetime.now().year
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}", headers=HEADERS)
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}", headers=HEADERS, timeout=5)
         if response.status_code == 200:
             res_json = response.json()
             if res_json.get("response"): return res_json.get("response"), "api_directa"
-    except: pass
+    except Exception:
+        pass
     return generar_respaldo_dinamico(nombre_equipo, pais_equipo), "local_respaldo"
 
 live_fixtures = obtener_partidos_en_vivo(API_KEY)
@@ -259,7 +234,9 @@ with tab1:
             es_local = row['Local'] == nombre_activo
             g_propio = row['Goles Local'] if es_local else row['Goles Visita']
             g_rival = row['Goles Visita'] if es_local else row['Goles Local']
-            if not pd.isna(g_propio):
+            
+            # MEJORA: Prevención de errores si vienen datos nulos
+            if pd.notna(g_propio) and pd.notna(g_rival):
                 goles_favor += int(g_propio)
                 if g_propio > g_rival: victorias += 1
                 elif g_propio == g_rival: empates += 1
@@ -290,45 +267,51 @@ with tab1:
     col_izq, col_der = st.columns(2)
     with col_izq:
         st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
-        for _, row in df_finalizados.head(5).iterrows():
-            es_local = row['Local'] == nombre_activo
-            g_propio = int(row['Goles Local']) if es_local else int(row['Goles Visita'])
-            g_rival = int(row['Goles Visita']) if es_local else int(row['Goles Local'])
-            
-            color_borde = "#10B981" if g_propio > g_rival else ("#64748B" if g_propio == g_rival else "#EF4444")
-            
-            logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
-            logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
-
-            st.markdown(f"""
-                <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid {color_borde};'>
-                    <div style='display:flex; justify-content:space-between; align-items:center;'>
-                        <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{logo_l} <span style='font-weight:bold;'>{row['Local']}</span></div>
-                        <div style='width: 20%; text-align:center; font-size:1.2rem; font-weight:900;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</div>
-                        <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'><span style='font-weight:bold;'>{row['Visita']}</span> {logo_v}</div>
+        if not df_finalizados.empty: # MEJORA: Evitar crash si no hay historial
+            for _, row in df_finalizados.head(5).iterrows():
+                es_local = row['Local'] == nombre_activo
+                g_propio = int(row['Goles Local']) if es_local else int(row['Goles Visita'])
+                g_rival = int(row['Goles Visita']) if es_local else int(row['Goles Local'])
+                
+                color_borde = "#10B981" if g_propio > g_rival else ("#64748B" if g_propio == g_rival else "#EF4444")
+                
+                logo_l = f"<img src='{row.get('Logo_L', '')}' width='24'>" if 'Logo_L' in row else ""
+                logo_v = f"<img src='{row.get('Logo_V', '')}' width='24'>" if 'Logo_V' in row else ""
+    
+                st.markdown(f"""
+                    <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid {color_borde};'>
+                        <div style='display:flex; justify-content:space-between; align-items:center;'>
+                            <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{logo_l} <span style='font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>{row['Local']}</span></div>
+                            <div style='width: 20%; text-align:center; font-size:1.2rem; font-weight:900;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</div>
+                            <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'><span style='font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>{row['Visita']}</span> {logo_v}</div>
+                        </div>
+                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha']}</div>
                     </div>
-                    <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha']}</div>
-                </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+        else:
+            st.info("No hay resultados recientes registrados.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Calendario</div>", unsafe_allow_html=True)
         df_proximos = df_historial[~df_historial['Estado'].isin(['FT', 'AET', 'PEN'])].tail(5)
-        for _, row in df_proximos.iloc[::-1].iterrows():
-            logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
-            logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
-            
-            st.markdown(f"""
-                <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3B82F6;'>
-                    <div style='display:flex; justify-content:space-between; align-items:center;'>
-                        <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{logo_l} {row['Local']}</div>
-                        <div style='width: 20%; text-align:center; color:#F59E0B; font-weight:bold;'>VS</div>
-                        <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'>{row['Visita']} {logo_v}</div>
+        if not df_proximos.empty:
+            for _, row in df_proximos.iloc[::-1].iterrows():
+                logo_l = f"<img src='{row.get('Logo_L', '')}' width='24'>" if 'Logo_L' in row else ""
+                logo_v = f"<img src='{row.get('Logo_V', '')}' width='24'>" if 'Logo_V' in row else ""
+                
+                st.markdown(f"""
+                    <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3B82F6;'>
+                        <div style='display:flex; justify-content:space-between; align-items:center;'>
+                            <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{logo_l} <span style='white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>{row['Local']}</span></div>
+                            <div style='width: 20%; text-align:center; color:#F59E0B; font-weight:bold;'>VS</div>
+                            <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'><span style='white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>{row['Visita']}</span> {logo_v}</div>
+                        </div>
+                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha']}</div>
                     </div>
-                    <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha']}</div>
-                </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+        else:
+            st.info("No hay partidos próximos programados.")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # --- PESTAÑA 2: Partidos en vivo ---
@@ -341,7 +324,7 @@ with tab2:
     else:
         for _, row in df_live.iterrows():
             st.markdown(f"""
-                <div style='background-color: #0F172A; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155;'>
+                <div style='background-color: #0F172A; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; transition: transform 0.2s; cursor: pointer;' onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
                     <div style='display: flex; justify-content: space-between; align-items: center;'>
                         <div style='width: 35%; display:flex; align-items:center; gap:15px;'>
                             <img src='{row['Logo_L']}' width='40'>
@@ -395,22 +378,33 @@ with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
     
-    # Lógica de procesamiento de lenguaje natural simple
     rendimiento_txt = "óptimo" if efectividad >= 50 else "en desarrollo"
-    
     st.write(f"**Estado actual:** {nombre_activo} presenta un rendimiento {rendimiento_txt} con una efectividad del {efectividad}%.")
 
-    # Módulo de Consultas Abiertas
+    # MEJORA: Implementación de memoria de chat real
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+        # Mensaje de bienvenida inicial
+        st.session_state.chat_history.append({"role": "assistant", "content": f"Hola, soy tu Scout IA. ¿Qué deseas saber sobre los datos de {nombre_activo}?"})
+
+    # Renderizar historial
+    for msg in st.session_state.chat_history:
+        avatar = "🤖" if msg["role"] == "assistant" else "👤"
+        with st.chat_message(msg["role"], avatar=avatar):
+            st.write(msg["content"])
+
     pregunta_usuario = st.chat_input(f"Pregunta sobre {nombre_activo}...")
     
     if pregunta_usuario:
+        # Añadir al historial y renderizar usuario
+        st.session_state.chat_history.append({"role": "user", "content": pregunta_usuario})
         with st.chat_message("user", avatar="👤"):
             st.write(pregunta_usuario)
             
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
             
-            # Lógica de respuesta abierta basada en variables
+            # Lógica
             if any(x in p for x in ["goles", "promedio", "anotaciones"]):
                 respuesta = f"El equipo registra un promedio de {promedio_goles} goles por partido actualmente."
             elif any(x in p for x in ["victoria", "ganado", "triunfos"]):
@@ -426,6 +420,7 @@ with tab4:
                              f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
             
             st.write(respuesta)
+            st.session_state.chat_history.append({"role": "assistant", "content": respuesta})
             
     st.markdown("</div>", unsafe_allow_html=True)
 
