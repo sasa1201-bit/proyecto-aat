@@ -200,7 +200,7 @@ if live_fixtures:
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
 # =========================================================================
-# RENDERIZADO DE LAS PESTAÑAS (TABS) - ¡AHORA SON 4 PESTAÑAS!
+# RENDERIZADO DE LAS PESTAÑAS (TABS)
 # =========================================================================
 tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo", "📈 Analítica Avanzada", "🤖 Scout IA"])
 
@@ -368,22 +368,32 @@ with tab2:
 with tab3:
     st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
     
+    # Preparamos métricas diferentes para cada gráfica
     if not df_live.empty:
-        data_grafica = df_live['Liga'].value_counts().reset_index()
-        data_grafica.columns = ['Liga', 'Partidos']
+        # Métrica 1: Cantidad de partidos por liga (Volumen)
+        data_volumen = df_live['Liga'].value_counts()
+        
+        # Métrica 2: Suma total de goles (Local + Visita) por liga
+        # Convertimos a numérico por si la API manda algún dato vacío
+        goles_local = pd.to_numeric(df_live['Goles L'], errors='coerce').fillna(0)
+        goles_visita = pd.to_numeric(df_live['Goles V'], errors='coerce').fillna(0)
+        df_live['Goles Totales'] = goles_local + goles_visita
+        data_goles = df_live.groupby('Liga')['Goles Totales'].sum()
     else:
-        data_grafica = pd.DataFrame({'Liga': ['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'], 'Partidos': [12, 8, 5, 4, 3]})
-
-    chart_data = data_grafica.set_index('Liga')
+        # Datos simulados de respaldo si no hay partidos en vivo
+        data_volumen = pd.Series([12, 8, 5, 4, 3], index=['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'])
+        data_goles = pd.Series([34, 22, 15, 12, 9], index=['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'])
 
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Distribución Global</div>", unsafe_allow_html=True)
-        st.bar_chart(chart_data, use_container_width=True, color="#3B82F6")
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Volumen de Partidos</div>", unsafe_allow_html=True)
+        st.bar_chart(data_volumen, use_container_width=True, color="#3B82F6") # Azul
+        st.caption("Cantidad de encuentros activos por competencia.")
         st.markdown("</div>", unsafe_allow_html=True)
     with c2:
-        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📈 Densidad de Eventos</div>", unsafe_allow_html=True)
-        st.area_chart(chart_data, use_container_width=True, color="#10B981")
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>⚽ Goles Totales por Liga</div>", unsafe_allow_html=True)
+        st.area_chart(data_goles, use_container_width=True, color="#EF4444") # Rojo
+        st.caption("Suma de goles registrados en la jornada actual.")
         st.markdown("</div>", unsafe_allow_html=True)
 
 # --- PESTAÑA 4: MÓDULO DE INTELIGENCIA ARTIFICIAL (¡NUEVO!) ---
