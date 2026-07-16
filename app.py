@@ -394,34 +394,38 @@ with tab3:
 with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
-    st.caption("Procesamiento de Lenguaje Natural basado en los métricos estructurales del equipo.")
     
-    rendimiento_txt = "óptimo y competitivo" if efectividad >= 50 else "deficiente y requiere reestructuración"
-    tendencia = "altamente ofensiva" if promedio_goles >= 1.5 else "conservadora/defensiva"
+    # Lógica de procesamiento de lenguaje natural simple
+    rendimiento_txt = "óptimo" if efectividad >= 50 else "en desarrollo"
     
-    informe_ia = f"**Análisis Predictivo Autogenerado:**\n\nBasado en la muestra de los últimos **{partidos_jugados} encuentros** registrados en la base de datos, **{nombre_activo}** muestra un rendimiento **{rendimiento_txt}**, logrando mantener una efectividad del **{efectividad}%**.\n\nSu tendencia táctica es **{tendencia}**, promediando **{promedio_goles} goles** por partido. "
-    
-    if victorias > derrotas:
-        informe_ia += "✅ *Conclusión del Modelo:* El equipo se encuentra en una fase de inercia positiva. El algoritmo sugiere mantener el esquema estructural actual para asegurar puntos en los próximos compromisos del calendario."
-    elif victorias == derrotas and partidos_jugados > 0:
-        informe_ia += "⚠️ *Conclusión del Modelo:* El equipo presenta alta inconsistencia. Se sugiere una revisión del mediocampo para evitar la pérdida de posesión y estabilizar los resultados."
-    else:
-        informe_ia += "❌ *Conclusión del Modelo:* Las métricas indican vulnerabilidades críticas. El sistema sugiere implementar ajustes profundos en las transiciones defensivas de forma inmediata."
+    st.write(f"**Estado actual:** {nombre_activo} presenta un rendimiento {rendimiento_txt} con una efectividad del {efectividad}%.")
 
-    with st.chat_message("assistant", avatar="🤖"):
-        st.write(informe_ia)
-        
-    st.markdown("<hr style='border-color: #334155; margin-top: 30px;'>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 0.9rem; color: #94A3B8;'>Módulo de Consultas (Simulación Demostrativa)</p>", unsafe_allow_html=True)
-    
-    pregunta_usuario = st.chat_input(f"Hazle una pregunta técnica a la IA sobre {nombre_activo}...")
+    # Módulo de Consultas Abiertas
+    pregunta_usuario = st.chat_input(f"Pregunta sobre {nombre_activo}...")
     
     if pregunta_usuario:
         with st.chat_message("user", avatar="👤"):
             st.write(pregunta_usuario)
+            
         with st.chat_message("assistant", avatar="🤖"):
-            st.write(f"Procesando tu consulta: *\"{pregunta_usuario}\"*...")
-            st.info(f"**Nota Técnica:** Para garantizar la estabilidad de la aplicación y evitar exceder las cuotas de facturación de APIs externas durante la evaluación, las consultas LLM abiertas están limitadas. Sin embargo, los datos duros confirman que el récord histórico actual de **{nombre_activo}** es de **{victorias} victorias y {derrotas} derrotas**.")
+            p = pregunta_usuario.lower()
+            
+            # Lógica de respuesta abierta basada en variables
+            if any(x in p for x in ["goles", "promedio", "anotaciones"]):
+                respuesta = f"El equipo registra un promedio de {promedio_goles} goles por partido actualmente."
+            elif any(x in p for x in ["victoria", "ganado", "triunfos"]):
+                respuesta = f"En la temporada actual, el equipo ha logrado {victorias} victorias."
+            elif any(x in p for x in ["derrota", "perdido"]):
+                respuesta = f"El equipo suma {derrotas} derrotas en el registro actual."
+            elif any(x in p for x in ["efectividad", "porcentaje", "desempeño"]):
+                respuesta = f"El nivel de efectividad actual es del {efectividad}%, basado en {partidos_jugados} partidos."
+            elif "partidos" in p or "jugados" in p:
+                respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
+            else:
+                respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
+                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+            
+            st.write(respuesta)
             
     st.markdown("</div>", unsafe_allow_html=True)
 
