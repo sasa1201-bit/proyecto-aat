@@ -171,16 +171,36 @@ def buscar_equipo_api(nombre_busqueda):
     except: pass
     return []
 
+# -- NUEVA FUNCIÓN PARA EXTRACCIÓN DE DATOS REALES (Sin depender de la temporada actual) --
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo, nombre_equipo, pais_equipo):
-    año_actual = datetime.now().year
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={año_actual}", headers=HEADERS)
-        if response.status_code == 200:
-            res_json = response.json()
-            if res_json.get("response"): return res_json.get("response"), "api_directa"
-    except: pass
+        # Petición 1: Últimos 15 partidos reales
+        res_pasados = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=15", headers=HEADERS)
+        
+        # Petición 2: Próximos 5 partidos reales programados
+        res_futuros = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&next=5", headers=HEADERS)
+        
+        partidos_reales = []
+        
+        if res_pasados.status_code == 200:
+            data_pasados = res_pasados.json().get("response", [])
+            if data_pasados:
+                partidos_reales.extend(data_pasados)
+                
+        if res_futuros.status_code == 200:
+            data_futuros = res_futuros.json().get("response", [])
+            if data_futuros:
+                partidos_reales.extend(data_futuros)
+                
+        if partidos_reales:
+            return partidos_reales, "api_directa"
+            
+    except Exception as e:
+        pass
+        
     return generar_respaldo_dinamico(nombre_equipo, pais_equipo), "local_respaldo"
+
 
 live_fixtures = obtener_partidos_en_vivo(API_KEY)
 records_live = []
@@ -368,13 +388,11 @@ with tab2:
 with tab3:
     st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
     
-    # Preparamos métricas diferentes para cada gráfica
     if not df_live.empty:
         # Métrica 1: Cantidad de partidos por liga (Volumen)
         data_volumen = df_live['Liga'].value_counts()
         
         # Métrica 2: Suma total de goles (Local + Visita) por liga
-        # Convertimos a numérico por si la API manda algún dato vacío
         goles_local = pd.to_numeric(df_live['Goles L'], errors='coerce').fillna(0)
         goles_visita = pd.to_numeric(df_live['Goles V'], errors='coerce').fillna(0)
         df_live['Goles Totales'] = goles_local + goles_visita
@@ -396,13 +414,12 @@ with tab3:
         st.caption("Suma de goles registrados en la jornada actual.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-# --- PESTAÑA 4: MÓDULO DE INTELIGENCIA ARTIFICIAL (¡NUEVO!) ---
+# --- PESTAÑA 4: MÓDULO DE INTELIGENCIA ARTIFICIAL ---
 with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
     st.caption("Procesamiento de Lenguaje Natural basado en los métricos estructurales del equipo.")
     
-    # Lógica de Inteligencia Artificial (Sistema Experto Evaluativo)
     rendimiento_txt = "óptimo y competitivo" if efectividad >= 50 else "deficiente y requiere reestructuración"
     tendencia = "altamente ofensiva" if promedio_goles >= 1.5 else "conservadora/defensiva"
     
@@ -415,7 +432,6 @@ with tab4:
     else:
         informe_ia += "❌ *Conclusión del Modelo:* Las métricas indican vulnerabilidades críticas. El sistema sugiere implementar ajustes profundos en las transiciones defensivas de forma inmediata."
 
-    # Interfaz de Chat de Streamlit
     with st.chat_message("assistant", avatar="🤖"):
         st.write(informe_ia)
         
