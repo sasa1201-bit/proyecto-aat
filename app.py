@@ -320,19 +320,19 @@ with tab1:
             st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # SECCIÓN DE PLANTILLA CORREGIDA
+    # SECCIÓN DE PLANTILLA ACTUALIZADA
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
     plantilla = obtener_plantilla(id_activo)
     if plantilla:
         df_plantilla = pd.DataFrame(plantilla)
         if not df_plantilla.empty:
-            datos_limpios = {
-                "Número": df_plantilla['number'].fillna("-") if 'number' in df_plantilla.columns else "-",
-                "Nombre": df_plantilla['name'] if 'name' in df_plantilla.columns else "Sin nombre",
-                "Edad": df_plantilla['age'] if 'age' in df_plantilla.columns else "-",
-                "Posición": df_plantilla['position'] if 'position' in df_plantilla.columns else "-"
-            }
-            df_final = pd.DataFrame(datos_limpios)
+            df_final = pd.DataFrame({
+                "Número": df_plantilla['number'].fillna("-"),
+                "Nombre": df_plantilla['name'],
+                "Edad": df_plantilla['age'],
+                "Posición": df_plantilla['position']
+            })
+            
             st.dataframe(
                 df_final,
                 hide_index=True,
