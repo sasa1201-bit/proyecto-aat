@@ -142,20 +142,14 @@ def buscar_equipo_api(nombre_busqueda):
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        res_last = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=10", headers=HEADERS)
-        if res_last.status_code == 200:
-            data_last = res_last.json()
-            if data_last.get("errors"):
-                st.error(f"Alerta de API: {data_last.get('errors')}")
-            if data_last.get("response"):
-                fixtures.extend(data_last.get("response"))
-                
-        res_next = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&next=5", headers=HEADERS)
-        if res_next.status_code == 200:
-            data_next = res_next.json()
-            if data_next.get("response"):
-                fixtures.extend(data_next.get("response"))
-                
+        # Consulta corregida para el plan gratuito usando la temporada 2026
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026", headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("errors"):
+                st.warning(f"Nota de API: {data.get('errors')}")
+            if data.get("response"):
+                fixtures = data.get("response")
         return fixtures, "api_directa"
     except:
         pass
