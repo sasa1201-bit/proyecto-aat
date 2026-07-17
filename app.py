@@ -3,24 +3,18 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# =========================================================================
-# CONFIGURACIÓN ESTÉTICA PREMIUM (Estilo ESPN / Dark Mode)
-# =========================================================================
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
 st.markdown("""
     <style>
-        /* Fondo general de la app */
         .stApp {
             background-color: #0F172A !important;
         }
         
-        /* Forzar texto blanco general para contraste */
         .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
             color: #F8FAFC !important;
         }
 
-        /* Texto y diseño para las pestañas (Tabs) */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
             background-color: transparent;
@@ -45,7 +39,6 @@ st.markdown("""
             font-weight: 800 !important;
         }
         
-        /* Estilo para contenedores tipo Tarjeta Oscura (ESPN) */
         .premium-card {
             background-color: #1E293B !important;
             padding: 24px;
@@ -88,7 +81,6 @@ st.markdown("""
             font-size: 0.85rem !important;
         }
 
-        /* Efecto pulso para el minuto en vivo */
         .pulse-minute {
             background-color: #EF4444;
             color: #FFFFFF !important;
@@ -104,7 +96,6 @@ st.markdown("""
             100% { opacity: 1; }
         }
         
-        /* Input y Selectbox oscuros */
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
             background-color: #0F172A !important;
             color: #FFFFFF !important;
@@ -113,7 +104,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Encabezado principal
 st.markdown("""
     <div style='margin-bottom: 30px; display: flex; align-items: center; gap: 15px;'>
         <div style='background-color: #EF4444; width: 8px; height: 60px; border-radius: 4px;'></div>
@@ -124,9 +114,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# =========================================================================
-# CONFIGURACIÓN DE LA API
-# =========================================================================
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
@@ -151,17 +138,16 @@ def buscar_equipo_api(nombre_busqueda):
     except: pass
     return []
 
-# --- NUEVA VERSIÓN: SOLO DATOS REALES ---
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        res_last = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=10", headers=HEADERS)
+        res_last = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026&last=10", headers=HEADERS)
         if res_last.status_code == 200:
             data = res_last.json().get("response")
             if data: fixtures.extend(data)
             
-        res_next = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&next=5", headers=HEADERS)
+        res_next = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026&next=5", headers=HEADERS)
         if res_next.status_code == 200:
             data = res_next.json().get("response")
             if data: fixtures.extend(data)
@@ -170,7 +156,6 @@ def obtener_calendario_equipo(id_equipo):
     except: pass
     return [], "error"
 
-# --- NUEVA FUNCIÓN: OBTENER PLANTILLA ---
 @st.cache_data(ttl=600, show_spinner=False)
 def obtener_plantilla(id_equipo):
     try:
@@ -198,12 +183,8 @@ if live_fixtures:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# =========================================================================
-# RENDERIZADO DE LAS PESTAÑAS (TABS)
-# =========================================================================
 tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo", "📈 Analítica Avanzada", "🤖 Scout IA"])
 
-# --- PESTAÑA 1: Buscador y Seguimiento ---
 with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     
@@ -229,7 +210,6 @@ with tab1:
     pais_activo = st.session_state["pais_seleccionado"]
     logo_activo = st.session_state.get("logo_seleccionado", "")
     
-    # Llamamos a los datos reales
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
     
@@ -271,7 +251,6 @@ with tab1:
     promedio_goles = round(goles_favor / partidos_jugados, 1) if partidos_jugados > 0 else 0
     efectividad = round((victorias / partidos_jugados) * 100, 1) if partidos_jugados > 0 else 0
 
-    # KPIs Superiores
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         st.markdown(f"""
@@ -340,7 +319,6 @@ with tab1:
             st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- NUEVA SECCIÓN: PLANTILLA EN LA PESTAÑA PRINCIPAL ---
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
     plantilla = obtener_plantilla(id_activo)
     if plantilla:
@@ -358,7 +336,6 @@ with tab1:
         st.info("No se encontró información de la plantilla para este equipo.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- PESTAÑA 2: Partidos en vivo ---
 with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
@@ -391,7 +368,6 @@ with tab2:
             """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- PESTAÑA 3: Analítica ---
 with tab3:
     st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
     
@@ -417,7 +393,6 @@ with tab3:
         st.caption("Suma de goles registrados en la jornada actual.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-# --- PESTAÑA 4: MÓDULO DE INTELIGENCIA ARTIFICIAL ---
 with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
@@ -451,9 +426,6 @@ with tab4:
             
     st.markdown("</div>", unsafe_allow_html=True)
 
-# =========================================================================
-# FOOTER PROFESIONAL
-# =========================================================================
 st.markdown("""
     <hr style='border-color: #334155; margin-top: 40px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 20px;'>
