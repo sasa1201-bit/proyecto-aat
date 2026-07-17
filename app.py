@@ -11,11 +11,9 @@ st.markdown("""
         .stApp {
             background-color: #0F172A !important;
         }
-        
         .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
             color: #F8FAFC !important;
         }
-
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
             background-color: transparent;
@@ -39,7 +37,6 @@ st.markdown("""
             color: #FFFFFF !important;
             font-weight: 800 !important;
         }
-        
         .premium-card {
             background-color: #1E293B !important;
             padding: 24px;
@@ -49,12 +46,10 @@ st.markdown("""
             border: 1px solid #334155;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
         .premium-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
         }
-
         .live-card {
             background-color: #0F172A !important;
             padding: 20px;
@@ -63,13 +58,11 @@ st.markdown("""
             border: 1px solid #334155;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
         .live-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
             border-color: #3B82F6 !important;
         }
-        
         .section-title {
             color: #FFFFFF !important;
             font-size: 1.4rem;
@@ -80,13 +73,11 @@ st.markdown("""
             border-bottom: 2px solid #334155;
             padding-bottom: 8px;
         }
-        
         .live-team-name {
             color: #FFFFFF !important;
             font-weight: 800 !important;
             font-size: 1.15rem !important;
         }
-        
         .live-score {
             color: #EF4444 !important;
             font-weight: 900 !important;
@@ -96,13 +87,11 @@ st.markdown("""
             padding: 4px 12px;
             border-radius: 6px;
         }
-        
         .live-league-label {
             color: #94A3B8 !important;
             font-weight: 600 !important;
             font-size: 0.85rem !important;
         }
-
         .pulse-minute {
             background-color: #EF4444;
             color: #FFFFFF !important;
@@ -117,33 +106,29 @@ st.markdown("""
             50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
-        
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
             background-color: #0F172A !important;
             color: #FFFFFF !important;
             border: 1px solid #334155 !important;
         }
-
         .cal-container { background: #0F172A; border-radius: 12px; padding: 15px; border: 1px solid #334155; color: white; margin-bottom: 15px; }
         .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
         .day-cell { padding: 8px 0; font-size: 0.9rem; }
         .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
-        .match-day { border: 2px solid #3B82F6; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; cursor: help; }
     </style>
 """, unsafe_allow_html=True)
 
-# Función del Calendario actualizada
-def render_calendario(match_map):
+def render_calendario(year, month):
     now = datetime.now()
     calendar.setfirstweekday(calendar.SUNDAY)
-    cal = calendar.monthcalendar(now.year, now.month)
-    month_name = calendar.month_name[now.month]
+    cal = calendar.monthcalendar(year, month)
+    month_name = calendar.month_name[month]
     
     html = f"""
     <div class='cal-container'>
-        <div class='cal-header'>{month_name.capitalize()} {now.year}</div>
+        <div class='cal-header'>{month_name.capitalize()} {year}</div>
         <div class='cal-grid'>
             <div class='day-header'>dom</div><div class='day-header'>lun</div><div class='day-header'>mar</div>
             <div class='day-header'>mié</div><div class='day-header'>jue</div><div class='day-header'>vie</div><div class='day-header'>sáb</div>
@@ -151,16 +136,8 @@ def render_calendario(match_map):
     for week in cal:
         for day in week:
             if day == 0: html += "<div></div>"
-            else:
-                day_date = datetime(now.year, now.month, day).date()
-                match_info = match_map.get(day_date)
-                
-                if day == now.day: 
-                    html += f"<div><div class='today-circle'>{day}</div></div>"
-                elif match_info:
-                    html += f"<div title='{match_info}'><div class='match-day'>{day}</div></div>"
-                else: 
-                    html += f"<div class='day-cell'>{day}</div>"
+            elif day == now.day and month == now.month and year == now.year: html += f"<div><div class='today-circle'>{day}</div></div>"
+            else: html += f"<div class='day-cell'>{day}</div>"
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -270,14 +247,12 @@ with tab1:
     
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
-    match_map = {} # Diccionario para el calendario
     
     for f in historial_raw:
         if 'fixture' in f:
-            f_date = pd.to_datetime(f['fixture']['date'])
             records_historial.append({
-                "Fecha": f_date,
-                "Fecha_Str": f_date.strftime('%Y-%m-%d %H:%M'),
+                "Fecha": pd.to_datetime(f['fixture']['date']),
+                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
                 "Logo_L": f['teams']['home']['logo'],
@@ -287,9 +262,6 @@ with tab1:
                 "Logo_V": f['teams']['away']['logo'],
                 "Estado": f['fixture']['status']['short']
             })
-            if f['fixture']['status']['short'] == 'NS':
-                rival = f['teams']['away']['name'] if f['teams']['home']['name'] == nombre_activo else f['teams']['home']['name']
-                match_map[f_date.date()] = f"VS {rival}"
             
     df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False) if records_historial else pd.DataFrame()
     
@@ -363,7 +335,14 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        render_calendario(match_map)
+        
+        proximos_df = df_historial[df_historial['Estado'] == 'NS']
+        if not proximos_df.empty:
+            fecha_prox = proximos_df.sort_values("Fecha").iloc[0]['Fecha']
+            render_calendario(fecha_prox.year, fecha_prox.month)
+        else:
+            render_calendario(datetime.now().year, datetime.now().month)
+            
         st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
