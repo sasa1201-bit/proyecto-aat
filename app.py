@@ -46,6 +46,12 @@ st.markdown("""
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             margin-bottom: 20px;
             border: 1px solid #334155;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .premium-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
         }
         
         .section-title {
@@ -318,16 +324,13 @@ with tab1:
             st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- SECCIÓN DE PLANTILLA MEJORADA ---
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
     
-    # Aquí añadimos el subheader para que sepas qué estás viendo
     st.subheader(f"Jugadores de: {nombre_activo}")
     
     plantilla = obtener_plantilla(id_activo)
     
     if plantilla:
-        # Procesamiento seguro de datos
         datos_formateados = []
         for p in plantilla:
             datos_formateados.append({
