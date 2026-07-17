@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime
-import calendar
 
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
@@ -123,37 +122,8 @@ st.markdown("""
             color: #FFFFFF !important;
             border: 1px solid #334155 !important;
         }
-
-        .cal-container { background: #0F172A; border-radius: 12px; padding: 15px; border: 1px solid #334155; color: white; margin-bottom: 15px; }
-        .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
-        .day-cell { padding: 8px 0; font-size: 0.9rem; }
-        .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     </style>
 """, unsafe_allow_html=True)
-
-# Función del Calendario
-def render_calendario():
-    now = datetime.now()
-    calendar.setfirstweekday(calendar.SUNDAY)
-    cal = calendar.monthcalendar(now.year, now.month)
-    month_name = calendar.month_name[now.month]
-    
-    html = f"""
-    <div class='cal-container'>
-        <div class='cal-header'>{month_name.capitalize()} {now.year}</div>
-        <div class='cal-grid'>
-            <div class='day-header'>dom</div><div class='day-header'>lun</div><div class='day-header'>mar</div>
-            <div class='day-header'>mié</div><div class='day-header'>jue</div><div class='day-header'>vie</div><div class='day-header'>sáb</div>
-    """
-    for week in cal:
-        for day in week:
-            if day == 0: html += "<div></div>"
-            elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
-            else: html += f"<div class='day-cell'>{day}</div>"
-    html += "</div></div>"
-    st.markdown(html, unsafe_allow_html=True)
 
 st.markdown("""
     <div style='margin-bottom: 30px; display: flex; align-items: center; gap: 15px;'>
@@ -165,7 +135,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# NOTA DE SEGURIDAD: Considera usar st.secrets para almacenar la API_KEY
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
@@ -349,11 +318,7 @@ with tab1:
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
-        st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        render_calendario()
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Calendario</div>", unsafe_allow_html=True)
         df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
         if not df_proximos.empty:
             for _, row in df_proximos.iterrows():
@@ -486,7 +451,7 @@ with tab4:
                 respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
             else:
                 respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
-                            f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
             
             st.write(respuesta)
             
