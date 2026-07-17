@@ -142,12 +142,9 @@ def buscar_equipo_api(nombre_busqueda):
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        # Consulta corregida a la temporada 2024 para cumplir con el plan gratuito
         response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2024", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
-            if data.get("errors"):
-                st.warning(f"Nota de API: {data.get('errors')}")
             if data.get("response"):
                 fixtures = data.get("response")
         return fixtures, "api_directa"
@@ -217,7 +214,8 @@ with tab1:
     for f in historial_raw:
         if 'fixture' in f:
             records_historial.append({
-                "Fecha": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
+                "Fecha": pd.to_datetime(f['fixture']['date']),
+                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
                 "Logo_L": f['teams']['home']['logo'],
@@ -291,7 +289,7 @@ with tab1:
                             <div style='width: 20%; text-align:center; font-size:1.2rem; font-weight:900;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</div>
                             <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'><span style='font-weight:bold;'>{row['Visita']}</span> {logo_v}</div>
                         </div>
-                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha']}</div>
+                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha_Str']}</div>
                     </div>
                 """, unsafe_allow_html=True)
         else:
@@ -300,9 +298,10 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Calendario</div>", unsafe_allow_html=True)
-        if not df_historial.empty:
-            df_proximos = df_historial[~df_historial['Estado'].isin(['FT', 'AET', 'PEN'])].tail(5)
-            for _, row in df_proximos.iloc[::-1].iterrows():
+        # CORRECCIÓN: Filtro estricto para futuros (NS) y ordenados por fecha
+        df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
+        if not df_proximos.empty:
+            for _, row in df_proximos.iterrows():
                 logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
                 logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
                 
@@ -313,7 +312,7 @@ with tab1:
                             <div style='width: 20%; text-align:center; color:#F59E0B; font-weight:bold;'>VS</div>
                             <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'>{row['Visita']} {logo_v}</div>
                         </div>
-                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha']}</div>
+                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha_Str']}</div>
                     </div>
                 """, unsafe_allow_html=True)
         else:
@@ -324,25 +323,28 @@ with tab1:
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
     plantilla = obtener_plantilla(id_activo)
     if plantilla:
-        df_plantilla = pd.DataFrame(plantilla)
-        if not df_plantilla.empty:
-            df_final = pd.DataFrame({
-                "Número": df_plantilla['number'].fillna("-"),
-                "Nombre": df_plantilla['name'],
-                "Edad": df_plantilla['age'],
-                "Posición": df_plantilla['position']
+        # CORRECCIÓN: Extracción segura de datos
+        datos_formateados = []
+        for p in plantilla:
+            datos_formateados.append({
+                "Número": p.get("number", "-"),
+                "Nombre": p.get("name", "N/A"),
+                "Edad": p.get("age", "-"),
+                "Posición": p.get("position", "-")
             })
-            
-            st.dataframe(
-                df_final,
-                hide_index=True,
-                use_container_width=True
-            )
+        df_final = pd.DataFrame(datos_formateados)
+        
+        st.dataframe(
+            df_final,
+            hide_index=True,
+            use_container_width=True
+        )
     else:
         st.info("No se encontró información de la plantilla para este equipo.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
+    # ... (resto de tu código permanece igual)
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
     
