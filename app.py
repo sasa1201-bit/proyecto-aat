@@ -298,7 +298,6 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Calendario</div>", unsafe_allow_html=True)
-        # CORRECCIÓN: Filtro estricto para futuros (NS) y ordenados por fecha
         df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
         if not df_proximos.empty:
             for _, row in df_proximos.iterrows():
@@ -319,19 +318,25 @@ with tab1:
             st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # SECCIÓN DE PLANTILLA ACTUALIZADA
+    # --- SECCIÓN DE PLANTILLA MEJORADA ---
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
+    
+    # Aquí añadimos el subheader para que sepas qué estás viendo
+    st.subheader(f"Jugadores de: {nombre_activo}")
+    
     plantilla = obtener_plantilla(id_activo)
+    
     if plantilla:
-        # CORRECCIÓN: Extracción segura de datos
+        # Procesamiento seguro de datos
         datos_formateados = []
         for p in plantilla:
             datos_formateados.append({
-                "Número": p.get("number", "-"),
+                "Número": p.get("number") if p.get("number") is not None else "-",
                 "Nombre": p.get("name", "N/A"),
                 "Edad": p.get("age", "-"),
                 "Posición": p.get("position", "-")
             })
+            
         df_final = pd.DataFrame(datos_formateados)
         
         st.dataframe(
@@ -340,11 +345,11 @@ with tab1:
             use_container_width=True
         )
     else:
-        st.info("No se encontró información de la plantilla para este equipo.")
+        st.warning(f"No se encontró información de la plantilla para {nombre_activo}. Es posible que no esté disponible en la versión gratuita de la API.")
+    
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    # ... (resto de tu código permanece igual)
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
     
