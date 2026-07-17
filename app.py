@@ -53,6 +53,21 @@ st.markdown("""
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
         }
+
+        .live-card {
+            background-color: #0F172A !important;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .live-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+            border-color: #3B82F6 !important;
+        }
         
         .section-title {
             color: #FFFFFF !important;
@@ -361,7 +376,7 @@ with tab2:
     else:
         for _, row in df_live.iterrows():
             st.markdown(f"""
-                <div style='background-color: #0F172A; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155;'>
+                <div class='live-card'>
                     <div style='display: flex; justify-content: space-between; align-items: center;'>
                         <div style='width: 35%; display:flex; align-items:center; gap:15px;'>
                             <img src='{row['Logo_L']}' width='40'>
