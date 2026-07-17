@@ -131,11 +131,12 @@ st.markdown("""
         .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
         .day-cell { padding: 8px 0; font-size: 0.9rem; }
         .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .match-day { border: 2px solid #3B82F6; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     </style>
 """, unsafe_allow_html=True)
 
-# Función del Calendario
-def render_calendario():
+# Función del Calendario actualizada
+def render_calendario(match_dates):
     now = datetime.now()
     calendar.setfirstweekday(calendar.SUNDAY)
     cal = calendar.monthcalendar(now.year, now.month)
@@ -150,9 +151,16 @@ def render_calendario():
     """
     for week in cal:
         for day in week:
-            if day == 0: html += "<div></div>"
-            elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
-            else: html += f"<div class='day-cell'>{day}</div>"
+            if day == 0: 
+                html += "<div></div>"
+            else:
+                day_date = datetime(now.year, now.month, day).date()
+                if day == now.day:
+                    html += f"<div><div class='today-circle'>{day}</div></div>"
+                elif day_date in match_dates:
+                    html += f"<div><div class='match-day'>{day}</div></div>"
+                else:
+                    html += f"<div class='day-cell'>{day}</div>"
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -263,11 +271,15 @@ with tab1:
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
     
+    # Extraer fechas de próximos partidos para el calendario
+    match_dates = set()
+    
     for f in historial_raw:
         if 'fixture' in f:
+            fecha_dt = pd.to_datetime(f['fixture']['date'])
             records_historial.append({
-                "Fecha": pd.to_datetime(f['fixture']['date']),
-                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
+                "Fecha": fecha_dt,
+                "Fecha_Str": fecha_dt.strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
                 "Logo_L": f['teams']['home']['logo'],
@@ -277,6 +289,8 @@ with tab1:
                 "Logo_V": f['teams']['away']['logo'],
                 "Estado": f['fixture']['status']['short']
             })
+            if f['fixture']['status']['short'] == 'NS':
+                match_dates.add(fecha_dt.date())
             
     df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False) if records_historial else pd.DataFrame()
     
@@ -350,7 +364,7 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        render_calendario()
+        render_calendario(match_dates)
         st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
