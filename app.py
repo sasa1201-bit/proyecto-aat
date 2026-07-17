@@ -142,18 +142,23 @@ def buscar_equipo_api(nombre_busqueda):
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        res_last = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026&last=10", headers=HEADERS)
+        res_last = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=10", headers=HEADERS)
         if res_last.status_code == 200:
-            data = res_last.json().get("response")
-            if data: fixtures.extend(data)
-            
-        res_next = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026&next=5", headers=HEADERS)
+            data_last = res_last.json()
+            if data_last.get("errors"):
+                st.error(f"Alerta de API: {data_last.get('errors')}")
+            if data_last.get("response"):
+                fixtures.extend(data_last.get("response"))
+                
+        res_next = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&next=5", headers=HEADERS)
         if res_next.status_code == 200:
-            data = res_next.json().get("response")
-            if data: fixtures.extend(data)
-            
+            data_next = res_next.json()
+            if data_next.get("response"):
+                fixtures.extend(data_next.get("response"))
+                
         return fixtures, "api_directa"
-    except: pass
+    except:
+        pass
     return [], "error"
 
 @st.cache_data(ttl=600, show_spinner=False)
@@ -161,9 +166,11 @@ def obtener_plantilla(id_equipo):
     try:
         response = requests.get(f"https://v3.football.api-sports.io/players/squad?team={id_equipo}", headers=HEADERS)
         if response.status_code == 200:
-            data = response.json().get("response")
-            if data: return data[0].get("players", [])
-    except: pass
+            data = response.json()
+            if data.get("response"):
+                return data.get("response")[0].get("players", [])
+    except:
+        pass
     return []
 
 live_fixtures = obtener_partidos_en_vivo(API_KEY)
