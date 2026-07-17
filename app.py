@@ -130,11 +130,12 @@ st.markdown("""
         .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
         .day-cell { padding: 8px 0; font-size: 0.9rem; }
         .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .match-day { border: 2px solid #3B82F6; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; cursor: help; }
     </style>
 """, unsafe_allow_html=True)
 
-# Función del Calendario
-def render_calendario():
+# Función del Calendario actualizada
+def render_calendario(match_map):
     now = datetime.now()
     calendar.setfirstweekday(calendar.SUNDAY)
     cal = calendar.monthcalendar(now.year, now.month)
@@ -150,8 +151,16 @@ def render_calendario():
     for week in cal:
         for day in week:
             if day == 0: html += "<div></div>"
-            elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
-            else: html += f"<div class='day-cell'>{day}</div>"
+            else:
+                day_date = datetime(now.year, now.month, day).date()
+                match_info = match_map.get(day_date)
+                
+                if day == now.day: 
+                    html += f"<div><div class='today-circle'>{day}</div></div>"
+                elif match_info:
+                    html += f"<div title='{match_info}'><div class='match-day'>{day}</div></div>"
+                else: 
+                    html += f"<div class='day-cell'>{day}</div>"
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -165,7 +174,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# NOTA DE SEGURIDAD: Considera usar st.secrets para almacenar la API_KEY
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
@@ -262,12 +270,14 @@ with tab1:
     
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
+    match_map = {} # Diccionario para el calendario
     
     for f in historial_raw:
         if 'fixture' in f:
+            f_date = pd.to_datetime(f['fixture']['date'])
             records_historial.append({
-                "Fecha": pd.to_datetime(f['fixture']['date']),
-                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
+                "Fecha": f_date,
+                "Fecha_Str": f_date.strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
                 "Logo_L": f['teams']['home']['logo'],
@@ -277,6 +287,9 @@ with tab1:
                 "Logo_V": f['teams']['away']['logo'],
                 "Estado": f['fixture']['status']['short']
             })
+            if f['fixture']['status']['short'] == 'NS':
+                rival = f['teams']['away']['name'] if f['teams']['home']['name'] == nombre_activo else f['teams']['home']['name']
+                match_map[f_date.date()] = f"VS {rival}"
             
     df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False) if records_historial else pd.DataFrame()
     
@@ -350,7 +363,7 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        render_calendario()
+        render_calendario(match_map)
         st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
@@ -486,7 +499,7 @@ with tab4:
                 respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
             else:
                 respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
-                            f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
             
             st.write(respuesta)
             
