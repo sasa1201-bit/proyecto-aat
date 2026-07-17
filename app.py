@@ -451,6 +451,49 @@ with tab4:
             
     st.markdown("</div>", unsafe_allow_html=True)
 
+# --- PESTAÑA 4: MÓDULO DE INTELIGENCIA ARTIFICIAL ---
+with tab5:
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
+    
+    rendimiento_txt = "óptimo" if efectividad >= 50 else "en desarrollo"
+    st.write(f"**Estado actual:** {nombre_activo} presenta un rendimiento {rendimiento_txt} con una efectividad del {efectividad}%.")
+
+    # Inicializar historial de chat
+    if "mensajes_ia" not in st.session_state:
+        st.session_state.mensajes_ia = []
+
+    # Mostrar historial
+    for msg in st.session_state.mensajes_ia:
+        with st.chat_message(msg["role"], avatar="👤" if msg["role"] == "user" else "🤖"):
+            st.write(msg["content"])
+
+    # Input del usuario
+    if pregunta_usuario := st.chat_input(f"Pregunta sobre {nombre_activo}..."):
+        with st.chat_message("user", avatar="👤"):
+            st.write(pregunta_usuario)
+        st.session_state.mensajes_ia.append({"role": "user", "content": pregunta_usuario})
+            
+        with st.chat_message("assistant", avatar="🤖"):
+            p = pregunta_usuario.lower()
+            if any(x in p for x in ["goles", "promedio", "anotaciones"]):
+                respuesta = f"El equipo registra un promedio de {promedio_goles} goles por partido actualmente."
+            elif any(x in p for x in ["victoria", "ganado", "triunfos"]):
+                respuesta = f"En la temporada actual, el equipo ha logrado {victorias} victorias."
+            elif any(x in p for x in ["derrota", "perdido"]):
+                respuesta = f"El equipo suma {derrotas} derrotas en el registro actual."
+            elif any(x in p for x in ["efectividad", "porcentaje", "desempeño"]):
+                respuesta = f"El nivel de efectividad actual es del {efectividad}%, basado en {partidos_jugados} partidos."
+            elif "partidos" in p or "jugados" in p:
+                respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
+            else:
+                respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
+                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+            
+            st.write(respuesta)
+        st.session_state.mensajes_ia.append({"role": "assistant", "content": respuesta})
+            
+    st.markdown("</div>", unsafe_allow_html=True)
 # =========================================================================
 # FOOTER PROFESIONAL
 # =========================================================================
