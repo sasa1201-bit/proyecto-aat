@@ -452,7 +452,7 @@ with tab4:
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --- PESTAÑA 4: MÓDULO DE INTELIGENCIA ARTIFICIAL ---
-with tab5:
+with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
     
