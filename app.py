@@ -142,8 +142,8 @@ def buscar_equipo_api(nombre_busqueda):
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        # Consulta corregida para el plan gratuito usando la temporada 2026
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026", headers=HEADERS)
+        # Consulta corregida a la temporada 2024 para cumplir con el plan gratuito
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2024", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
             if data.get("errors"):
