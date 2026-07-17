@@ -11,9 +11,11 @@ st.markdown("""
         .stApp {
             background-color: #0F172A !important;
         }
+        
         .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
             color: #F8FAFC !important;
         }
+
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
             background-color: transparent;
@@ -37,6 +39,7 @@ st.markdown("""
             color: #FFFFFF !important;
             font-weight: 800 !important;
         }
+        
         .premium-card {
             background-color: #1E293B !important;
             padding: 24px;
@@ -46,10 +49,12 @@ st.markdown("""
             border: 1px solid #334155;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        
         .premium-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
         }
+
         .live-card {
             background-color: #0F172A !important;
             padding: 20px;
@@ -58,11 +63,13 @@ st.markdown("""
             border: 1px solid #334155;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
         .live-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
             border-color: #3B82F6 !important;
         }
+        
         .section-title {
             color: #FFFFFF !important;
             font-size: 1.4rem;
@@ -73,11 +80,13 @@ st.markdown("""
             border-bottom: 2px solid #334155;
             padding-bottom: 8px;
         }
+        
         .live-team-name {
             color: #FFFFFF !important;
             font-weight: 800 !important;
             font-size: 1.15rem !important;
         }
+        
         .live-score {
             color: #EF4444 !important;
             font-weight: 900 !important;
@@ -87,11 +96,13 @@ st.markdown("""
             padding: 4px 12px;
             border-radius: 6px;
         }
+        
         .live-league-label {
             color: #94A3B8 !important;
             font-weight: 600 !important;
             font-size: 0.85rem !important;
         }
+
         .pulse-minute {
             background-color: #EF4444;
             color: #FFFFFF !important;
@@ -106,22 +117,24 @@ st.markdown("""
             50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
+        
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
             background-color: #0F172A !important;
             color: #FFFFFF !important;
             border: 1px solid #334155 !important;
         }
+
         .cal-container { background: #0F172A; border-radius: 12px; padding: 15px; border: 1px solid #334155; color: white; margin-bottom: 15px; }
         .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
         .day-cell { padding: 8px 0; font-size: 0.9rem; }
         .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
-        .match-day-circle { background: #3B82F6; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     </style>
 """, unsafe_allow_html=True)
 
-def render_calendario(dias_partido):
+# Función del Calendario
+def render_calendario():
     now = datetime.now()
     calendar.setfirstweekday(calendar.SUNDAY)
     cal = calendar.monthcalendar(now.year, now.month)
@@ -138,7 +151,6 @@ def render_calendario(dias_partido):
         for day in week:
             if day == 0: html += "<div></div>"
             elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
-            elif day in dias_partido: html += f"<div><div class='match-day-circle'>{day}</div></div>"
             else: html += f"<div class='day-cell'>{day}</div>"
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
@@ -153,6 +165,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# NOTA DE SEGURIDAD: Considera usar st.secrets para almacenar la API_KEY
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
@@ -337,14 +350,13 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True)
-        dias_con_partidos = df_proximos['Fecha'].dt.day.tolist()
-        render_calendario(dias_con_partidos)
+        render_calendario()
         st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
+        df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
         if not df_proximos.empty:
-            for _, row in df_proximos.head(5).iterrows():
+            for _, row in df_proximos.iterrows():
                 logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
                 logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
                 
@@ -474,7 +486,7 @@ with tab4:
                 respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
             else:
                 respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
-                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+                            f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
             
             st.write(respuesta)
             
