@@ -462,3 +462,6 @@ st.markdown("""
         Proyecto Universitario | Desarrollado por Salomón Achar © 2026
     </div>
 """, unsafe_allow_html=True)
+
+if df_finalizados.empty:
+    st.warning("⚠️ No hay datos de partidos oficiales disponibles en la API para la temporada 2026 actualmente.")
