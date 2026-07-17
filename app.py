@@ -124,19 +124,17 @@ st.markdown("""
             border: 1px solid #334155 !important;
         }
 
-        /* Estilos del Calendario */
         .cal-container { background: #0F172A; border-radius: 12px; padding: 15px; border: 1px solid #334155; color: white; margin-bottom: 15px; }
         .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
         .day-cell { padding: 8px 0; font-size: 0.9rem; }
         .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
-        .match-day { border: 2px solid #3B82F6; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     </style>
 """, unsafe_allow_html=True)
 
-# Función del Calendario actualizada
-def render_calendario(match_dates):
+# Función del Calendario
+def render_calendario():
     now = datetime.now()
     calendar.setfirstweekday(calendar.SUNDAY)
     cal = calendar.monthcalendar(now.year, now.month)
@@ -151,16 +149,9 @@ def render_calendario(match_dates):
     """
     for week in cal:
         for day in week:
-            if day == 0: 
-                html += "<div></div>"
-            else:
-                day_date = datetime(now.year, now.month, day).date()
-                if day == now.day:
-                    html += f"<div><div class='today-circle'>{day}</div></div>"
-                elif day_date in match_dates:
-                    html += f"<div><div class='match-day'>{day}</div></div>"
-                else:
-                    html += f"<div class='day-cell'>{day}</div>"
+            if day == 0: html += "<div></div>"
+            elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
+            else: html += f"<div class='day-cell'>{day}</div>"
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -174,6 +165,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# NOTA DE SEGURIDAD: Considera usar st.secrets para almacenar la API_KEY
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
@@ -271,15 +263,11 @@ with tab1:
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
     
-    # Extraer fechas de próximos partidos para el calendario
-    match_dates = set()
-    
     for f in historial_raw:
         if 'fixture' in f:
-            fecha_dt = pd.to_datetime(f['fixture']['date'])
             records_historial.append({
-                "Fecha": fecha_dt,
-                "Fecha_Str": fecha_dt.strftime('%Y-%m-%d %H:%M'),
+                "Fecha": pd.to_datetime(f['fixture']['date']),
+                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
                 "Logo_L": f['teams']['home']['logo'],
@@ -289,8 +277,6 @@ with tab1:
                 "Logo_V": f['teams']['away']['logo'],
                 "Estado": f['fixture']['status']['short']
             })
-            if f['fixture']['status']['short'] == 'NS':
-                match_dates.add(fecha_dt.date())
             
     df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False) if records_historial else pd.DataFrame()
     
@@ -364,7 +350,7 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        render_calendario(match_dates)
+        render_calendario()
         st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
@@ -500,7 +486,7 @@ with tab4:
                 respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
             else:
                 respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
-                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+                            f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
             
             st.write(respuesta)
             
