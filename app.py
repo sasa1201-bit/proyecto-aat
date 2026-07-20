@@ -17,51 +17,29 @@ def hex_to_rgba(hex_str, opacity=0.25):
 CITY_COORDS = {
     "Madrid": [40.4167, -3.7037],
     "Barcelona": [41.3851, 2.1734],
+    "London": [51.5074, -0.1278],
     "Manchester": [53.4808, -2.2426],
+    "Milan": [45.4642, 9.1900],
+    "Munich": [48.1351, 11.5820],
+    "Paris": [48.8566, 2.3522],
+    "Liverpool": [53.4084, -2.9916],
+    "Turin": [45.0703, 7.6869],
+    "Rome": [41.9028, 12.4964],
+    "Buenos Aires": [-34.6037, -58.3816],
+    "Rio de Janeiro": [-22.9068, -43.1729],
     "Mexico City": [19.4326, -99.1332]
 }
 
 TEAM_THEMES = {
-    541: "#FEBE10",  # Real Madrid
-    529: "#A81E3D",  # Barcelona
-    33: "#DA291C",   # Manchester United
-    50: "#6CABDD",   # Manchester City
-    2281: "#F3E500"  # Club América
-}
-
-RESPALDO_EQUIPOS = [
-    {"team": {"id": 541, "name": "Real Madrid", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/541.png"}, "venue": {"name": "Estadio Santiago Bernabéu", "city": "Madrid"}},
-    {"team": {"id": 529, "name": "Barcelona", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/529.png"}, "venue": {"name": "Camp Nou", "city": "Barcelona"}},
-    {"team": {"id": 33, "name": "Manchester United", "country": "England", "logo": "https://media.api-sports.io/football/teams/33.png"}, "venue": {"name": "Old Trafford", "city": "Manchester"}},
-    {"team": {"id": 50, "name": "Manchester City", "country": "England", "logo": "https://media.api-sports.io/football/teams/50.png"}, "venue": {"name": "Etihad Stadium", "city": "Manchester"}},
-    {"team": {"id": 2281, "name": "Club América", "country": "Mexico", "logo": "https://media.api-sports.io/football/teams/2281.png"}, "venue": {"name": "Estadio Azteca", "city": "Mexico City"}}
-]
-
-RESPALDO_PARTIDOS = {
-    541: [
-        {"fixture": {"date": "2026-05-15T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid"}, "away": {"name": "Barcelona"}}, "goals": {"home": 3, "away": 2}},
-        {"fixture": {"date": "2026-05-24T18:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Villarreal"}, "away": {"name": "Real Madrid"}}, "goals": {"home": 1, "away": 4}}
-    ],
-    529: [
-        {"fixture": {"date": "2026-05-15T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid"}, "away": {"name": "Barcelona"}}, "goals": {"home": 3, "away": 2}}
-    ],
-    33: [
-        {"fixture": {"date": "2026-05-12T15:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Manchester United"}, "away": {"name": "Arsenal"}}, "goals": {"home": 1, "away": 0}}
-    ],
-    50: [
-        {"fixture": {"date": "2026-05-14T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Tottenham"}, "away": {"name": "Manchester City"}}, "goals": {"home": 0, "away": 2}}
-    ],
-    2281: [
-        {"fixture": {"date": "2026-05-10T21:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Liga MX"}, "teams": {"home": {"name": "Club América"}, "away": {"name": "Chivas Guadalajara"}}, "goals": {"home": 1, "away": 0}}
-    ]
-}
-
-RESPALDO_PLANTILLAS = {
-    541: [{"name": "Kylian Mbappé", "number": 9, "age": 27, "position": "Attacker"}, {"name": "Jude Bellingham", "number": 5, "age": 23, "position": "Midfielder"}, {"name": "Vinícius Júnior", "number": 7, "age": 26, "position": "Attacker"}],
-    529: [{"name": "Robert Lewandowski", "number": 9, "age": 37, "position": "Attacker"}, {"name": "Pedri", "number": 8, "age": 23, "position": "Midfielder"}, {"name": "Lamine Yamal", "number": 19, "age": 19, "position": "Attacker"}],
-    33: [{"name": "Bruno Fernandes", "number": 8, "age": 31, "position": "Midfielder"}, {"name": "Marcus Rashford", "number": 10, "age": 28, "position": "Attacker"}, {"name": "Alejandro Garnacho", "number": 17, "age": 21, "position": "Attacker"}],
-    50: [{"name": "Erling Haaland", "number": 9, "age": 25, "position": "Attacker"}, {"name": "Kevin De Bruyne", "number": 17, "age": 35, "position": "Midfielder"}, {"name": "Phil Foden", "number": 47, "age": 26, "position": "Midfielder"}],
-    2281: [{"name": "Henry Martín", "number": 21, "age": 33, "position": "Attacker"}, {"name": "Diego Valdés", "number": 10, "age": 32, "position": "Midfielder"}, {"name": "Álvaro Fidalgo", "number": 8, "age": 29, "position": "Midfielder"}]
+    541: "#FEBE10",  
+    529: "#A81E3D",  
+    42: "#EF0107",   
+    33: "#DA291C",   
+    50: "#034694",   
+    40: "#6CABDD",   
+    496: "#C4122E",  
+    505: "#0066B2",  
+    157: "#DC052D"   
 }
 
 if "id_seleccionado" not in st.session_state:
@@ -136,6 +114,7 @@ st.markdown(f"""
 API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
+# PROCESAMIENTO DE CONEXIÓN E INFRAESTRUCTURA DE RESPALDO
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo():
     if modo_demo:
@@ -152,44 +131,39 @@ def obtener_partidos_en_vivo():
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_equipo_api(nombre_busqueda):
     if modo_demo:
-        return [eq for eq in RESPALDO_EQUIPOS if nombre_busqueda.lower() in eq['team']['name'].lower()]
+        if "barc" in nombre_busqueda.lower():
+            return [{"team": {"id": 529, "name": "Barcelona", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/529.png"}, "venue": {"name": "Camp Nou", "city": "Barcelona"}}]
+        return [{"team": {"id": 541, "name": "Real Madrid", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/541.png"}, "venue": {"name": "Santiago Bernabéu", "city": "Madrid"}}]
     if not nombre_busqueda or len(nombre_busqueda) < 3: return []
     try:
         response = requests.get(f"https://v3.football.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS)
-        if response.status_code == 200:
-            res = response.json().get("response", [])
-            if res: return res
-        return [eq for eq in RESPALDO_EQUIPOS if nombre_busqueda.lower() in eq['team']['name'].lower()]
-    except: 
-        return [eq for eq in RESPALDO_EQUIPOS if nombre_busqueda.lower() in eq['team']['name'].lower()]
+        if response.status_code == 200: return response.json().get("response", [])
+    except: pass
+    return []
 
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo):
     if modo_demo:
-        return RESPALDO_PARTIDOS.get(id_equipo, RESPALDO_PARTIDOS[541]), "demo"
+        return [{"fixture": {"date": "2026-05-10T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid", "logo": ""}, "away": {"name": "Barcelona", "logo": ""}}, "goals": {"home": 3, "away": 1}}], "demo"
     try:
-        # Consulta abierta por últimos partidos para evitar restricciones de temporada en plan gratuito
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=10", headers=HEADERS)
+        # CORRECCIÓN DE TEMPORADA INTERACTIVA A 2025
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2025", headers=HEADERS)
         if response.status_code == 200:
-            res_json = response.json()
-            if res_json.get("response"):
-                return res_json.get("response", []), "api"
-        return RESPALDO_PARTIDOS.get(id_equipo, RESPALDO_PARTIDOS[541]), "local_fallback"
-    except: 
-        return RESPALDO_PARTIDOS.get(id_equipo, RESPALDO_PARTIDOS[541]), "local_fallback"
+            return response.json().get("response", []), "api"
+    except: pass
+    return [], "error"
 
 @st.cache_data(ttl=600, show_spinner=False)
 def obtener_plantilla(id_equipo):
     if modo_demo:
-        return RESPALDO_PLANTILLAS.get(id_equipo, RESPALDO_PLANTILLAS[541])
+        return [{"name": "Pedri", "number": 8, "age": 23, "position": "Midfielder"}, {"name": "Gavi", "number": 6, "age": 21, "position": "Midfielder"}]
     try:
         response = requests.get(f"https://v3.football.api-sports.io/players/squad?team={id_equipo}", headers=HEADERS)
-        if response.status_code == 200 and response.json().get("response"):
+        if response.status_code == 200:
             res_data = response.json().get("response", [])
             if res_data: return res_data[0].get("players", [])
-        return RESPALDO_PLANTILLAS.get(id_equipo, RESPALDO_PLANTILLAS[541])
-    except: 
-        return RESPALDO_PLANTILLAS.get(id_equipo, RESPALDO_PLANTILLAS[541])
+    except: pass
+    return []
 
 live_fixtures = obtener_partidos_en_vivo()
 records_live = []
@@ -208,7 +182,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo"
 with tab1:
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
-        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. America, Manchester City, Milan):", value="", placeholder="Escribe al menos 3 letras...")
+        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value="", placeholder="Escribe al menos 3 letras...")
         
         if len(busqueda_usuario) >= 3:
             resultados = buscar_equipo_api(busqueda_usuario)
@@ -228,15 +202,14 @@ with tab1:
             else:
                 st.warning("No se obtuvieron resultados de la API. Activa el 'Modo Demostración' en el sidebar para continuar exponiendo.")
 
+    id_activo = st.session_state["id_seleccionado"]
     nombre_activo = st.session_state["nombre_seleccionado"]
     pais_activo = st.session_state["pais_seleccionado"]
     logo_activo = st.session_state.get("logo_seleccionado", "")
     
     historial_raw, origen = obtener_calendario_equipo(id_activo)
-    if origen != "api":
-        st.sidebar.caption("💡 Servido desde base de datos local de respaldo.")
-
     records_historial = []
+    
     for f in historial_raw:
         if 'fixture' in f:
             records_historial.append({
@@ -322,8 +295,8 @@ with tab2:
 
 with tab3:
     st.markdown("<div class='section-title'>📈 Analítica de Datos Avanzada</div>", unsafe_allow_html=True)
-    data_volumen = pd.DataFrame({'Liga': ['Torneos Activos'], 'Partidos': [max(5, partidos_jugados)]})
-    data_goles = pd.DataFrame({'Liga': ['Torneos Activos'], 'Goles Totales': [max(10, goles_favor)]})
+    data_volumen = pd.DataFrame({'Liga': ['LaLiga', 'Premier League', 'Serie A'], 'Partidos': [12, 8, 5]})
+    data_goles = pd.DataFrame({'Liga': ['LaLiga', 'Premier League', 'Serie A'], 'Goles Totales': [34, 22, 15]})
     
     c1, c2 = st.columns(2)
     with c1:
@@ -354,7 +327,7 @@ with tab4:
 st.markdown("""
     <hr style='border-color: #334155; margin-top: 40px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 20px;'>
-        <strong>Forza Football Analytics V3.3 (Conexión Directa API Habilitada)</strong><br>
+        <strong>Forza Football Analytics V3.0 (Integración AI)</strong><br>
         Plataforma Avanzada de Datos Deportivos | Proyecto Universitario | Desarrollado por Salomón Achar © 2026
     </div>
 """, unsafe_allow_html=True)
