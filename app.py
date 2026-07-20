@@ -1,577 +1,430 @@
-import os
 import streamlit as st
 import pandas as pd
-import numpy as np
-import urllib.request
-import json
+import requests
+from datetime import datetime
+import calendar
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
 
-# Intentar importar streamlit_folium y folium para el mapa
-try:
-    import folium
-    from streamlit_folium import st_folium
-    FOLIUM_AVAILABLE = True
-except ImportError:
-    FOLIUM_AVAILABLE = False
+st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-# ==========================================
-# CONFIGURACIÓN DE LA PÁGINA
-# ==========================================
-st.set_page_config(
-    page_title="Forza Football Analytics V3.0",
-    page_icon="⚽",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+def hex_to_rgba(hex_str, opacity=0.25):
+    hex_str = hex_str.lstrip('#')
+    r, g, b = tuple(int(hex_str[i:i+2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {opacity})"
 
-# ==========================================
-# CSS PERSONALIZADO - DISEÑO OSCURO AZUL MARINO (Forza/ESPN)
-# ==========================================
-st.markdown("""
-<style>
-    /* Estilos globales y tema azul marino oscuro */
-    .stApp {
-        background-color: #0a0e1a;
-        color: #f1f5f9;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    
-    /* Ocultar elementos de cabecera y pie por defecto de streamlit */
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    /* Contenedores con bordes redondeados */
-    .custom-container {
-        background-color: #131b2e;
-        border: 1px solid #1e293b;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-    
-    /* Tarjetas de métricas / KPI */
-    .metric-card {
-        background-color: #131b2e;
-        border: 1px solid #1e293b;
-        border-radius: 12px;
-        padding: 16px;
-        text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .metric-title {
-        color: #94a3b8;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 8px;
-    }
-    .metric-value {
-        color: #f8fafc;
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-    
-    /* Contenedor del marcador en vivo */
-    .live-match-box {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid #334155;
-        border-radius: 16px;
-        padding: 24px;
-        text-align: center;
-        margin: 10px 0 20px 0;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-    }
-    .live-badge {
-        background-color: #ef4444;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-        margin-bottom: 12px;
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-    
-    /* Resultados recientes con barra lateral verde */
-    .result-item {
-        background-color: #131b2e;
-        border-left: 5px solid #22c55e;
-        border-radius: 4px 12px 12px 4px;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #1e293b;
-        border-right: 1px solid #1e293b;
-        border-bottom: 1px solid #1e293b;
-    }
-    
-    /* Pie de página */
-    .app-footer {
-        text-align: center;
-        color: #64748b;
-        font-size: 0.85rem;
-        padding: 30px 0;
-        border-top: 1px solid #1e293b;
-        margin-top: 40px;
-    }
-    
-    /* Pestañas */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #0f172a;
-        padding: 10px;
-        border-radius: 12px;
-        border: 1px solid #1e293b;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #131b2e;
-        border-radius: 8px;
-        color: #94a3b8;
-        font-weight: 600;
-        padding: 10px 20px;
-        border: none;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #3b82f6 !important;
-        color: white !important;
-    }
-    
-    dataframe, table {
-        background-color: #131b2e !important;
-        color: #f1f5f9 !important;
-        border-radius: 8px !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# CONFIGURACIÓN DE API Y FUNCIONES AUXILIARES
-# ==========================================
-API_BASE = "https://api.thestatsapi.com/api"
-API_KEY = os.getenv("THESTATSAPI_KEY", "")
-
-def get_headers():
-    headers = {"Content-Type": "application/json"}
-    if API_KEY:
-        headers["Authorization"] = f"Bearer {API_KEY}"
-    return headers
-
-@st.cache_data(ttl=300)
-def fetch_from_api(endpoint: str, params: dict = None):
-    if not API_KEY:
-        return None
-    url = f"{API_BASE}{endpoint}"
-    if params:
-        query_string = "&".join([f"{k}={v}" for k, v in params.items()])
-        url = f"{url}?{query_string}"
-    try:
-        req = urllib.request.Request(url, headers=get_headers())
-        with urllib.request.urlopen(req, timeout=10) as response:
-            if response.status == 200:
-                return json.loads(response.read().decode())
-    except Exception:
-        pass
-    return None
-
-# ==========================================
-# DATOS DE PRUEBA Y ESCUDOS DE EQUIPOS
-# ==========================================
-TEAM_LOGOS = {
-    "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
-    "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
-    "Atletico Madrid": "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2024_logo.svg",
-    "Athletic Club": "https://upload.wikimedia.org/wikipedia/en/9/98/Athletic_Club_Bilbao_%28crest%29.svg",
-    "Real Sociedad": "https://upload.wikimedia.org/wikipedia/en/f/f1/Real_Sociedad_logo.svg",
-    "Valencia": "https://upload.wikimedia.org/wikipedia/en/c/ce/Valencia_CF_1919_logo.svg",
-    "Villarreal": "https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg",
-    "Sevilla": "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg"
+CITY_COORDS = {
+    "Spain": [40.4167, -3.7037],
+    "England": [51.5074, -0.1278],
+    "Italy": [45.4642, 9.1900],
+    "Germany": [52.5200, 13.4050],
+    "France": [48.8566, 2.3522],
+    "Mexico": [19.4326, -99.1332]
 }
 
-DUMMY_STANDINGS = pd.DataFrame([
-    {"Posición": 1, "Equipo": "Real Madrid", "PJ": 22, "G": 17, "E": 4, "P": 1, "GF": 52, "GC": 14, "Pts": 55},
-    {"Posición": 2, "Equipo": "Barcelona", "PJ": 22, "G": 15, "E": 5, "P": 2, "GF": 48, "GC": 20, "Pts": 50},
-    {"Posición": 3, "Equipo": "Atletico Madrid", "PJ": 22, "G": 13, "E": 6, "P": 3, "GF": 41, "GC": 22, "Pts": 45},
-    {"Posición": 4, "Equipo": "Athletic Club", "PJ": 22, "G": 12, "E": 5, "P": 5, "GF": 36, "GC": 21, "Pts": 41},
-    {"Posición": 5, "Equipo": "Real Sociedad", "PJ": 22, "G": 10, "E": 7, "P": 5, "GF": 32, "GC": 24, "Pts": 37},
-])
-
-DUMMY_FIXTURES = [
-    {"date": "01 Mar 2026 - 20:00", "home": "Real Madrid", "away": "Athletic Club", "status": "Programado"},
-    {"date": "02 Mar 2026 - 18:30", "home": "Barcelona", "away": "Real Sociedad", "status": "Programado"},
-    {"date": "02 Mar 2026 - 21:00", "home": "Atletico Madrid", "away": "Valencia", "status": "Programado"},
+# --- MOTOR DE DATOS DE RESPALDO (MOCK DATA EN CASO DE API SUSPENDIDA) ---
+MOCK_LIVE = [
+    {"league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Barcelona", "logo": "https://media.api-sports.io/football/teams/529.png"}}, "goals": {"home": 2, "away": 1}, "fixture": {"status": {"elapsed": 74}}},
+    {"league": {"name": "Premier League"}, "teams": {"home": {"name": "Arsenal", "logo": "https://media.api-sports.io/football/teams/42.png"}, "away": {"name": "Chelsea", "logo": "https://media.api-sports.io/football/teams/49.png"}}, "goals": {"home": 0, "away": 0}, "fixture": {"status": {"elapsed": 15}}}
 ]
 
-DUMMY_SQUAD = pd.DataFrame([
-    {"Dorsal": 1, "Nombre": "Thibaut Courtois", "Edad": 33, "Posición": "Portero"},
-    {"Dorsal": 2, "Nombre": "Dani Carvajal", "Edad": 34, "Posición": "Defensa"},
-    {"Dorsal": 3, "Nombre": "Éder Militão", "Edad": 28, "Posición": "Defensa"},
-    {"Dorsal": 4, "Nombre": "David Alaba", "Edad": 33, "Posición": "Defensa"},
-    {"Dorsal": 5, "Nombre": "Jude Bellingham", "Edad": 22, "Posición": "Centrocampista"},
-    {"Dorsal": 7, "Nombre": "Vinícius Júnior", "Edad": 25, "Posición": "Delantero"},
-    {"Dorsal": 8, "Nombre": "Federico Valverde", "Edad": 27, "Posición": "Centrocampista"},
-    {"Dorsal": 9, "Nombre": "Kylian Mbappé", "Edad": 27, "Posición": "Delantero"},
-    {"Dorsal": 10, "Nombre": "Luka Modrić", "Edad": 40, "Posición": "Centrocampista"},
-    {"Dorsal": 11, "Nombre": "Rodrygo Goes", "Edad": 25, "Posición": "Delantero"},
-    {"Dorsal": 14, "Nombre": "Aurélien Tchouaméni", "Edad": 26, "Posición": "Centrocampista"},
-])
+MOCK_HISTORY = {
+    541: [ # Real Madrid
+        {"fixture": {"date": "2026-05-14T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Alaves", "logo": ""}}, "goals": {"home": 5, "away": 0}},
+        {"fixture": {"date": "2026-05-10T16:15:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Granada", "logo": ""}, "away": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}}, "goals": {"home": 0, "away": 4}},
+        {"fixture": {"date": "2026-05-04T18:30:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Cadiz", "logo": ""}}, "goals": {"home": 3, "away": 0}},
+        {"fixture": {"date": "2026-04-26T19:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Sociedad", "logo": ""}, "away": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}}, "goals": {"home": 0, "away": 1}},
+        {"fixture": {"date": "2026-04-21T19:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Barcelona", "logo": "https://media.api-sports.io/football/teams/529.png"}}, "goals": {"home": 3, "away": 2}},
+        {"fixture": {"date": "2026-08-12T20:00:00+00:00", "status": {"short": "NS"}}, "league": {"name": "Super Cup"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Atalanta", "logo": ""}}, "goals": {"home": None, "away": None}},
+        {"fixture": {"date": "2026-08-18T19:30:00+00:00", "status": {"short": "NS"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Mallorca", "logo": ""}, "away": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}}, "goals": {"home": None, "away": None}}
+    ]
+}
 
-DUMMY_RECENT_RESULTS = [
-    {"match": "Real Madrid 3 - 1 Villarreal", "date": "24 Feb 2026", "result": "VICTORIA"},
-    {"match": "Real Madrid 2 - 0 Sevilla", "date": "18 Feb 2026", "result": "VICTORIA"},
-    {"match": "Real Madrid 1 - 1 Atletico Madrid", "date": "12 Feb 2026", "result": "EMPATE"},
-    {"match": "Real Madrid 4 - 2 Las Palmas", "date": "05 Feb 2026", "result": "VICTORIA"},
-]
+MOCK_SQUAD = {
+    541: [
+        {"number": 1, "name": "Thibaut Courtois", "age": 34, "position": "Goalkeeper"},
+        {"number": 3, "name": "Éder Militão", "age": 28, "position": "Defender"},
+        {"number": 22, "name": "Antonio Rüdiger", "age": 33, "position": "Defender"},
+        {"number": 5, "name": "Jude Bellingham", "age": 23, "position": "Midfielder"},
+        {"number": 8, "name": "Federico Valverde", "age": 27, "position": "Midfielder"},
+        {"number": 7, "name": "Vinícius Júnior", "age": 26, "position": "Attacker"},
+        {"number": 9, "name": "Kylian Mbappé", "age": 27, "position": "Attacker"}
+    ]
+}
 
-# ==========================================
-# CABECERA Y AVISO DE API
-# ==========================================
-st.markdown("<h1 style='text-align: center; color: #f8fafc; margin-bottom: 0;'>⚽ FORZA FOOTBALL ANALYTICS V3.0</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 1.1rem; margin-top: 5px;'>Plataforma Avanzada de Datos Deportivos e Integración de IA</p>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+        .stApp { background-color: #0F172A !important; }
+        .stApp p, .stApp span, .stApp label, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 { color: #F8FAFC !important; }
+        .stTabs [data-baseweb="tab-list"] { gap: 10px; background-color: transparent; }
+        button[data-baseweb="tab"] { background-color: #1E293B !important; border-radius: 8px 8px 0 0; border: 1px solid #334155; border-bottom: none; }
+        button[data-baseweb="tab"] p { color: #94A3B8 !important; font-weight: 600 !important; font-size: 1.05rem !important; }
+        button[aria-selected="true"] { background-color: #3B82F6 !important; border-color: #3B82F6 !important; }
+        button[aria-selected="true"] p { color: #FFFFFF !important; font-weight: 800 !important; }
+        .premium-card { background-color: #1E293B !important; padding: 24px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); margin-bottom: 20px; border: 1px solid #334155; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .premium-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7); }
+        .live-card { background-color: #0F172A !important; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .live-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7); border-color: #3B82F6 !important; }
+        .section-title { color: #FFFFFF !important; font-size: 1.4rem; font-weight: 800; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #334155; padding-bottom: 8px; }
+        .live-team-name { color: #FFFFFF !important; font-weight: 800 !important; font-size: 1.15rem !important; }
+        .live-score { color: #EF4444 !important; font-weight: 900 !important; font-size: 1.5rem !important; margin: 0 15px !important; background: #000000; padding: 4px 12px; border-radius: 6px; }
+        .live-league-label { color: #94A3B8 !important; font-weight: 600 !important; font-size: 0.85rem !important; }
+        .pulse-minute { background-color: #EF4444; color: #FFFFFF !important; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 800; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .stTextInput input, .stSelectbox div[data-baseweb="select"] { background-color: #0F172A !important; color: #FFFFFF !important; border: 1px solid #334155 !important; }
+        .cal-container { background: #0F172A; border-radius: 12px; padding: 15px; border: 1px solid #334155; color: white; margin-bottom: 15px; }
+        .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
+        .day-cell { padding: 8px 0; font-size: 0.9rem; }
+        .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+    </style>
+""", unsafe_allow_html=True)
 
-if not API_KEY:
-    st.info("ℹ️ **Variable de entorno THESTATSAPI_KEY no detectada.** Operando con datos de respaldo simulados. Para conectar feeds en vivo, configure su clave de API.")
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ==========================================
-# PESTAÑAS DE NAVEGACIÓN
-# ==========================================
-tab_main, tab_live, tab_analytics, tab_scout = st.tabs([
-    "📊 Panel Principal", 
-    "⚡ Centro en Vivo", 
-    "📈 Análisis Avanzado", 
-    "🤖 AI Scout"
-])
-
-# ==========================================
-# PESTAÑA 1: PANEL PRINCIPAL
-# ==========================================
-with tab_main:
-    st.markdown("### Resumen de la Liga y Clasificación")
+def render_calendario():
+    now = datetime.now()
+    calendar.setfirstweekday(calendar.SUNDAY)
+    cal = calendar.monthcalendar(now.year, now.month)
+    month_name = calendar.month_name[now.month]
     
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Clasificación La Liga (2025/26)")
-        st.dataframe(DUMMY_STANDINGS, use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col2:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Próximos Partidos")
-        for f in DUMMY_FIXTURES:
-            logo_h = TEAM_LOGOS.get(f['home'], "")
-            logo_a = TEAM_LOGOS.get(f['away'], "")
-            st.markdown(f"""
-            <div style="background-color: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #1e293b;">
-                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">{f['date']}</div>
-                <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.9rem;">
-                    <span><img src="{logo_h}" width="18" style="vertical-align: middle; margin-right: 6px;">{f['home']}</span>
-                    <span style="color: #64748b; font-size: 0.8rem;">vs</span>
-                    <span>{f['away']}<img src="{logo_a}" width="18" style="vertical-align: middle; margin-left: 6px;"></span>
-                </div>
-                <div style="font-size: 0.75rem; color: #3b82f6; margin-top: 4px;">{f['status']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    html = f"""
+    <div class='cal-container'>
+        <div class='cal-header'>{month_name.capitalize()} {now.year}</div>
+        <div class='cal-grid'>
+            <div class='day-header'>dom</div><div class='day-header'>lun</div><div class='day-header'>mar</div>
+            <div class='day-header'>mié</div><div class='day-header'>jue</div><div class='day-header'>vie</div><div class='day-header'>sáb</div>
+    """
+    for week in cal:
+        for day in week:
+            if day == 0: html += "<div></div>"
+            elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
+            else: html += f"<div class='day-cell'>{day}</div>"
+    html += "</div></div>"
+    st.markdown(html, unsafe_allow_html=True)
 
-# ==========================================
-# PESTAÑA 2: CENTRO EN VIVO
-# ==========================================
-with tab_live:
-    st.markdown("### Centro de Partidos en Directo")
-    
-    logo_rm = TEAM_LOGOS.get("Real Madrid", "")
-    logo_barca = TEAM_LOGOS.get("Barcelona", "")
-    
-    st.markdown(f"""
-    <div class="live-match-box">
-        <div class="live-badge">🔴 EN VIVO • 74'</div>
-        <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 15px;">
-            <div style="text-align: right; flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-                <div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #f8fafc;">Real Madrid</div>
-                    <div style="font-size: 0.8rem; color: #94a3b8;">Santiago Bernabéu</div>
-                </div>
-                <img src="{logo_rm}" width="50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
-            </div>
-            <div style="padding: 0 25px; text-align: center;">
-                <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6; letter-spacing: 2px;">2 - 1</div>
-                <div style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">MT 1-0</div>
-            </div>
-            <div style="text-align: left; flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
-                <img src="{logo_barca}" width="50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
-                <div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #f8fafc;">Barcelona</div>
-                    <div style="font-size: 0.8rem; color: #94a3b8;">Visitante</div>
-                </div>
-            </div>
+st.markdown("""
+    <div style='margin-bottom: 30px; display: flex; align-items: center; gap: 15px;'>
+        <div style='background-color: #EF4444; width: 8px; height: 60px; border-radius: 4px;'></div>
+        <div>
+            <h1 style='color: #FFFFFF !important; font-size: 2.5rem; font-weight: 900; margin: 0;'>FORZA FÚTBOL LIVE</h1>
+            <p style='color: #94A3B8 !important; font-size: 1rem; margin: 0; text-transform: uppercase; letter-spacing: 2px;'>Motor Analítico de Rendimiento Deportivo</p>
         </div>
     </div>
-    """, unsafe_allow_html=True)
-    
-    col_l1, col_l2 = st.columns(2)
-    
-    with col_l1:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Estadísticas del Partido in-play")
-        
-        stats_data = [
-            ("Posesión de Balón", "54%", "46%"),
-            ("Tiros Totales", "14", "11"),
-            ("Tiros a Puerta", "6", "4"),
-            ("Saques de Esquina", "5", "3"),
-            ("Tarjetas Amarillas", "2", "3"),
-            ("Faltas", "10", "12")
-        ]
-        
-        for stat, home_v, away_v in stats_data:
-            st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.9rem;">
-                <span style="font-weight: 600; color: #f8fafc; width: 60px;">{home_v}</span>
-                <span style="color: #94a3b8; text-align: center; flex: 1;">{stat}</span>
-                <span style="font-weight: 600; color: #f8fafc; width: 60px; text-align: right;">{away_v}</span>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_l2:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Cronología del Partido")
-        
-        timeline_events = [
-            ("71'", "¡Gol!", "Barcelona (L. Yamal)", "⚽"),
-            ("55'", "¡Gol!", "Real Madrid (K. Mbappé)", "⚽"),
-            ("46'", "Sustitución", "Real Madrid (Entra L. Modrić)", "🔄"),
-            ("MT", "Media Partida", "Marcador: 1 - 0", "⏱️"),
-            ("28'", "¡Gol!", "Real Madrid (J. Bellingham)", "⚽"),
-            ("14'", "Tarjeta Amarilla", "Barcelona (Gavi)", "🟨")
-        ]
-        
-        for minute, event_type, desc, icon in timeline_events:
-            st.markdown(f"""
-            <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem;">
-                <span style="background-color: #1e293b; color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-right: 12px; width: 45px; text-align: center;">{minute}</span>
-                <span style="margin-right: 8px;">{icon}</span>
-                <span style="color: #f8fafc; flex: 1;"><b>{event_type}:</b> {desc}</span>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# ==========================================
-# PESTAÑA 3: ANÁLISIS AVANZADO
-# ==========================================
-with tab_analytics:
-    st.markdown("### Análisis Avanzado y Profundo del Club")
-    
-    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-    with kpi1:
-        st.markdown("""
-        <div class="metric-card">
-            <div class="metric-title">Perfil del Club</div>
-            <div class="metric-value" style="font-size: 1.2rem; color: #3b82f6;">Real Madrid CF</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">La Liga • España</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with kpi2:
-        st.markdown("""
-        <div class="metric-card">
-            <div class="metric-title">% Efectividad</div>
-            <div class="metric-value">77.3%</div>
-            <div style="font-size: 0.75rem; color: #22c55e; margin-top: 4px;">+4.2% vs prom. liga</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with kpi3:
-        st.markdown("""
-        <div class="metric-card">
-            <div class="metric-title">Goles Prom. / Partido</div>
-            <div class="metric-value">2.36</div>
-            <div style="font-size: 0.75rem; color: #3b82f6; margin-top: 4px;">52 GF en 22 partidos</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with kpi4:
-        st.markdown("""
-        <div class="metric-card">
-            <div class="metric-title">Récord V / E / D</div>
-            <div class="metric-value" style="font-size: 1.3rem;">17 - 4 - 1</div>
-            <div style="font-size: 0.75rem; color: #22c55e; margin-top: 4px;">86% de imbatibilidad</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    col_a1, col_a2 = st.columns([1, 1])
-    
-    with col_a1:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Resultados Recientes")
-        for res in DUMMY_RECENT_RESULTS:
-            st.markdown(f"""
-            <div class="result-item">
-                <div>
-                    <div style="font-weight: 700; color: #f8fafc; font-size: 0.95rem;">{res['match']}</div>
-                    <div style="font-size: 0.75rem; color: #94a3b8;">{res['date']}</div>
-                </div>
-                <div>
-                    <span style="background-color: #065f46; color: #34d399; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">{res['result']}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_a2:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Calendario y Programación")
-        selected_date = st.date_input("Destacar Fecha de Partido", value=datetime.today().date())
-        st.markdown(f"""
-        <div style="background-color: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #1e293b; margin-top: 15px;">
-            <div style="font-size: 0.85rem; color: #3b82f6; font-weight: 600;">Fecha Seleccionada: {selected_date.strftime('%d de %B, %Y')}</div>
-            <div style="font-size: 0.9rem; color: #f8fafc; margin-top: 8px;">No hay encuentros oficiales programados directamente para esta fecha. Próxima ventana en 4 días.</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+# --- USO SEGURO DE SECRETOS DE STREAMLIT ---
+try:
+    API_KEY = st.secrets["API_SPORTS_KEY"]
+except Exception:
+    API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 
-    st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-    st.subheader("Plantilla del Primer Equipo")
-    st.dataframe(DUMMY_SQUAD, use_container_width=True, hide_index=True)
+HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
+
+# --- CONTROL PRINCIPAL DE VARIABLES GLOBALES DE STREAMLIT (DRY) ---
+default_states = {
+    "id_seleccionado": 541,
+    "nombre_seleccionado": "Real Madrid",
+    "pais_seleccionado": "Spain",
+    "logo_seleccionado": "https://media.api-sports.io/football/teams/541.png",
+    "busqueda_query": ""
+}
+for key, value in default_states.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
+# Asignación segura en scope global absoluto para prevenir NameError
+id_activo = st.session_state.id_seleccionado
+nombre_activo = st.session_state.nombre_seleccionado
+pais_activo = st.session_state.pais_seleccionado
+logo_activo = st.session_state.logo_seleccionado
+
+st.sidebar.markdown("### ⚙️ Centro de Control")
+if st.sidebar.button("🔄 Refrescar Datos de API"):
+    st.cache_data.clear()
+
+st.sidebar.markdown("### 📅 Configuración de Datos")
+temporada_seleccionada = st.sidebar.selectbox("Temporada de Análisis", [2024, 2025, 2026], index=0)
+
+# Inyección de interruptor visual para cambiar a simulación local si el servidor falla
+modo_simulado = st.sidebar.toggle("🔌 Forzar Modo Demostración Local", value=True)
+
+@st.cache_data(ttl=30, show_spinner=False)
+def obtener_partidos_en_vivo():
+    if modo_simulado: return MOCK_LIVE
+    try:
+        response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
+        if response.status_code == 200 and not response.json().get("errors"):
+            return response.json().get("response", [])
+    except Exception as e:
+        print(f"Error al obtener partidos en vivo: {e}")
+    return MOCK_LIVE
+
+@st.cache_data(ttl=600, show_spinner=False)
+def buscar_equipo_api(nombre_busqueda):
+    if not nombre_busqueda or len(nombre_busqueda) < 3: return []
+    try:
+        response = requests.get(f"https://v3.football.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS)
+        if response.status_code == 200: return response.json().get("response", [])
+    except Exception as e:
+        print(f"Error al buscar equipo: {e}")
+    return []
+
+@st.cache_data(ttl=300, show_spinner=False)
+def obtener_calendario_equipo(id_equipo, season):
+    if modo_simulado: return MOCK_HISTORY.get(id_equipo, MOCK_HISTORY[541]), {}
+    try:
+        params = {"team": id_equipo, "season": season}
+        response = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("errors"): return MOCK_HISTORY.get(id_equipo, MOCK_HISTORY[541]), data.get("errors")
+            return data.get("response", []), {}
+    except Exception as e:
+        return MOCK_HISTORY.get(id_equipo, MOCK_HISTORY[541]), {"exception": str(e)}
+    return MOCK_HISTORY.get(id_equipo, MOCK_HISTORY[541]), {"status_error": "Error de conexión"}
+
+@st.cache_data(ttl=600, show_spinner=False)
+def obtener_plantilla(id_equipo):
+    if modo_simulado: return MOCK_SQUAD.get(id_equipo, MOCK_SQUAD[541])
+    try:
+        response = requests.get(f"https://v3.football.api-sports.io/players/squad?team={id_equipo}", headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("response"): return data.get("response")[0].get("players", [])
+    except Exception as e:
+        print(f"Error al obtener plantilla: {e}")
+    return MOCK_SQUAD.get(id_equipo, MOCK_SQUAD[541])
+
+live_fixtures = obtener_partidos_en_vivo()
+records_live = []
+if live_fixtures:
+    for match in live_fixtures:
+        records_live.append({
+            "Liga": match['league']['name'],
+            "Logo_Liga": match['league'].get('logo', ''),
+            "Local": match['teams']['home']['name'],
+            "Logo_L": match['teams']['home'].get('logo', ''),
+            "Goles L": match['goals']['home'],
+            "Visita": match['teams']['away']['name'],
+            "Logo_V": match['teams']['away'].get('logo', ''),
+            "Goles V": match['goals']['away'],
+            "Minuto": match['fixture']['status']['elapsed']
+        })
+df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
+
+tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo", "📈 Analítica Avanzada", "🤖 Scout IA"])
+
+with tab1:
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    col_busqueda, col_vacia = st.columns([1, 2])
+    with col_busqueda:
+        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value=st.session_state.get("busqueda_query", ""), key="input_busqueda")
+        if busqueda_usuario != st.session_state.get("busqueda_query", ""):
+            st.session_state.busqueda_query = busqueda_usuario
+            st.rerun()
+
+        if len(busqueda_usuario) >= 3:
+            resultados = buscar_equipo_api(busqueda_usuario)
+            if resultados:
+                opciones = {f"{i['team']['name']} ({i['team']['country']})": i['team'] for i in resultados}
+                def actualizar_equipo():
+                    sel_name = st.session_state.get("select_equipo_key")
+                    if sel_name in opciones:
+                        t = opciones[sel_name]
+                        st.session_state.id_seleccionado = t['id']
+                        st.session_state.nombre_seleccionado = t['name']
+                        st.session_state.pais_seleccionado = t['country']
+                        st.session_state.logo_seleccionado = t['logo']
+                        st.session_state.busqueda_query = ""
+                st.selectbox("Resultados:", list(opciones.keys()), key="select_equipo_key", on_change=actualizar_equipo)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    col_a3, col_a4 = st.columns(2)
-    
-    with col_a3:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Perfil de Rendimiento (Radar)")
-        
-        categories = ['Poder Ofensivo', 'Efectividad', 'Volumen', 'Consistencia', 'Solidez Defensiva']
+    historial_raw, api_errors = obtener_calendario_equipo(id_activo, temporada_seleccionada)
+    if api_errors and not modo_simulado:
+        for err_key, err_msg in api_errors.items():
+            st.sidebar.error(f"⚠️ Alerta API ({err_key}): {err_msg}")
+
+    records_historial = []
+    for f in historial_raw:
+        if 'fixture' in f:
+            records_historial.append({
+                "Fecha": pd.to_datetime(f['fixture']['date']),
+                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
+                "Competencia": f['league']['name'],
+                "Local": f['teams']['home']['name'],
+                "Logo_L": f['teams']['home'].get('logo', ''),
+                "Goles Local": f['goals']['home'],
+                "Goles Visita": f['goals']['away'],
+                "Visita": f['teams']['away']['name'],
+                "Logo_V": f['teams']['away'].get('logo', ''),
+                "Estado": f['fixture']['status']['short']
+            })
+
+    cols = ["Fecha", "Fecha_Str", "Competencia", "Local", "Logo_L", "Goles Local", "Goles Visita", "Visita", "Logo_V", "Estado"]
+    df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False) if records_historial else pd.DataFrame(columns=cols)
+
+    victorias, empates, derrotas, goles_favor, partidos_jugados = 0, 0, 0, 0, 0
+    df_finalizados = pd.DataFrame()
+
+    if not df_historial.empty:
+        df_finalizados = df_historial[df_historial['Estado'].isin(['FT', 'AET', 'PEN'])]
+        partidos_jugados = len(df_finalizados)
+        if partidos_jugados > 0:
+            for _, row in df_finalizados.iterrows():
+                es_local = str(row['Local']).strip().lower() == str(nombre_activo).strip().lower()
+                g_propio = row['Goles Local'] if es_local else row['Goles Visita']
+                g_rival = row['Goles Visita'] if es_local else row['Goles Local']
+                if pd.notna(g_propio) and pd.notna(g_rival):
+                    goles_favor += int(g_propio)
+                    if int(g_propio) > int(g_rival): victorias += 1
+                    elif int(g_propio) == int(g_rival): empates += 1
+                    else: derrotas += 1
+
+    promedio_goles = round(goles_favor / partidos_jugados, 1) if partidos_jugados > 0 else 0
+    efectividad = round((victorias / partidos_jugados) * 100, 1) if partidos_jugados > 0 else 0
+
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.markdown(f"""
+            <div class='premium-card' style='display:flex; align-items:center; gap:15px; border-left: 4px solid #3B82F6; padding: 15px;'>
+                <img src='{logo_activo}' width='50'>
+                <div><h3 style='margin:0; font-size:1.2rem;'>{nombre_activo}</h3><small style='color:#94A3B8;'>{pais_activo}</small></div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k2: st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>EFECTIVIDAD</small><h2 style='margin:0; color:#10B981 !important;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
+    with k3: st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>GOLES / PARTIDO</small><h2 style='margin:0; color:#F59E0B !important;'>{promedio_goles}</h2></div>", unsafe_allow_html=True)
+    with k4: st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>RÉCORD (V-E-D)</small><h2 style='margin:0; color:#FFFFFF !important;'>{victorias} - {empates} - {derrotas}</h2></div>", unsafe_allow_html=True)
+
+    col_izq, col_der = st.columns(2)
+    with col_izq:
+        st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
+        if not df_finalizados.empty:
+            for _, row in df_finalizados.head(5).iterrows():
+                es_local = str(row['Local']).strip().lower() == str(nombre_activo).strip().lower()
+                g_propio = int(row['Goles Local']) if es_local else int(row['Goles Visita'])
+                g_rival = int(row['Goles Visita']) if es_local else int(row['Goles Local'])
+                color_borde = "#10B981" if g_propio > g_rival else ("#64748B" if g_propio == g_rival else "#EF4444")
+                st.markdown(f"""
+                    <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid {color_borde};'>
+                        <div style='display:flex; justify-content:space-between; align-items:center;'>
+                            <div style='width: 40%; display:flex; align-items:center; gap:8px;'><span style='font-weight:bold;'>{row['Local']}</span></div>
+                            <div style='width: 20%; text-align:center; font-size:1.2rem; font-weight:900;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</div>
+                            <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'><span style='font-weight:bold;'>{row['Visita']}</span></div>
+                        </div>
+                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha_Str']}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+        else: st.info("No hay resultados registrados.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_der:
+        st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
+        render_calendario()
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
+        df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
+        if not df_proximos.empty:
+            for _, row in df_proximos.iterrows():
+                st.markdown(f"""
+                    <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3B82F6;'>
+                        <div style='display:flex; justify-content:space-between; align-items:center;'>
+                            <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{row['Local']}</div>
+                            <div style='width: 20%; text-align:center; color:#F59E0B; font-weight:bold;'>VS</div>
+                            <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'>{row['Visita']}</div>
+                        </div>
+                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha_Str']}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+        else: st.info("No hay partidos agendados.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
+    plantilla = obtener_plantilla(id_activo)
+    if plantilla:
+        datos_formateados = [{"Número": p.get("number", "-"), "Nombre": p.get("name", "N/A"), "Edad": p.get("age", "-"), "Posición": p.get("position", "-")} for p in plantilla]
+        st.dataframe(pd.DataFrame(datos_formateados), hide_index=True, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab2:
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
+    if df_live.empty: st.info("No hay partidos disputándose en vivo.")
+    else:
+        for _, row in df_live.iterrows():
+            st.markdown(f"""
+                <div class='live-card'>
+                    <div style='display: flex; justify-content: space-between; align-items: center;'>
+                        <div style='width: 35%; display:flex; align-items:center; gap:15px;'><span class='live-team-name'>{row['Local']}</span></div>
+                        <div style='width: 30%; text-align: center;'>
+                            <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><br>
+                            <div style='margin-top:10px;'><span class='pulse-minute'>⏱️ {row['Minuto']}'</span></div>
+                        </div>
+                        <div style='width: 35%; display:flex; align-items:center; justify-content:flex-end; gap:15px;'><span class='live-team-name'>{row['Visita']}</span></div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab3:
+    st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
+    if not df_live.empty:
+        data_volumen = df_live['Liga'].value_counts()
+        df_live['Goles Totales'] = pd.to_numeric(df_live['Goles L']).fillna(0) + pd.to_numeric(df_live['Goles V']).fillna(0)
+        data_goles = df_live.groupby('Liga')['Goles Totales'].sum()
+    else:
+        data_volumen = pd.Series([1, 2], index=['La Liga', 'Premier League'])
+        data_goles = pd.Series([3, 0], index=['La Liga', 'Premier League'])
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Volumen de Partidos</div>", unsafe_allow_html=True)
+        st.bar_chart(data_volumen, use_container_width=True, color="#3B82F6")
+        st.markdown("</div>", unsafe_allow_html=True)
+    with c2:
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>⚽ Goles Totales por Liga</div>", unsafe_allow_html=True)
+        st.area_chart(data_goles, use_container_width=True, color="#EF4444")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    c3, c4 = st.columns(2)
+    with c3:
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>🕸️ Perfil Táctico Radar</div>", unsafe_allow_html=True)
         fig_radar = go.Figure()
         fig_radar.add_trace(go.Scatterpolar(
-            r=[92, 85, 88, 90, 84],
-            theta=categories,
-            fill='toself',
-            name='Real Madrid',
-            line_color='#3b82f6',
-            fillcolor='rgba(59, 130, 246, 0.3)'
+            r=[efectividad, min(100, int(promedio_goles * 35)), 70, 65, 75], 
+            theta=['Efectividad', 'Poder Goleador', 'Solidez Defensiva', 'Consistencia', 'Volumen'], 
+            fill='toself', fillcolor=hex_to_rgba("#3B82F6", 0.25), line=dict(color="#3B82F6", width=3)
         ))
-        fig_radar.update_layout(
-            polar=dict(
-                bgcolor='#0f172a',
-                radialaxis=dict(visible=True, range=[0, 100], gridcolor='#1e293b', linecolor='#1e293b'),
-                angularaxis=dict(gridcolor='#1e293b', linecolor='#1e293b')
-            ),
-            paper_bgcolor='#131b2e',
-            plot_bgcolor='#131b2e',
-            font=dict(color='#f1f5f9'),
-            margin=dict(t=20, b=20, l=20, r=20),
-            height=320
-        )
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_a4:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Región del Club (Madrid, España)")
-        
-        if FOLIUM_AVAILABLE:
-            m = folium.Map(location=[40.4168, -3.7038], zoom_start=12, tiles="CartoDB dark_matter")
-            folium.Marker(
-                [40.4168, -3.7038],
-                popup="Estadio Santiago Bernabéu",
-                icon=folium.Icon(color="blue", icon="info-sign")
-            ).add_to(m)
-            st_folium(m, height=320, use_container_width=True)
-        else:
-            map_df = pd.DataFrame({'lat': [40.4168], 'lon': [-3.7038], 'name': ['Santiago Bernabéu']})
-            fig_map = px.scatter_mapbox(map_df, lat='lat', lon='lon', text='name', zoom=11, height=320)
-            fig_map.update_layout(
-                mapbox_style="carto-darkmatter",
-                paper_bgcolor='#131b2e',
-                margin=dict(t=0, b=0, l=0, r=0)
-            )
-            st.plotly_chart(fig_map, use_container_width=True)
+    with c4:
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>🗺️ Ubicación Geográfica</div>", unsafe_allow_html=True)
+        coords = CITY_COORDS.get(pais_activo, [40.4167, -3.7037])
+        st.map(pd.DataFrame({'lat': [coords[0]], 'lon': [coords[1]]}), zoom=5, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    col_a5, col_a6 = st.columns(2)
-    
-    with col_a5:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Volumen de Partidos por Competición")
-        league_data = pd.DataFrame({
-            'Competición': ['La Liga', 'UEFA Champions League', 'Copa del Rey', 'Supercopa'],
-            'Partidos': [22, 8, 4, 2]
-        })
-        fig_bar = px.bar(league_data, x='Competición', y='Partidos', color='Partidos', color_continuous_scale='Blues')
-        fig_bar.update_layout(
-            paper_bgcolor='#131b2e',
-            plot_bgcolor='#131b2e',
-            font=dict(color='#f1f5f9'),
-            xaxis=dict(gridcolor='#1e293b'),
-            yaxis=dict(gridcolor='#1e293b'),
-            height=300,
-            margin=dict(t=20, b=20, l=20, r=20)
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_a6:
-        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Goles Totales por Competición (Tonos Rojizos)")
-        goal_data = pd.DataFrame({
-            'Competición': ['La Liga', 'UCL', 'Copa del Rey', 'Supercopa'],
-            'Goles': [52, 18, 9, 5]
-        })
-        fig_area = px.area(goal_data, x='Competición', y='Goles', markers=True)
-        fig_area.update_traces(line_color='#ef4444', fillcolor='rgba(239, 68, 68, 0.3)')
-        fig_area.update_layout(
-            paper_bgcolor='#131b2e',
-            plot_bgcolor='#131b2e',
-            font=dict(color='#f1f5f9'),
-            xaxis=dict(gridcolor='#1e293b'),
-            yaxis=dict(gridcolor='#1e293b'),
-            height=300,
-            margin=dict(t=20, b=20, l=20, r=20)
-        )
-        st.plotly_chart(fig_area, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+with tab4:
+    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
+    rendimiento_txt = "óptimo" if efectividad >= 50 else "en desarrollo"
+    st.write(f"**Estado actual:** {nombre_activo} presenta un rendimiento {rendimiento_txt} con una efectividad del {efectividad}%.")
+    pregunta_usuario = st.chat_input(f"Pregunta sobre {nombre_activo}...")
+    if pregunta_usuario:
+        with st.chat_message("user", avatar="👤"): st.write(pregunta_usuario)
+        with st.chat_message("assistant", avatar="🤖"):
+            p = pregunta_usuario.lower()
+            if any(x in p for x in ["goles", "promedio"]): respuesta = f"El equipo registra un promedio de {promedio_goles} goles por partido."
+            elif any(x in p for x in ["victoria", "ganado"]): respuesta = f"Acumula un total de {victorias} victorias."
+            else: respuesta = f"Récord de {nombre_activo}: {victorias}V-{empates}E-{derrotas}D."
+            st.write(respuesta)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ==========================================
-# PESTAÑA 4: AI SCOUT
-# ==========================================
-with tab_scout:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #131b2e 0%, #0f172a 100%); border: 1px solid #1e293b; border-radius: 16px; padding: 40px; text-align: center; max-width: 700px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);">
-        <div style="font-size: 3rem; margin-bottom: 15px;">🤖⚽</div>
-        <h2 style="color: #f8fafc; font-weight: 700; margin-bottom: 15px;">AI Scout — Próximamente</h2>
-        <p style="color: #94a3b8; font-size: 1.05rem; line-height: 1.6; margin-bottom: 25px;">
-            Módulo avanzado de descubrimiento de jugadores e inteligencia de partidos en desarrollo. Impulsado por modelos de inteligencia artificial generativa y telemetría en tiempo real de TheStatsAPI.
-        </p>
-        <div style="display: inline-block; background-color: #1e293b; color: #3b82f6; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
-            Lanzamiento del Módulo: Q3 2026
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("<br><br>", unsafe_allow_html=True)
-
-# ==========================================
-# PIE DE PÁGINA (FOOTER)
-# ==========================================
 st.markdown("""
-<div class="app-footer">
-    Forza Football Analytics V3.0 AI Integration, Advanced Sports Data Platform, University Project, Developed by Salomón Achar © 2026
-</div>
+    <hr style='border-color: #334155; margin-top: 40px;'>
+    <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 20px;'>
+        <strong>Forza Football Analytics V3.0 (Integración AI)</strong><br>
+        Plataforma Avanzada de Datos Deportivos<br>
+        Proyecto Universitario | Desarrollado por Salomón Achar © 2026
+    </div>
 """, unsafe_allow_html=True)
