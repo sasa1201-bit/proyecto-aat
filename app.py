@@ -2,7 +2,8 @@ import os
 import streamlit as st
 import pandas as pd
 import numpy as np
-import httpx
+import urllib.request
+import json
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
@@ -159,24 +160,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# API CONFIGURATION & HELPERS
+# API CONFIGURATION & HELPERS (Standard Library)
 # ==========================================
 API_BASE = "https://api.thestatsapi.com/api"
 API_KEY = os.getenv("THESTATSAPI_KEY", "")
 
 def get_headers():
-    return {"Authorization": f"Bearer {API_KEY}"} if API_KEY else {}
+    headers = {"Content-Type": "application/json"}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+    return headers
 
 @st.cache_data(ttl=300)
 def fetch_from_api(endpoint: str, params: dict = None):
     if not API_KEY:
         return None
     url = f"{API_BASE}{endpoint}"
+    if params:
+        query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+        url = f"{url}?{query_string}"
     try:
-        with httpx.Client(timeout=10.0) as client:
-            response = client.get(url, headers=get_headers(), params=params)
-            if response.status_code == 200:
-                return response.json()
+        req = urllib.request.Request(url, headers=get_headers())
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                return json.loads(response.read().decode())
     except Exception:
         pass
     return None
@@ -246,7 +253,6 @@ tab_main, tab_live, tab_analytics, tab_scout = st.tabs([
 with tab_main:
     st.markdown("### League Overview & Standings")
     
-    # Try fetching real competitions if API key exists
     comps_data = fetch_from_api("/football/competitions")
     
     col1, col2 = st.columns([2, 1])
@@ -254,14 +260,7 @@ with tab_main:
     with col1:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
         st.subheader("La Liga Standings (2025/26)")
-        
-        # Attempt to pull real standings for La Liga (comp_3039 or first available)
-        standings_df = DUMMY_STANDINGS
-        if comps_data and isinstance(comps_data, dict) and "data" in comps_data:
-            # Look for a valid competition or season if possible, otherwise use fallback
-            pass
-            
-        st.dataframe(standings_df, use_container_width=True, hide_index=True)
+        st.dataframe(DUMMY_STANDINGS, use_container_width=True, hide_index=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col2:
@@ -283,7 +282,6 @@ with tab_main:
 with tab_live:
     st.markdown("### Live Match Center")
     
-    # Required simulated live match row: Real Madrid vs Barcelona, score 2-1, 74th minute
     st.markdown("""
     <div class="live-match-box">
         <div class="live-badge">🔴 LIVE • 74'</div>
@@ -358,7 +356,6 @@ with tab_live:
 with tab_analytics:
     st.markdown("### Club Advanced Analytics & Deep Dive")
     
-    # 4 KPI Cards
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     with kpi1:
         st.markdown("""
@@ -395,7 +392,6 @@ with tab_analytics:
         
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Row for Recent Results & Calendar
     col_a1, col_a2 = st.columns([1, 1])
     
     with col_a1:
@@ -427,13 +423,11 @@ with tab_analytics:
         """, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # Squad Table
     st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
     st.subheader("Team Squad Roster")
     st.dataframe(DUMMY_SQUAD, use_container_width=True, hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Radar Chart & Map section
     col_a3, col_a4 = st.columns(2)
     
     with col_a3:
@@ -478,7 +472,6 @@ with tab_analytics:
             ).add_to(m)
             st_folium(m, height=320, use_container_width=True)
         else:
-            # Fallback Map using Plotly Scatter Mapbox or Scattergeo if folium missing
             map_df = pd.DataFrame({'lat': [40.4168], 'lon': [-3.7038], 'name': ['Santiago Bernabéu']})
             fig_map = px.scatter_mapbox(map_df, lat='lat', lon='lon', text='name', zoom=11, height=320)
             fig_map.update_layout(
@@ -489,7 +482,6 @@ with tab_analytics:
             st.plotly_chart(fig_map, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # Bar chart and Area chart section
     col_a5, col_a6 = st.columns(2)
     
     with col_a5:
