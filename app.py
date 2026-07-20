@@ -188,36 +188,14 @@ if st.sidebar.button("🔄 Refrescar Datos de API"):
     st.cache_data.clear()
 
 @st.cache_data(ttl=30, show_spinner=False)
-def obtener_partidos_en_vivo(key_api):
+def obtener_partidos_en_vivo():
     try:
         response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
         if response.status_code == 200:
-            data = response.json().get("response", [])
-            if data:
-                return data
-    except: pass
-    
-    # Respaldo automático robusto para asegurar que la Central en Vivo funcione permanentemente
-    return [
-        {
-            "league": {"name": "LaLiga", "logo": "https://media.api-sports.io/football/leagues/140.png"},
-            "teams": {
-                "home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"},
-                "away": {"name": "Barcelona", "logo": "https://media.api-sports.io/football/teams/529.png"}
-            },
-            "goals": {"home": 2, "away": 1},
-            "fixture": {"status": {"elapsed": 78}}
-        },
-        {
-            "league": {"name": "Premier League", "logo": "https://media.api-sports.io/football/leagues/39.png"},
-            "teams": {
-                "home": {"name": "Manchester City", "logo": "https://media.api-sports.io/football/teams/50.png"},
-                "away": {"name": "Arsenal", "logo": "https://media.api-sports.io/football/teams/42.png"}
-            },
-            "goals": {"home": 1, "away": 1},
-            "fixture": {"status": {"elapsed": 64}}
-        }
-    ]
+            return response.json().get("response", [])
+    except:
+        pass
+    return []
 
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_equipo_api(nombre_busqueda):
@@ -230,14 +208,12 @@ def buscar_equipo_api(nombre_busqueda):
 
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo):
-    fixtures = []
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2024", headers=HEADERS)
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
             if data.get("response"):
-                fixtures = data.get("response")
-        return fixtures, "api_directa"
+                return data.get("response"), "api_directa"
     except:
         pass
     return [], "error"
@@ -254,18 +230,18 @@ def obtener_plantilla(id_equipo):
         pass
     return []
 
-live_fixtures = obtener_partidos_en_vivo(API_KEY)
+live_fixtures = obtener_partidos_en_vivo()
 records_live = []
 if live_fixtures:
     for match in live_fixtures:
         records_live.append({
             "Liga": match['league']['name'],
-            "Logo_Liga": match['league']['logo'],
+            "Logo_Liga": match['league'].get('logo', ''),
             "Local": match['teams']['home']['name'],
-            "Logo_L": match['teams']['home']['logo'],
+            "Logo_L": match['teams']['home'].get('logo', ''),
             "Goles L": match['goals']['home'],
             "Visita": match['teams']['away']['name'],
-            "Logo_V": match['teams']['away']['logo'],
+            "Logo_V": match['teams']['away'].get('logo', ''),
             "Goles V": match['goals']['away'],
             "Minuto": match['fixture']['status']['elapsed']
         })
@@ -308,11 +284,11 @@ with tab1:
                 "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
-                "Logo_L": f['teams']['home']['logo'],
+                "Logo_L": f['teams']['home'].get('logo', ''),
                 "Goles Local": f['goals']['home'],
                 "Goles Visita": f['goals']['away'],
                 "Visita": f['teams']['away']['name'],
-                "Logo_V": f['teams']['away']['logo'],
+                "Logo_V": f['teams']['away'].get('logo', ''),
                 "Estado": f['fixture']['status']['short']
             })
             
@@ -387,7 +363,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay resultados recientes.")
+            st.info("No hay resultados recientes registrados en la API para este equipo.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
@@ -413,11 +389,10 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay próximos partidos.")
+            st.info("No hay próximos partidos programados en la API.")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
-    
     st.subheader(f"Jugadores de: {nombre_activo}")
     
     plantilla = obtener_plantilla(id_activo)
@@ -433,15 +408,9 @@ with tab1:
             })
             
         df_final = pd.DataFrame(datos_formateados)
-        
-        st.dataframe(
-            df_final,
-            hide_index=True,
-            use_container_width=True
-        )
+        st.dataframe(df_final, hide_index=True, use_container_width=True)
     else:
-        st.warning(f"No se encontró información de la plantilla para {nombre_activo}. Es posible que no esté disponible en la versión gratuita de la API.")
-    
+        st.warning(f"No se encontró información de la plantilla para {nombre_activo} en la API.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
@@ -449,7 +418,7 @@ with tab2:
     st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
     
     if df_live.empty:
-        st.info("No hay partidos disputándose en vivo en este momento.")
+        st.info("No hay partidos disputándose en vivo en este momento según la API.")
     else:
         for _, row in df_live.iterrows():
             st.markdown(f"""
@@ -486,8 +455,8 @@ with tab3:
         df_live['Goles Totales'] = goles_local + goles_visita
         data_goles = df_live.groupby('Liga')['Goles Totales'].sum()
     else:
-        data_volumen = pd.Series([12, 8, 5, 4, 3], index=['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'])
-        data_goles = pd.Series([34, 22, 15, 12, 9], index=['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'])
+        data_volumen = pd.Series([0], index=['Sin datos en vivo'])
+        data_goles = pd.Series([0], index=['Sin datos en vivo'])
 
     c1, c2 = st.columns(2)
     with c1:
@@ -501,7 +470,6 @@ with tab3:
         st.caption("Suma de goles registrados en la jornada actual.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # 2 NUEVAS GRÁFICAS AVANZADAS (Radar Táctico y Mapa Geoespacial)
     c3, c4 = st.columns(2)
     with c3:
         st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>🕸️ Perfil Táctico Radar</div>", unsafe_allow_html=True)
