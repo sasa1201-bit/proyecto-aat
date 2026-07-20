@@ -187,6 +187,10 @@ st.sidebar.markdown("### ⚙️ Centro de Control")
 if st.sidebar.button("🔄 Refrescar Datos de API"):
     st.cache_data.clear()
 
+# Selector de temporada dinámico para pruebas rápidas en la barra lateral
+st.sidebar.markdown("### 📅 Configuración de Datos")
+temporada_seleccionada = st.sidebar.selectbox("Temporada de Análisis", [2024, 2025, 2026], index=0)
+
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo():
     try:
@@ -207,36 +211,17 @@ def buscar_equipo_api(nombre_busqueda):
     return []
 
 @st.cache_data(ttl=300, show_spinner=False)
-def obtener_calendario_equipo(id_equipo):
-    fixtures_totales = []
-    seen_ids = set()
+def obtener_calendario_equipo(id_equipo, season):
     try:
-        # Modificado para consultar directamente la temporada 2024 y garantizar el llenado completo del tablero
-        for params in [{"team": id_equipo, "season": 2024}]:
-            response = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params=params)
-            if response.status_code == 200:
-                data = response.json().get("response", [])
-                for f in data:
-                    fid = f.get('fixture', {}).get('id')
-                    if fid and fid not in seen_ids:
-                        seen_ids.add(fid)
-                        fixtures_totales.append(f)
-        return fixtures_totales, "api_directa"
-    except:
-        pass
-    return [], "error"
-
-@st.cache_data(ttl=600, show_spinner=False)
-def obtener_plantilla(id_equipo):
-    try:
-        response = requests.get(f"https://v3.football.api-sports.io/players/squad?team={id_equipo}", headers=HEADERS)
+        params = {"team": id_equipo, "season": season}
+        response = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params=params)
         if response.status_code == 200:
             data = response.json()
-            if data.get("response"):
-                return data.get("response")[0].get("players", [])
-    except:
-        pass
-    return []
+            # Retorna datos y el objeto de errores de la API si existiera corporativamente
+            return data.get("response", []), data.get("errors", {})
+    except Exception as e:
+        return [], {"exception": str(e)}
+    return [], {"status_error": "No se pudo conectar al servidor de la API"}
 
 live_fixtures = obtener_partidos_en_vivo()
 records_live = []
@@ -255,7 +240,6 @@ if live_fixtures:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# Inicialización segura de session_state al inicio absoluto
 if "id_seleccionado" not in st.session_state:
     st.session_state.id_seleccionado = 541
 if "nombre_seleccionado" not in st.session_state:
@@ -303,9 +287,15 @@ with tab1:
     pais_activo = st.session_state.pais_seleccionado
     logo_activo = st.session_state.logo_seleccionado
     
-    historial_raw, origen = obtener_calendario_equipo(id_activo)
-    records_historial = []
+    # Llamado usando el selector dinámico de la barra lateral
+    historial_raw, api_errors = obtener_calendario_equipo(id_activo, temporada_seleccionada)
     
+    # Desplegar el error real si la API rechaza o limita la petición
+    if api_errors:
+        for err_key, err_msg in api_errors.items():
+            st.sidebar.error(f"⚠️ Alerta API ({err_key}): {err_msg}")
+            
+    records_historial = []
     for f in historial_raw:
         if 'fixture' in f:
             records_historial.append({
@@ -336,14 +326,15 @@ with tab1:
         
         if partidos_jugados > 0:
             for _, row in df_finalizados.iterrows():
-                es_local = row['Local'] == nombre_activo
+                # Comparación avanzada e insensible a espacios para evitar fallos de emparejamiento
+                es_local = str(row['Local']).strip().lower() == str(nombre_activo).strip().lower()
                 g_propio = row['Goles Local'] if es_local else row['Goles Visita']
                 g_rival = row['Goles Visita'] if es_local else row['Goles Local']
                 
                 if pd.notna(g_propio) and pd.notna(g_rival):
                     goles_favor += int(g_propio)
-                    if g_propio > g_rival: victorias += 1
-                    elif g_propio == g_rival: empates += 1
+                    if int(g_propio) > int(g_rival): victorias += 1
+                    elif int(g_propio) == int(g_rival): empates += 1
                     else: derrotas += 1
 
     promedio_goles = round(goles_favor / partidos_jugados, 1) if partidos_jugados > 0 else 0
@@ -372,12 +363,11 @@ with tab1:
         st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
         if not df_finalizados.empty:
             for _, row in df_finalizados.head(5).iterrows():
-                es_local = row['Local'] == nombre_activo
+                es_local = str(row['Local']).strip().lower() == str(nombre_activo).strip().lower()
                 g_propio = int(row['Goles Local']) if es_local else int(row['Goles Visita'])
                 g_rival = int(row['Goles Visita']) if es_local else int(row['Goles Local'])
                 
                 color_borde = "#10B981" if g_propio > g_rival else ("#64748B" if g_propio == g_rival else "#EF4444")
-                
                 logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
                 logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
 
@@ -392,7 +382,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay resultados recientes registrados en la API para este equipo.")
+            st.info(f"No hay partidos registrados en la API para la temporada {temporada_seleccionada}. Intenta cambiando la temporada en la barra lateral.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
@@ -418,14 +408,13 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay próximos partidos programados en la API.")
+            st.info("No hay próximos partidos programados para esta temporada.")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
     st.subheader(f"Jugadores de: {nombre_activo}")
     
     plantilla = obtener_plantilla(id_activo)
-    
     if plantilla:
         datos_formateados = []
         for p in plantilla:
@@ -435,11 +424,10 @@ with tab1:
                 "Edad": p.get("age", "-"),
                 "Posición": p.get("position", "-")
             })
-            
         df_final = pd.DataFrame(datos_formateados)
         st.dataframe(df_final, hide_index=True, use_container_width=True)
     else:
-        st.warning(f"No se encontró información de la plantilla para {nombre_activo} en la API.")
+        st.warning(f"No se encontró información de la plantilla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
@@ -477,7 +465,7 @@ with tab2:
 with tab3:
     st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
     
-    if not df_live.empty:
+    if not df_live.empty and 'Liga' in df_live.columns:
         data_volumen = df_live['Liga'].value_counts()
         goles_local = pd.to_numeric(df_live['Goles L'], errors='coerce').fillna(0)
         goles_visita = pd.to_numeric(df_live['Goles V'], errors='coerce').fillna(0)
@@ -555,9 +543,7 @@ with tab4:
             else:
                 respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
-            
             st.write(respuesta)
-            
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("""
