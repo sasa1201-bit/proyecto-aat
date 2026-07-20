@@ -8,6 +8,12 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
+# Función auxiliar segura para convertir HEX a RGBA nativo de Plotly sin romper validaciones
+def hex_to_rgba(hex_str, opacity=0.25):
+    hex_str = hex_str.lstrip('#')
+    r, g, b = tuple(int(hex_str[i:i+2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {opacity})"
+
 CITY_COORDS = {
     "Madrid": [40.4167, -3.7037],
     "Barcelona": [41.3851, 2.1734],
@@ -519,7 +525,7 @@ with tab3:
             r=radar_values,
             theta=radar_metrics,
             fill='toself',
-            fillcolor=f"{accent_color}40",
+            fillcolor=hex_to_rgba(accent_color, 0.25),  # FIX: Cambiado a llamada RGBA sanitizada nativa
             line=dict(color=accent_color, width=3),
             name=nombre_activo
         ))
