@@ -164,28 +164,20 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- NUEVA API KEY CONFIGURADA ---
-API_KEY = "fapi_8KrwBRiHZ5bxfXMCmNBOwbooVb1hUtBR"
+API_KEY = "acb867b68f5987d9c226e48c12c090e3"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
 st.sidebar.markdown("### ⚙️ Centro de Control")
 if st.sidebar.button("🔄 Refrescar Datos de API"):
     st.cache_data.clear()
 
-st.sidebar.markdown("### 📅 Filtros de Competición")
-temporada_seleccionada = st.sidebar.selectbox("Temporada", [2024, 2025, 2026], index=0)
-
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo(key_api):
     try:
         response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
-        if response.status_code == 200: 
-            res_json = response.json()
-            if res_json.get("errors"):
-                st.sidebar.error(f"Error API Live: {res_json.get('errors')}")
-            return res_json.get("response", [])
+        if response.status_code == 200: return response.json().get("response", [])
     except: pass
-    return []
+    return None
 
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_equipo_api(nombre_busqueda):
@@ -197,14 +189,12 @@ def buscar_equipo_api(nombre_busqueda):
     return []
 
 @st.cache_data(ttl=300, show_spinner=False)
-def obtener_calendario_equipo(id_equipo, season):
+def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season={season}", headers=HEADERS)
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2024", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
-            if data.get("errors"):
-                st.sidebar.error(f"Error API Historial: {data.get('errors')}")
             if data.get("response"):
                 fixtures = data.get("response")
         return fixtures, "api_directa"
@@ -229,15 +219,15 @@ records_live = []
 if live_fixtures:
     for match in live_fixtures:
         records_live.append({
-            "Liga": match.get('league', {}).get('name', 'Desconocida'),
-            "Logo_Liga": match.get('league', {}).get('logo', ''),
-            "Local": match.get('teams', {}).get('home', {}).get('name', 'N/A'),
-            "Logo_L": match.get('teams', {}).get('home', {}).get('logo', ''),
-            "Goles L": match.get('goals', {}).get('home', 0),
-            "Visita": match.get('teams', {}).get('away', {}).get('name', 'N/A'),
-            "Logo_V": match.get('teams', {}).get('away', {}).get('logo', ''),
-            "Goles V": match.get('goals', {}).get('away', 0),
-            "Minuto": match.get('fixture', {}).get('status', {}).get('elapsed', 0)
+            "Liga": match['league']['name'],
+            "Logo_Liga": match['league']['logo'],
+            "Local": match['teams']['home']['name'],
+            "Logo_L": match['teams']['home']['logo'],
+            "Goles L": match['goals']['home'],
+            "Visita": match['teams']['away']['name'],
+            "Logo_V": match['teams']['away']['logo'],
+            "Goles V": match['goals']['away'],
+            "Minuto": match['fixture']['status']['elapsed']
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
@@ -268,7 +258,7 @@ with tab1:
     pais_activo = st.session_state["pais_seleccionado"]
     logo_activo = st.session_state.get("logo_seleccionado", "")
     
-    historial_raw, origen = obtener_calendario_equipo(id_activo, temporada_seleccionada)
+    historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
     
     for f in historial_raw:
@@ -278,11 +268,11 @@ with tab1:
                 "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
                 "Competencia": f['league']['name'],
                 "Local": f['teams']['home']['name'],
-                "Logo_L": f['teams']['home'].get('logo', ''),
+                "Logo_L": f['teams']['home']['logo'],
                 "Goles Local": f['goals']['home'],
                 "Goles Visita": f['goals']['away'],
                 "Visita": f['teams']['away']['name'],
-                "Logo_V": f['teams']['away'].get('logo', ''),
+                "Logo_V": f['teams']['away']['logo'],
                 "Estado": f['fixture']['status']['short']
             })
             
@@ -301,14 +291,14 @@ with tab1:
         
         if partidos_jugados > 0:
             for _, row in df_finalizados.iterrows():
-                es_local = str(row['Local']).strip().lower() == str(nombre_activo).strip().lower()
+                es_local = row['Local'] == nombre_activo
                 g_propio = row['Goles Local'] if es_local else row['Goles Visita']
                 g_rival = row['Goles Visita'] if es_local else row['Goles Local']
                 
                 if pd.notna(g_propio) and pd.notna(g_rival):
                     goles_favor += int(g_propio)
-                    if int(g_propio) > int(g_rival): victorias += 1
-                    elif int(g_propio) == int(g_rival): empates += 1
+                    if g_propio > g_rival: victorias += 1
+                    elif g_propio == g_rival: empates += 1
                     else: derrotas += 1
 
     promedio_goles = round(goles_favor / partidos_jugados, 1) if partidos_jugados > 0 else 0
@@ -337,14 +327,14 @@ with tab1:
         st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
         if not df_finalizados.empty:
             for _, row in df_finalizados.head(5).iterrows():
-                es_local = str(row['Local']).strip().lower() == str(nombre_activo).strip().lower()
+                es_local = row['Local'] == nombre_activo
                 g_propio = int(row['Goles Local']) if es_local else int(row['Goles Visita'])
                 g_rival = int(row['Goles Visita']) if es_local else int(row['Goles Local'])
                 
                 color_borde = "#10B981" if g_propio > g_rival else ("#64748B" if g_propio == g_rival else "#EF4444")
                 
-                logo_l = f"<img src='{row['Logo_L']}' width='24'>" if row['Logo_L'] else ""
-                logo_v = f"<img src='{row['Logo_V']}' width='24'>" if row['Logo_V'] else ""
+                logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
+                logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
 
                 st.markdown(f"""
                     <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid {color_borde};'>
@@ -357,7 +347,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay resultados recientes para esta temporada.")
+            st.info("No hay resultados recientes.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
@@ -369,8 +359,8 @@ with tab1:
         df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
         if not df_proximos.empty:
             for _, row in df_proximos.iterrows():
-                logo_l = f"<img src='{row['Logo_L']}' width='24'>" if row['Logo_L'] else ""
-                logo_v = f"<img src='{row['Logo_V']}' width='24'>" if row['Logo_V'] else ""
+                logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
+                logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
                 
                 st.markdown(f"""
                     <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3B82F6;'>
@@ -383,10 +373,11 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay próximos partidos programados.")
+            st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
+    
     st.subheader(f"Jugadores de: {nombre_activo}")
     
     plantilla = obtener_plantilla(id_activo)
@@ -402,9 +393,14 @@ with tab1:
             })
             
         df_final = pd.DataFrame(datos_formateados)
-        st.dataframe(df_final, hide_index=True, use_container_width=True)
+        
+        st.dataframe(
+            df_final,
+            hide_index=True,
+            use_container_width=True
+        )
     else:
-        st.warning(f"No se encontró información de la plantilla para {nombre_activo}.")
+        st.warning(f"No se encontró información de la plantilla para {nombre_activo}. Es posible que no esté disponible en la versión gratuita de la API.")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -502,7 +498,7 @@ st.markdown("""
     <hr style='border-color: #334155; margin-top: 40px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 20px;'>
         <strong>Forza Football Analytics V3.0 (Integración AI)</strong><br>
-        Plataforma Advanced de Datos Deportivos<br>
+        Plataforma Avanzada de Datos Deportivos<br>
         Proyecto Universitario | Desarrollado por Salomón Achar © 2026
     </div>
 """, unsafe_allow_html=True)
