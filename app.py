@@ -243,7 +243,8 @@ def buscar_equipo_api(nombre_busqueda):
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2024", headers=HEADERS)
+        # FIX: Se actualizó el parámetro season a 2026 para mapear la temporada del año en curso
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
             if data.get("response"):
@@ -402,7 +403,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay resultados recientes.")
+            st.info("No hay resultados recientes de la temporada actual.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
@@ -430,7 +431,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay próximos partidos.")
+            st.info("No hay próximos encuentros programados para esta temporada.")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
@@ -525,7 +526,7 @@ with tab3:
             r=radar_values,
             theta=radar_metrics,
             fill='toself',
-            fillcolor=hex_to_rgba(accent_color, 0.25),  # FIX: Cambiado a llamada RGBA sanitizada nativa
+            fillcolor=hex_to_rgba(accent_color, 0.25),
             line=dict(color=accent_color, width=3),
             name=nombre_activo
         ))
