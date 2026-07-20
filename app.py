@@ -22,14 +22,14 @@ CITY_COORDS = {
     "Mexico": [19.4326, -99.1332]
 }
 
-# --- MOTOR DE DATOS DE RESPALDO (MOCK DATA EN CASO DE API SUSPENDIDA) ---
+# --- MOTOR DE DATOS DE RESPALDO (MOCK DATA EN CASO DE API LIMITADA) ---
 MOCK_LIVE = [
     {"league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Barcelona", "logo": "https://media.api-sports.io/football/teams/529.png"}}, "goals": {"home": 2, "away": 1}, "fixture": {"status": {"elapsed": 74}}},
     {"league": {"name": "Premier League"}, "teams": {"home": {"name": "Arsenal", "logo": "https://media.api-sports.io/football/teams/42.png"}, "away": {"name": "Chelsea", "logo": "https://media.api-sports.io/football/teams/49.png"}}, "goals": {"home": 0, "away": 0}, "fixture": {"status": {"elapsed": 15}}}
 ]
 
 MOCK_HISTORY = {
-    541: [ # Real Madrid
+    541: [
         {"fixture": {"date": "2026-05-14T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Alaves", "logo": ""}}, "goals": {"home": 5, "away": 0}},
         {"fixture": {"date": "2026-05-10T16:15:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Granada", "logo": ""}, "away": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}}, "goals": {"home": 0, "away": 4}},
         {"fixture": {"date": "2026-05-04T18:30:00+00:00", "status": {"short": "FT"}}, "league": {"name": "La Liga"}, "teams": {"home": {"name": "Real Madrid", "logo": "https://media.api-sports.io/football/teams/541.png"}, "away": {"name": "Cadiz", "logo": ""}}, "goals": {"home": 3, "away": 0}},
@@ -112,10 +112,11 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# --- NUEVA CLAVE API CONFIGURADA DE FORMA SEGURA ---
 API_KEY = "fapi_8KrwBRiHZ5bxfXMCmNBOwbooVb1hUtBR"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
-# --- CONTROL PRINCIPAL DE VARIABLES GLOBALES DE STREAMLIT ---
+# --- VARIABLES GLOBALES DE SESIÓN DE STREAMLIT ---
 if "id_seleccionado" not in st.session_state:
     st.session_state.id_seleccionado = 541
 if "nombre_seleccionado" not in st.session_state:
@@ -127,7 +128,6 @@ if "logo_seleccionado" not in st.session_state:
 if "busqueda_query" not in st.session_state:
     st.session_state.busqueda_query = ""
 
-# Asignación segura en scope global absoluto para prevenir NameError
 id_activo = st.session_state.id_seleccionado
 nombre_activo = st.session_state.nombre_seleccionado
 pais_activo = st.session_state.pais_seleccionado
@@ -140,8 +140,8 @@ if st.sidebar.button("🔄 Refrescar Datos de API"):
 st.sidebar.markdown("### 📅 Configuración de Datos")
 temporada_seleccionada = st.sidebar.selectbox("Temporada de Análisis", [2024, 2025, 2026], index=0)
 
-# Inyección de interruptor visual para cambiar a simulación local si el servidor falla
-modo_simulado = st.sidebar.toggle("🔌 Forzar Modo Demostración Local", value=True)
+# Switch de respaldo: apagado por defecto para usar tu nueva clave en vivo.
+modo_simulado = st.sidebar.toggle("🔌 Forzar Modo Demostración Local", value=False)
 
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo():
