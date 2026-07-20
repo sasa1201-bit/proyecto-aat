@@ -208,12 +208,19 @@ def buscar_equipo_api(nombre_busqueda):
 
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo):
+    fixtures_totales = []
+    seen_ids = set()
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026", headers=HEADERS)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("response"):
-                return data.get("response"), "api_directa"
+        for params in [{"team": id_equipo, "last": 20}, {"team": id_equipo, "next": 20}, {"team": id_equipo, "season": 2025}, {"team": id_equipo, "season": 2026}]:
+            response = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params=params)
+            if response.status_code == 200:
+                data = response.json().get("response", [])
+                for f in data:
+                    fid = f.get('fixture', {}).get('id')
+                    if fid and fid not in seen_ids:
+                        seen_ids.add(fid)
+                        fixtures_totales.append(f)
+        return fixtures_totales, "api_directa"
     except:
         pass
     return [], "error"
@@ -253,26 +260,42 @@ with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     
     if "id_seleccionado" not in st.session_state:
-        st.session_state.update({"id_seleccionado": 541, "nombre_seleccionado": "Real Madrid", "pais_seleccionado": "Spain", "logo_seleccionado": "https://media.api-sports.io/football/teams/541.png"})
-        
+        st.session_state.id_seleccionado = 541
+        st.session_state.nombre_seleccionado = "Real Madrid"
+        st.session_state.pais_seleccionado = "Spain"
+        st.session_state.logo_seleccionado = "https://media.api-sports.io/football/teams/541.png"
+        st.session_state.busqueda_query = ""
+
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
-        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value="", placeholder="Escribe al menos 3 letras...")
+        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value=st.session_state.busqueda_query, key="input_busqueda")
         
+        if busqueda_usuario != st.session_state.busqueda_query:
+            st.session_state.busqueda_query = busqueda_usuario
+            st.rerun()
+
         if len(busqueda_usuario) >= 3:
             resultados = buscar_equipo_api(busqueda_usuario)
             if resultados:
                 opciones = {f"{i['team']['name']} ({i['team']['country']})": i['team'] for i in resultados}
-                sel = st.selectbox("Resultados:", list(opciones.keys()))
-                if sel:
-                    t = opciones[sel]
-                    st.session_state.update({"id_seleccionado": t['id'], "nombre_seleccionado": t['name'], "pais_seleccionado": t['country'], "logo_seleccionado": t['logo']})
+                
+                def actualizar_equipo():
+                    sel_name = st.session_state.select_equipo_key
+                    if sel_name in opciones:
+                        t = opciones[sel_name]
+                        st.session_state.id_seleccionado = t['id']
+                        st.session_state.nombre_seleccionado = t['name']
+                        st.session_state.pais_seleccionado = t['country']
+                        st.session_state.logo_seleccionado = t['logo']
+                        st.session_state.busqueda_query = ""
+
+                st.selectbox("Resultados:", list(opciones.keys()), key="select_equipo_key", on_change=actualizar_equipo)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    id_activo = st.session_state["id_seleccionado"]
-    nombre_activo = st.session_state["nombre_seleccionado"]
-    pais_activo = st.session_state["pais_seleccionado"]
-    logo_activo = st.session_state.get("logo_seleccionado", "")
+    id_activo = st.session_state.id_seleccionado
+    nombre_activo = st.session_state.nombre_seleccionado
+    pais_activo = st.session_state.pais_seleccionado
+    logo_activo = st.session_state.logo_seleccionado
     
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
