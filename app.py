@@ -130,10 +130,12 @@ st.markdown("""
         .day-header { color: #64748B; font-size: 0.75rem; font-weight: bold; }
         .day-cell { padding: 8px 0; font-size: 0.9rem; }
         .today-circle { background: #EF4444; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .match-day-circle { background: #3B82F6; border-radius: 50%; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     </style>
 """, unsafe_allow_html=True)
 
-def render_calendario():
+# Función del Calendario actualizada para recibir días de partido
+def render_calendario(dias_partido):
     now = datetime.now()
     calendar.setfirstweekday(calendar.SUNDAY)
     cal = calendar.monthcalendar(now.year, now.month)
@@ -150,6 +152,7 @@ def render_calendario():
         for day in week:
             if day == 0: html += "<div></div>"
             elif day == now.day: html += f"<div><div class='today-circle'>{day}</div></div>"
+            elif day in dias_partido: html += f"<div><div class='match-day-circle'>{day}</div></div>"
             else: html += f"<div class='day-cell'>{day}</div>"
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
@@ -234,8 +237,7 @@ df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo", "📈 Analítica Avanzada", "🤖 Scout IA"])
 
 with tab1:
-    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    
+    # Se eliminó la etiqueta HTML abierta que rompía los inputs
     if "id_seleccionado" not in st.session_state:
         st.session_state.update({"id_seleccionado": 541, "nombre_seleccionado": "Real Madrid", "pais_seleccionado": "Spain", "logo_seleccionado": "https://media.api-sports.io/football/teams/541.png"})
         
@@ -251,7 +253,6 @@ with tab1:
                 if sel:
                     t = opciones[sel]
                     st.session_state.update({"id_seleccionado": t['id'], "nombre_seleccionado": t['name'], "pais_seleccionado": t['country'], "logo_seleccionado": t['logo']})
-    st.markdown("</div>", unsafe_allow_html=True)
 
     id_activo = st.session_state["id_seleccionado"]
     nombre_activo = st.session_state["nombre_seleccionado"]
@@ -352,13 +353,16 @@ with tab1:
         
     with col_der:
         st.markdown("<div class='premium-card'><div class='section-title'>📅 Calendario Actual</div>", unsafe_allow_html=True)
-        render_calendario()
+        # Extraemos los días de los próximos partidos para mandarlos al calendario
+        df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True)
+        dias_con_partidos = df_proximos['Fecha'].dt.day.tolist() if not df_proximos.empty else []
+        render_calendario(dias_con_partidos)
         st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
-        df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
-        if not df_proximos.empty:
-            for _, row in df_proximos.iterrows():
+        df_proximos_limit = df_proximos.head(5)
+        if not df_proximos_limit.empty:
+            for _, row in df_proximos_limit.iterrows():
                 logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
                 logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
                 
@@ -405,7 +409,7 @@ with tab1:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
-    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    # Se eliminó la etiqueta HTML abierta que rompía los inputs
     st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
     
     if df_live.empty:
@@ -434,7 +438,6 @@ with tab2:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
     st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
@@ -462,7 +465,7 @@ with tab3:
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
-    st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+    # Se eliminó la etiqueta HTML abierta que rompía los inputs
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
     
     rendimiento_txt = "óptimo" if efectividad >= 50 else "en desarrollo"
@@ -491,8 +494,6 @@ with tab4:
                             f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
             
             st.write(respuesta)
-            
-    st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("""
     <hr style='border-color: #334155; margin-top: 40px;'>
