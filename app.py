@@ -8,7 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-# Try importing streamlit_folium and folium for the map component
+# Intentar importar streamlit_folium y folium para el mapa
 try:
     import folium
     from streamlit_folium import st_folium
@@ -17,7 +17,7 @@ except ImportError:
     FOLIUM_AVAILABLE = False
 
 # ==========================================
-# PAGE CONFIGURATION
+# CONFIGURACIÓN DE LA PÁGINA
 # ==========================================
 st.set_page_config(
     page_title="Forza Football Analytics V3.0",
@@ -27,22 +27,22 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS - PREMIUM DARK NAVY DESIGN SPEC
+# CSS PERSONALIZADO - DISEÑO OSCURO AZUL MARINO (Forza/ESPN)
 # ==========================================
 st.markdown("""
 <style>
-    /* Global Styles & Dark Navy Theme */
+    /* Estilos globales y tema azul marino oscuro */
     .stApp {
         background-color: #0a0e1a;
         color: #f1f5f9;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
-    /* Hide default streamlit header / footer elements */
+    /* Ocultar elementos de cabecera y pie por defecto de streamlit */
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Container styling with rounded borders */
+    /* Contenedores con bordes redondeados */
     .custom-container {
         background-color: #131b2e;
         border: 1px solid #1e293b;
@@ -52,7 +52,7 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     
-    /* Metric / KPI card styling */
+    /* Tarjetas de métricas / KPI */
     .metric-card {
         background-color: #131b2e;
         border: 1px solid #1e293b;
@@ -75,7 +75,7 @@ st.markdown("""
         font-weight: 700;
     }
     
-    /* Live match score badge container */
+    /* Contenedor del marcador en vivo */
     .live-match-box {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         border: 1px solid #334155;
@@ -104,7 +104,7 @@ st.markdown("""
         100% { opacity: 1; }
     }
     
-    /* Recent results item with green side bar */
+    /* Resultados recientes con barra lateral verde */
     .result-item {
         background-color: #131b2e;
         border-left: 5px solid #22c55e;
@@ -119,7 +119,7 @@ st.markdown("""
         border-bottom: 1px solid #1e293b;
     }
     
-    /* Footer styling */
+    /* Pie de página */
     .app-footer {
         text-align: center;
         color: #64748b;
@@ -129,7 +129,7 @@ st.markdown("""
         margin-top: 40px;
     }
     
-    /* Tabs styling override */
+    /* Pestañas */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: #0f172a;
@@ -150,7 +150,6 @@ st.markdown("""
         color: white !important;
     }
     
-    /* DataFrame / Tables styling */
     dataframe, table {
         background-color: #131b2e !important;
         color: #f1f5f9 !important;
@@ -160,7 +159,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# API CONFIGURATION & HELPERS (Standard Library)
+# CONFIGURACIÓN DE API Y FUNCIONES AUXILIARES
 # ==========================================
 API_BASE = "https://api.thestatsapi.com/api"
 API_KEY = os.getenv("THESTATSAPI_KEY", "")
@@ -189,114 +188,138 @@ def fetch_from_api(endpoint: str, params: dict = None):
     return None
 
 # ==========================================
-# FALLBACK DUMMY DATA STRUCTURES
+# DATOS DE PRUEBA Y ESCUDOS DE EQUIPOS
 # ==========================================
+TEAM_LOGOS = {
+    "Real Madrid": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
+    "Barcelona": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+    "Atletico Madrid": "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2024_logo.svg",
+    "Athletic Club": "https://upload.wikimedia.org/wikipedia/en/9/98/Athletic_Club_Bilbao_%28crest%29.svg",
+    "Real Sociedad": "https://upload.wikimedia.org/wikipedia/en/f/f1/Real_Sociedad_logo.svg",
+    "Valencia": "https://upload.wikimedia.org/wikipedia/en/c/ce/Valencia_CF_1919_logo.svg",
+    "Villarreal": "https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg",
+    "Sevilla": "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg"
+}
+
 DUMMY_STANDINGS = pd.DataFrame([
-    {"Position": 1, "Team": "Real Madrid", "P": 22, "W": 17, "D": 4, "L": 1, "GF": 52, "GA": 14, "Pts": 55},
-    {"Position": 2, "Team": "Barcelona", "P": 22, "W": 15, "D": 5, "L": 2, "GF": 48, "GA": 20, "Pts": 50},
-    {"Position": 3, "Team": "Atletico Madrid", "P": 22, "W": 13, "D": 6, "L": 3, "GF": 41, "GA": 22, "Pts": 45},
-    {"Position": 4, "Team": "Athletic Club", "P": 22, "W": 12, "D": 5, "L": 5, "GF": 36, "GA": 21, "Pts": 41},
-    {"Position": 5, "Team": "Real Sociedad", "P": 22, "W": 10, "D": 7, "L": 5, "GF": 32, "GA": 24, "Pts": 37},
+    {"Posición": 1, "Equipo": "Real Madrid", "PJ": 22, "G": 17, "E": 4, "P": 1, "GF": 52, "GC": 14, "Pts": 55},
+    {"Posición": 2, "Equipo": "Barcelona", "PJ": 22, "G": 15, "E": 5, "P": 2, "GF": 48, "GC": 20, "Pts": 50},
+    {"Posición": 3, "Equipo": "Atletico Madrid", "PJ": 22, "G": 13, "E": 6, "P": 3, "GF": 41, "GC": 22, "Pts": 45},
+    {"Posición": 4, "Equipo": "Athletic Club", "PJ": 22, "G": 12, "E": 5, "P": 5, "GF": 36, "GC": 21, "Pts": 41},
+    {"Posición": 5, "Equipo": "Real Sociedad", "PJ": 22, "G": 10, "E": 7, "P": 5, "GF": 32, "GC": 24, "Pts": 37},
 ])
 
 DUMMY_FIXTURES = [
-    {"date": "2026-03-01 20:00", "home": "Real Madrid", "away": "Athletic Club", "status": "Scheduled"},
-    {"date": "2026-03-02 18:30", "home": "Barcelona", "away": "Real Sociedad", "status": "Scheduled"},
-    {"date": "2026-03-02 21:00", "home": "Atletico Madrid", "away": "Valencia", "status": "Scheduled"},
+    {"date": "01 Mar 2026 - 20:00", "home": "Real Madrid", "away": "Athletic Club", "status": "Programado"},
+    {"date": "02 Mar 2026 - 18:30", "home": "Barcelona", "away": "Real Sociedad", "status": "Programado"},
+    {"date": "02 Mar 2026 - 21:00", "home": "Atletico Madrid", "away": "Valencia", "status": "Programado"},
 ]
 
 DUMMY_SQUAD = pd.DataFrame([
-    {"Jersey": 1, "Name": "Thibaut Courtois", "Age": 33, "Position": "Goalkeeper"},
-    {"Jersey": 2, "Name": "Dani Carvajal", "Age": 34, "Position": "Defender"},
-    {"Jersey": 3, "Name": "Éder Militão", "Age": 28, "Position": "Defender"},
-    {"Jersey": 4, "Name": "David Alaba", "Age": 33, "Position": "Defender"},
-    {"Jersey": 5, "Name": "Jude Bellingham", "Age": 22, "Position": "Midfielder"},
-    {"Jersey": 7, "Name": "Vinícius Júnior", "Age": 25, "Position": "Forward"},
-    {"Jersey": 8, "Name": "Federico Valverde", "Age": 27, "Position": "Midfielder"},
-    {"Jersey": 9, "Name": "Kylian Mbappé", "Age": 27, "Position": "Forward"},
-    {"Jersey": 10, "Name": "Luka Modrić", "Age": 40, "Position": "Midfielder"},
-    {"Jersey": 11, "Name": "Rodrygo Goes", "Age": 25, "Position": "Forward"},
-    {"Jersey": 14, "Name": "Aurélien Tchouaméni", "Age": 26, "Position": "Midfielder"},
+    {"Dorsal": 1, "Nombre": "Thibaut Courtois", "Edad": 33, "Posición": "Portero"},
+    {"Dorsal": 2, "Nombre": "Dani Carvajal", "Edad": 34, "Posición": "Defensa"},
+    {"Dorsal": 3, "Nombre": "Éder Militão", "Edad": 28, "Posición": "Defensa"},
+    {"Dorsal": 4, "Nombre": "David Alaba", "Edad": 33, "Posición": "Defensa"},
+    {"Dorsal": 5, "Nombre": "Jude Bellingham", "Edad": 22, "Posición": "Centrocampista"},
+    {"Dorsal": 7, "Nombre": "Vinícius Júnior", "Edad": 25, "Posición": "Delantero"},
+    {"Dorsal": 8, "Nombre": "Federico Valverde", "Edad": 27, "Posición": "Centrocampista"},
+    {"Dorsal": 9, "Nombre": "Kylian Mbappé", "Edad": 27, "Posición": "Delantero"},
+    {"Dorsal": 10, "Nombre": "Luka Modrić", "Edad": 40, "Posición": "Centrocampista"},
+    {"Dorsal": 11, "Nombre": "Rodrygo Goes", "Edad": 25, "Posición": "Delantero"},
+    {"Dorsal": 14, "Nombre": "Aurélien Tchouaméni", "Edad": 26, "Posición": "Centrocampista"},
 ])
 
 DUMMY_RECENT_RESULTS = [
-    {"match": "Real Madrid 3 - 1 Villarreal", "date": "Feb 24, 2026", "result": "WIN"},
-    {"match": "Real Madrid 2 - 0 Sevilla", "date": "Feb 18, 2026", "result": "WIN"},
-    {"match": "Real Madrid 1 - 1 Atletico Madrid", "date": "Feb 12, 2026", "result": "DRAW"},
-    {"match": "Real Madrid 4 - 2 Las Palmas", "date": "Feb 05, 2026", "result": "WIN"},
+    {"match": "Real Madrid 3 - 1 Villarreal", "date": "24 Feb 2026", "result": "VICTORIA"},
+    {"match": "Real Madrid 2 - 0 Sevilla", "date": "18 Feb 2026", "result": "VICTORIA"},
+    {"match": "Real Madrid 1 - 1 Atletico Madrid", "date": "12 Feb 2026", "result": "EMPATE"},
+    {"match": "Real Madrid 4 - 2 Las Palmas", "date": "05 Feb 2026", "result": "VICTORIA"},
 ]
 
 # ==========================================
-# APP HEADER & API CHECK BANNER
+# CABECERA Y AVISO DE API
 # ==========================================
 st.markdown("<h1 style='text-align: center; color: #f8fafc; margin-bottom: 0;'>⚽ FORZA FOOTBALL ANALYTICS V3.0</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 1.1rem; margin-top: 5px;'>AI Integration & Advanced Sports Data Platform</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 1.1rem; margin-top: 5px;'>Plataforma Avanzada de Datos Deportivos e Integración de IA</p>", unsafe_allow_html=True)
 
 if not API_KEY:
-    st.info("ℹ️ **THESTATSAPI_KEY environment variable not detected.** Operating with full simulated production data fallback. To connect live feeds, set your API key.")
+    st.info("ℹ️ **Variable de entorno THESTATSAPI_KEY no detectada.** Operando con datos de respaldo simulados. Para conectar feeds en vivo, configure su clave de API.")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# TABS SETUP
+# PESTAÑAS DE NAVEGACIÓN
 # ==========================================
 tab_main, tab_live, tab_analytics, tab_scout = st.tabs([
-    "📊 Main Panel", 
-    "⚡ Live Center", 
-    "📈 Advanced Analytics", 
+    "📊 Panel Principal", 
+    "⚡ Centro en Vivo", 
+    "📈 Análisis Avanzado", 
     "🤖 AI Scout"
 ])
 
 # ==========================================
-# TAB 1: MAIN PANEL
+# PESTAÑA 1: PANEL PRINCIPAL
 # ==========================================
 with tab_main:
-    st.markdown("### League Overview & Standings")
-    
-    comps_data = fetch_from_api("/football/competitions")
+    st.markdown("### Resumen de la Liga y Clasificación")
     
     col1, col2 = st.columns([2, 1])
     
     with col1:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("La Liga Standings (2025/26)")
+        st.subheader("Clasificación La Liga (2025/26)")
         st.dataframe(DUMMY_STANDINGS, use_container_width=True, hide_index=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col2:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Upcoming Fixtures")
+        st.subheader("Próximos Partidos")
         for f in DUMMY_FIXTURES:
+            logo_h = TEAM_LOGOS.get(f['home'], "")
+            logo_a = TEAM_LOGOS.get(f['away'], "")
             st.markdown(f"""
-            <div style="background-color: #0f172a; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #1e293b;">
-                <div style="font-size: 0.75rem; color: #94a3b8;">{f['date']}</div>
-                <div style="font-weight: 600; font-size: 0.95rem; margin-top: 4px;">{f['home']} vs {f['away']}</div>
-                <div style="font-size: 0.75rem; color: #3b82f6; margin-top: 2px;">{f['status']}</div>
+            <div style="background-color: #0f172a; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #1e293b;">
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">{f['date']}</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.9rem;">
+                    <span><img src="{logo_h}" width="18" style="vertical-align: middle; margin-right: 6px;">{f['home']}</span>
+                    <span style="color: #64748b; font-size: 0.8rem;">vs</span>
+                    <span>{f['away']}<img src="{logo_a}" width="18" style="vertical-align: middle; margin-left: 6px;"></span>
+                </div>
+                <div style="font-size: 0.75rem; color: #3b82f6; margin-top: 4px;">{f['status']}</div>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# TAB 2: LIVE CENTER
+# PESTAÑA 2: CENTRO EN VIVO
 # ==========================================
 with tab_live:
-    st.markdown("### Live Match Center")
+    st.markdown("### Centro de Partidos en Directo")
     
-    st.markdown("""
+    logo_rm = TEAM_LOGOS.get("Real Madrid", "")
+    logo_barca = TEAM_LOGOS.get("Barcelona", "")
+    
+    st.markdown(f"""
     <div class="live-match-box">
-        <div class="live-badge">🔴 LIVE • 74'</div>
+        <div class="live-badge">🔴 EN VIVO • 74'</div>
         <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 15px;">
-            <div style="text-align: right; flex: 1;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #f8fafc;">Real Madrid</div>
-                <div style="font-size: 0.8rem; color: #94a3b8;">Santiago Bernabéu</div>
+            <div style="text-align: right; flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #f8fafc;">Real Madrid</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">Santiago Bernabéu</div>
+                </div>
+                <img src="{logo_rm}" width="50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
             </div>
             <div style="padding: 0 25px; text-align: center;">
                 <div style="font-size: 2.5rem; font-weight: 800; color: #3b82f6; letter-spacing: 2px;">2 - 1</div>
-                <div style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">HT 1-0</div>
+                <div style="font-size: 0.75rem; color: #22c55e; font-weight: 600;">MT 1-0</div>
             </div>
-            <div style="text-align: left; flex: 1;">
-                <div style="font-size: 1.5rem; font-weight: 700; color: #f8fafc;">Barcelona</div>
-                <div style="font-size: 0.8rem; color: #94a3b8;">Visitors</div>
+            <div style="text-align: left; flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+                <img src="{logo_barca}" width="50" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #f8fafc;">Barcelona</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">Visitante</div>
+                </div>
             </div>
         </div>
     </div>
@@ -306,15 +329,15 @@ with tab_live:
     
     with col_l1:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("In-Play Match Statistics")
+        st.subheader("Estadísticas del Partido in-play")
         
         stats_data = [
-            ("Ball Possession", "54%", "46%"),
-            ("Total Shots", "14", "11"),
-            ("Shots on Target", "6", "4"),
-            ("Corner Kicks", "5", "3"),
-            ("Yellow Cards", "2", "3"),
-            ("Fouls", "10", "12")
+            ("Posesión de Balón", "54%", "46%"),
+            ("Tiros Totales", "14", "11"),
+            ("Tiros a Puerta", "6", "4"),
+            ("Saques de Esquina", "5", "3"),
+            ("Tarjetas Amarillas", "2", "3"),
+            ("Faltas", "10", "12")
         ]
         
         for stat, home_v, away_v in stats_data:
@@ -329,15 +352,15 @@ with tab_live:
         
     with col_l2:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Live Match Timeline")
+        st.subheader("Cronología del Partido")
         
         timeline_events = [
-            ("71'", "Goal!", "Barcelona (L. Yamal)", "⚽"),
-            ("55'", "Goal!", "Real Madrid (K. Mbappé)", "⚽"),
-            ("46'", "Substitution", "Real Madrid (L. Modrić ON)", "🔄"),
-            ("HT", "Half Time", "Score: 1 - 0", "⏱️"),
-            ("28'", "Goal!", "Real Madrid (J. Bellingham)", "⚽"),
-            ("14'", "Yellow Card", "Barcelona (Gavi)", "🟨")
+            ("71'", "¡Gol!", "Barcelona (L. Yamal)", "⚽"),
+            ("55'", "¡Gol!", "Real Madrid (K. Mbappé)", "⚽"),
+            ("46'", "Sustitución", "Real Madrid (Entra L. Modrić)", "🔄"),
+            ("MT", "Media Partida", "Marcador: 1 - 0", "⏱️"),
+            ("28'", "¡Gol!", "Real Madrid (J. Bellingham)", "⚽"),
+            ("14'", "Tarjeta Amarilla", "Barcelona (Gavi)", "🟨")
         ]
         
         for minute, event_type, desc, icon in timeline_events:
@@ -351,42 +374,42 @@ with tab_live:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# TAB 3: ADVANCED ANALYTICS
+# PESTAÑA 3: ANÁLISIS AVANZADO
 # ==========================================
 with tab_analytics:
-    st.markdown("### Club Advanced Analytics & Deep Dive")
+    st.markdown("### Análisis Avanzado y Profundo del Club")
     
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     with kpi1:
         st.markdown("""
         <div class="metric-card">
-            <div class="metric-title">Club Profile</div>
+            <div class="metric-title">Perfil del Club</div>
             <div class="metric-value" style="font-size: 1.2rem; color: #3b82f6;">Real Madrid CF</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">La Liga • Spain</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">La Liga • España</div>
         </div>
         """, unsafe_allow_html=True)
     with kpi2:
         st.markdown("""
         <div class="metric-card">
-            <div class="metric-title">Effectiveness %</div>
+            <div class="metric-title">% Efectividad</div>
             <div class="metric-value">77.3%</div>
-            <div style="font-size: 0.75rem; color: #22c55e; margin-top: 4px;">+4.2% vs league avg</div>
+            <div style="font-size: 0.75rem; color: #22c55e; margin-top: 4px;">+4.2% vs prom. liga</div>
         </div>
         """, unsafe_allow_html=True)
     with kpi3:
         st.markdown("""
         <div class="metric-card">
-            <div class="metric-title">Avg Goals / Match</div>
+            <div class="metric-title">Goles Prom. / Partido</div>
             <div class="metric-value">2.36</div>
-            <div style="font-size: 0.75rem; color: #3b82f6; margin-top: 4px;">52 GF in 22 matches</div>
+            <div style="font-size: 0.75rem; color: #3b82f6; margin-top: 4px;">52 GF en 22 partidos</div>
         </div>
         """, unsafe_allow_html=True)
     with kpi4:
         st.markdown("""
         <div class="metric-card">
-            <div class="metric-title">W / D / L Record</div>
+            <div class="metric-title">Récord V / E / D</div>
             <div class="metric-value" style="font-size: 1.3rem;">17 - 4 - 1</div>
-            <div style="font-size: 0.75rem; color: #22c55e; margin-top: 4px;">86% unbeaten rate</div>
+            <div style="font-size: 0.75rem; color: #22c55e; margin-top: 4px;">86% de imbatibilidad</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -396,7 +419,7 @@ with tab_analytics:
     
     with col_a1:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Recent Results")
+        st.subheader("Resultados Recientes")
         for res in DUMMY_RECENT_RESULTS:
             st.markdown(f"""
             <div class="result-item">
@@ -413,18 +436,18 @@ with tab_analytics:
         
     with col_a2:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Match Schedule & Calendar")
-        selected_date = st.date_input("Highlight Match Date", value=datetime.today().date())
+        st.subheader("Calendario y Programación")
+        selected_date = st.date_input("Destacar Fecha de Partido", value=datetime.today().date())
         st.markdown(f"""
         <div style="background-color: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #1e293b; margin-top: 15px;">
-            <div style="font-size: 0.85rem; color: #3b82f6; font-weight: 600;">Selected Date Focus: {selected_date.strftime('%B %d, %Y')}</div>
-            <div style="font-size: 0.9rem; color: #f8fafc; margin-top: 8px;">No official fixture scheduled directly on this date. Next match window opens in 4 days.</div>
+            <div style="font-size: 0.85rem; color: #3b82f6; font-weight: 600;">Fecha Seleccionada: {selected_date.strftime('%d de %B, %Y')}</div>
+            <div style="font-size: 0.9rem; color: #f8fafc; margin-top: 8px;">No hay encuentros oficiales programados directamente para esta fecha. Próxima ventana en 4 días.</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-    st.subheader("Team Squad Roster")
+    st.subheader("Plantilla del Primer Equipo")
     st.dataframe(DUMMY_SQUAD, use_container_width=True, hide_index=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -432,9 +455,9 @@ with tab_analytics:
     
     with col_a3:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Performance Radar Profile")
+        st.subheader("Perfil de Rendimiento (Radar)")
         
-        categories = ['Goal Power', 'Effectiveness', 'Volume', 'Consistency', 'Defensive Solidity']
+        categories = ['Poder Ofensivo', 'Efectividad', 'Volumen', 'Consistencia', 'Solidez Defensiva']
         fig_radar = go.Figure()
         fig_radar.add_trace(go.Scatterpolar(
             r=[92, 85, 88, 90, 84],
@@ -461,13 +484,13 @@ with tab_analytics:
         
     with col_a4:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Club Region (Madrid, Spain)")
+        st.subheader("Región del Club (Madrid, España)")
         
         if FOLIUM_AVAILABLE:
             m = folium.Map(location=[40.4168, -3.7038], zoom_start=12, tiles="CartoDB dark_matter")
             folium.Marker(
                 [40.4168, -3.7038],
-                popup="Santiago Bernabéu Stadium",
+                popup="Estadio Santiago Bernabéu",
                 icon=folium.Icon(color="blue", icon="info-sign")
             ).add_to(m)
             st_folium(m, height=320, use_container_width=True)
@@ -486,12 +509,12 @@ with tab_analytics:
     
     with col_a5:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Match Volume by League")
+        st.subheader("Volumen de Partidos por Competición")
         league_data = pd.DataFrame({
-            'League': ['La Liga', 'UEFA Champions League', 'Copa del Rey', 'Supercopa'],
-            'Matches': [22, 8, 4, 2]
+            'Competición': ['La Liga', 'UEFA Champions League', 'Copa del Rey', 'Supercopa'],
+            'Partidos': [22, 8, 4, 2]
         })
-        fig_bar = px.bar(league_data, x='League', y='Matches', color='Matches', color_continuous_scale='Blues')
+        fig_bar = px.bar(league_data, x='Competición', y='Partidos', color='Partidos', color_continuous_scale='Blues')
         fig_bar.update_layout(
             paper_bgcolor='#131b2e',
             plot_bgcolor='#131b2e',
@@ -506,12 +529,12 @@ with tab_analytics:
         
     with col_a6:
         st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
-        st.subheader("Total Goals by Competition (Reddish Tones)")
+        st.subheader("Goles Totales por Competición (Tonos Rojizos)")
         goal_data = pd.DataFrame({
-            'Competition': ['La Liga', 'UCL', 'Copa del Rey', 'Supercopa'],
-            'Goals': [52, 18, 9, 5]
+            'Competición': ['La Liga', 'UCL', 'Copa del Rey', 'Supercopa'],
+            'Goles': [52, 18, 9, 5]
         })
-        fig_area = px.area(goal_data, x='Competition', y='Goals', markers=True)
+        fig_area = px.area(goal_data, x='Competición', y='Goles', markers=True)
         fig_area.update_traces(line_color='#ef4444', fillcolor='rgba(239, 68, 68, 0.3)')
         fig_area.update_layout(
             paper_bgcolor='#131b2e',
@@ -526,26 +549,26 @@ with tab_analytics:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# TAB 4: AI SCOUT
+# PESTAÑA 4: AI SCOUT
 # ==========================================
 with tab_scout:
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
     <div style="background: linear-gradient(135deg, #131b2e 0%, #0f172a 100%); border: 1px solid #1e293b; border-radius: 16px; padding: 40px; text-align: center; max-width: 700px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);">
         <div style="font-size: 3rem; margin-bottom: 15px;">🤖⚽</div>
-        <h2 style="color: #f8fafc; font-weight: 700; margin-bottom: 15px;">AI Scout — Coming Soon</h2>
+        <h2 style="color: #f8fafc; font-weight: 700; margin-bottom: 15px;">AI Scout — Próximamente</h2>
         <p style="color: #94a3b8; font-size: 1.05rem; line-height: 1.6; margin-bottom: 25px;">
-            Advanced player discovery and match intelligence module under development. Powered by generative AI models and real-time telemetry from TheStatsAPI feed vectors.
+            Módulo avanzado de descubrimiento de jugadores e inteligencia de partidos en desarrollo. Impulsado por modelos de inteligencia artificial generativa y telemetría en tiempo real de TheStatsAPI.
         </p>
         <div style="display: inline-block; background-color: #1e293b; color: #3b82f6; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
-            Module Release: Q3 2026
+            Lanzamiento del Módulo: Q3 2026
         </div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("<br><br>", unsafe_allow_html=True)
 
 # ==========================================
-# FOOTER SPECIFICATION
+# PIE DE PÁGINA (FOOTER)
 # ==========================================
 st.markdown("""
 <div class="app-footer">
