@@ -112,7 +112,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-API_KEY = "acb867b68f5987d9c226e48c12c090e3"
+API_KEY = "fapi_8KrwBRiHZ5bxfXMCmNBOwbooVb1hUtBR"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
 # --- CONTROL PRINCIPAL DE VARIABLES GLOBALES DE STREAMLIT ---
