@@ -113,7 +113,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- NUEVA CLAVE API CONFIGURADA DE FORMA SEGURA ---
-API_KEY = "fapi_8KrwBRiHZ5bxfXMCmNBOwbooVb1hUtBR"
+API_KEY = "fapi_oFiCi6NbWofZZAQGPTZsOrHoo3weAiF9"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
 # --- VARIABLES GLOBALES DE SESIÓN DE STREAMLIT ---
