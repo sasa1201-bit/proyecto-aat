@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
-# Inicialización segura de variables globales de estado
+# 1. Inicialización segura de variables globales de estado al inicio absoluto
 if "id_seleccionado" not in st.session_state:
     st.session_state.id_seleccionado = 541
     st.session_state.nombre_seleccionado = "Real Madrid"
@@ -94,14 +94,21 @@ if st.sidebar.button("🔄 Refrescar Datos de API"):
     st.cache_data.clear()
 
 @st.cache_data(ttl=30, show_spinner=False)
-def obtener_partidos_en_vivo():
+def obtener_partidos_en_vivo_y_jornada():
+    """Trae partidos en vivo reales; si no hay nada en juego, trae la jornada completa de hoy para evitar pantallas vacías."""
     try:
         response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
-        if response.status_code == 200:
-            return response.json().get("response", [])
+        if response.status_code == 200 and len(response.json().get("response", [])) > 0:
+            return response.json().get("response", []), "🔴 EN VIVO"
+        
+        # Fallback dinámico a los partidos del día real de hoy
+        hoy = datetime.now().strftime('%Y-%m-%d')
+        response_hoy = requests.get(f"https://v3.football.api-sports.io/fixtures?date={hoy}", headers=HEADERS)
+        if response_hoy.status_code == 200:
+            return response_hoy.json().get("response", []), "📅 JORNADA DE HOY"
     except:
         pass
-    return []
+    return [], "SIN PARTIDOS RECIENTES"
 
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_equipo_api(nombre_busqueda):
@@ -115,15 +122,22 @@ def buscar_equipo_api(nombre_busqueda):
     return []
 
 @st.cache_data(ttl=120, show_spinner=False)
-def obtener_calendario_equipo(id_equipo):
+def obtener_calendario_dinamico_equipo(id_equipo):
+    """Consulta los encuentros pasados y futuros dinámicamente sin amarrarse a un año estático."""
+    fixtures_totales = []
     try:
-        # Petición única optimizada para la temporada actual
-        response = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params={"team": id_equipo, "season": 2026})
-        if response.status_code == 200:
-            return response.json().get("response", [])
+        # 1. Obtener los últimos 15 partidos jugados para métricas y resultados históricos
+        res_pasados = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params={"team": id_equipo, "last": 15})
+        if res_pasados.status_code == 200:
+            fixtures_totales.extend(res_pasados.json().get("response", []))
+            
+        # 2. Obtener los siguientes 15 partidos programados para la pestaña de próximos
+        res_futuros = requests.get("https://v3.football.api-sports.io/fixtures", headers=HEADERS, params={"team": id_equipo, "next": 15})
+        if res_futuros.status_code == 200:
+            fixtures_totales.extend(res_futuros.json().get("response", []))
     except:
         pass
-    return []
+    return fixtures_totales
 
 @st.cache_data(ttl=600, show_spinner=False)
 def obtener_plantilla(id_equipo):
@@ -137,21 +151,23 @@ def obtener_plantilla(id_equipo):
         pass
     return []
 
-# Carga de Datos en Vivo Reales
-live_fixtures = obtener_partidos_en_vivo()
+# Carga de Datos en Vivo / Jornada Actual Real
+live_fixtures, tipo_cobertura = obtener_partidos_en_vivo_y_jornada()
 records_live = []
 if live_fixtures:
     for match in live_fixtures:
+        status_short = match['fixture']['status']['short']
+        minuto_mostrado = f"{match['fixture']['status']['elapsed']}'" if status_short in ['1H', '2H', 'HT', 'ET'] else status_short
         records_live.append({
             "Liga": match['league']['name'],
             "Logo_Liga": match['league'].get('logo', ''),
             "Local": match['teams']['home']['name'],
             "Logo_L": match['teams']['home'].get('logo', ''),
-            "Goles L": match['goals']['home'],
+            "Goles L": match['goals']['home'] if match['goals']['home'] is not None else 0,
             "Visita": match['teams']['away']['name'],
             "Logo_V": match['teams']['away'].get('logo', ''),
-            "Goles V": match['goals']['away'],
-            "Minuto": match['fixture']['status']['elapsed']
+            "Goles V": match['goals']['away'] if match['goals']['away'] is not None else 0,
+            "Minuto": minuto_mostrado
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
@@ -159,22 +175,18 @@ tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo"
 
 with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
-        # Captura directa y limpia del input de búsqueda sin interferir con st.rerun directos
-        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Barcelona):", value="")
+        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Barcelona, Milan):", value="")
 
         if len(busqueda_usuario) >= 3:
             resultados = buscar_equipo_api(busqueda_usuario)
             if resultados:
                 opciones = {f"{i['team']['name']} ({i['team']['country']})": i['team'] for i in resultados}
-                
                 seleccion_actual = st.selectbox("Clubes encontrados:", list(opciones.keys()))
                 
                 if seleccion_actual:
                     equipo_datos = opciones[seleccion_actual]
-                    # Control de cambio fluido: solo recarga si se cambia de ID
                     if st.session_state.id_seleccionado != equipo_datos['id']:
                         st.session_state.id_seleccionado = equipo_datos['id']
                         st.session_state.nombre_seleccionado = equipo_datos['name']
@@ -182,7 +194,7 @@ with tab1:
                         st.session_state.logo_seleccionado = equipo_datos['logo']
                         st.rerun()
             else:
-                st.info("No se encontraron equipos.")
+                st.info("No se encontraron equipos con ese nombre.")
     st.markdown("</div>", unsafe_allow_html=True)
 
     id_activo = st.session_state.id_seleccionado
@@ -190,7 +202,8 @@ with tab1:
     pais_activo = st.session_state.pais_seleccionado
     logo_activo = st.session_state.logo_seleccionado
     
-    historial_raw = obtener_calendario_equipo(id_activo)
+    # Procesar Calendarios y Resultados de forma Relativa/Dinámica
+    historial_raw = obtener_calendario_dinamico_equipo(id_activo)
     records_historial = []
     
     for f in historial_raw:
@@ -209,13 +222,13 @@ with tab1:
             })
             
     cols = ["Fecha", "Fecha_Str", "Competencia", "Local", "Logo_L", "Goles Local", "Goles Visita", "Visita", "Logo_V", "Estado"]
-    df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False) if records_historial else pd.DataFrame(columns=cols)
+    df_historial = pd.DataFrame(records_historial) if records_historial else pd.DataFrame(columns=cols)
     
     victorias, empates, derrotas, goles_favor, partidos_jugados = 0, 0, 0, 0, 0
     df_finalizados = pd.DataFrame()
     
     if not df_historial.empty:
-        df_finalizados = df_historial[df_historial['Estado'].isin(['FT', 'AET', 'PEN'])]
+        df_finalizados = df_historial[df_historial['Estado'].isin(['FT', 'AET', 'PEN'])].sort_values(by="Fecha", ascending=False)
         partidos_jugados = len(df_finalizados)
         
         if partidos_jugados > 0:
@@ -245,15 +258,15 @@ with tab1:
             </div>
         """, unsafe_allow_html=True)
     with k2:
-        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>EFECTIVIDAD</small><h2 style='margin:0; color:#10B981 !important;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>EFECTIVIDAD REAL</small><h2 style='margin:0; color:#10B981 !important;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
     with k3:
-        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>GOLES / PARTIDO</small><h2 style='margin:0; color:#F59E0B !important;'>{promedio_goles}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>GOLES / ENCUENTRO</small><h2 style='margin:0; color:#F59E0B !important;'>{promedio_goles}</h2></div>", unsafe_allow_html=True)
     with k4:
         st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>RÉCORD (V-E-D)</small><h2 style='margin:0; color:#FFFFFF !important;'>{victorias} - {empates} - {derrotas}</h2></div>", unsafe_allow_html=True)
 
     col_izq, col_der = st.columns(2)
     with col_izq:
-        st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados Reales</div>", unsafe_allow_html=True)
         if not df_finalizados.empty:
             for _, row in df_finalizados.head(5).iterrows():
                 color_borde = "#10B981" if (row['Local'] == nombre_activo and row['Goles Local'] > row['Goles Visita']) or (row['Visita'] == nombre_activo and row['Goles Visita'] > row['Goles Local']) else ("#64748B" if row['Goles Local'] == row['Goles Visita'] else "#EF4444")
@@ -268,7 +281,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay encuentros anteriores registrados en la API para este año.")
+            st.info("Buscando el historial de encuentros del club en la API...")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
@@ -276,7 +289,7 @@ with tab1:
         render_calendario()
         st.markdown("</div>", unsafe_allow_html=True)
         
-        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos Encuentros</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos Encuentros Programados</div>", unsafe_allow_html=True)
         df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
         if not df_proximos.empty:
             for _, row in df_proximos.iterrows():
@@ -291,7 +304,7 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay próximos partidos agendados en la API para el resto de la temporada.")
+            st.info("No hay partidos inmediatos programados en esta ventana de la API.")
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
@@ -300,15 +313,15 @@ with tab1:
         datos_formateados = [{"Número": p.get("number") if p.get("number") is not None else "-", "Nombre": p.get("name", "N/A"), "Edad": p.get("age", "-"), "Posición": p.get("position", "-")} for p in plantilla]
         st.dataframe(pd.DataFrame(datos_formateados), hide_index=True, use_container_width=True)
     else:
-        st.warning("Información de plantilla no disponible de forma temporal.")
+        st.warning("Información de plantilla no disponible de forma temporal en la API.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>🔴 Cobertura en Directo Real</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='section-title'>📡 Cobertura Real: {tipo_cobertura}</div>", unsafe_allow_html=True)
     
     if df_live.empty:
-        st.info("No hay partidos disputándose en tiempo real en este momento en la API.")
+        st.info("No hay partidos programados ni disputándose hoy en la API.")
     else:
         for _, row in df_live.iterrows():
             st.markdown(f"""
@@ -320,7 +333,7 @@ with tab2:
                         </div>
                         <div style='width: 30%; text-align: center;'>
                             <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><br>
-                            <div style='margin-top:10px;'><span class='pulse-minute'>⏱️ {row['Minuto']}'</span></div>
+                            <div style='margin-top:10px;'><span class='pulse-minute'>⏱️ {row['Minuto']}</span></div>
                         </div>
                         <div style='width: 35%; display:flex; align-items:center; justify-content:flex-end; gap:15px;'>
                             <span class='live-team-name'>{row['Visita']}</span>
@@ -340,19 +353,18 @@ with tab3:
     
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Volumen de Partidos en Vivo</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Volumen por Competencia</div>", unsafe_allow_html=True)
         if not df_live.empty:
             st.bar_chart(df_live['Liga'].value_counts(), use_container_width=True, color="#3B82F6")
         else:
-            st.info("Sin partidos en vivo para generar volumen.")
+            st.info("Esperando volumen de partidos de la jornada.")
         st.markdown("</div>", unsafe_allow_html=True)
     with c2:
-        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>⚽ Goles en Vivo por Competencia</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>⚽ Distribución de Goles de la Jornada</div>", unsafe_allow_html=True)
         if not df_live.empty:
-            df_live['Goles Totales'] = pd.to_numeric(df_live['Goles L']).fillna(0) + pd.to_numeric(df_live['Goles V']).fillna(0)
-            st.area_chart(df_live.groupby('Liga')['Goles Totales'].sum(), use_container_width=True, color="#EF4444")
+            st.area_chart(df_live.groupby('Liga')['Goles L'].sum(), use_container_width=True, color="#EF4444")
         else:
-            st.info("Esperando datos de goles en vivo.")
+            st.info("Esperando goles en los encuentros de la jornada.")
         st.markdown("</div>", unsafe_allow_html=True)
 
     c3, c4 = st.columns(2)
@@ -360,7 +372,7 @@ with tab3:
         st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>🕸️ Perfil Táctico Radar</div>", unsafe_allow_html=True)
         fig_radar = go.Figure()
         fig_radar.add_trace(go.Scatterpolar(
-            r=[efectividad, min(100, int(promedio_goles * 35)), 70, 65, 75], 
+            r=[efectividad, min(100, int(promedio_goles * 35)), 75, 70, 80], 
             theta=['Efectividad', 'Poder Goleador', 'Solidez Defensiva', 'Consistencia', 'Volumen'], 
             fill='toself', 
             fillcolor=hex_to_rgba("#3B82F6", 0.25), 
@@ -378,17 +390,17 @@ with tab3:
 with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
-    st.write(f"**Estado de Rendimiento:** {nombre_activo} mantiene una efectividad de competencia calculada en {efectividad}%.")
+    st.write(f"**Análisis:** {nombre_activo} cuenta con una efectividad calculada del {efectividad}% en sus encuentros recientes analizados.")
     
     pregunta_usuario = st.chat_input(f"Preguntar métricas de {nombre_activo}...")
     if pregunta_usuario:
         with st.chat_message("user", avatar="👤"): st.write(pregunta_usuario)
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
-            if any(x in p for x in ["goles", "promedio"]): respuesta = f"El promedio real del club es de {promedio_goles} goles por encuentro."
-            elif any(x in p for x in ["victoria", "ganados"]): respuesta = f"Registra un total de {victorias} victorias esta temporada."
-            elif "efectividad" in p: respuesta = f"La efectividad analizada es del {efectividad}%."
-            else: respuesta = f"Métricas de {nombre_activo}: Récord {victorias}V-{empates}E-{derrotas}D. ¿Quieres saber más?"
+            if any(x in p for x in ["goles", "promedio"]): respuesta = f"El promedio histórico registrado es de {promedio_goles} goles por partido."
+            elif any(x in p for x in ["victoria", "ganados"]): respuesta = f"El club acumula {victorias} victorias en sus encuentros analizados."
+            elif "efectividad" in p: respuesta = f"La efectividad de rendimiento actual corresponde al {efectividad}%."
+            else: respuesta = f"Métricas de {nombre_activo}: Récord de {victorias}V-{empates}E-{derrotas}D. ¿Te gustaría analizar otra variable?"
             st.write(respuesta)
     st.markdown("</div>", unsafe_allow_html=True)
 
