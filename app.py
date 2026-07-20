@@ -444,12 +444,12 @@ with tab_analytics:
             line_color='#3b82f6',
             fillcolor='rgba(59, 130, 246, 0.3)'
         ))
-        fig_radar.update_polar(
-            bgcolor='#0f172a',
-            radialaxis=dict(visible=True, range=[0, 100], gridcolor='#1e293b', linecolor='#1e293b'),
-            angularaxis=dict(gridcolor='#1e293b', linecolor='#1e293b')
-        )
         fig_radar.update_layout(
+            polar=dict(
+                bgcolor='#0f172a',
+                radialaxis=dict(visible=True, range=[0, 100], gridcolor='#1e293b', linecolor='#1e293b'),
+                angularaxis=dict(gridcolor='#1e293b', linecolor='#1e293b')
+            ),
             paper_bgcolor='#131b2e',
             plot_bgcolor='#131b2e',
             font=dict(color='#f1f5f9'),
