@@ -165,7 +165,7 @@ st.markdown(f"""
             background-color: #0F172A !important;
             color: #FFFFFF !important;
             border: 1px solid #334155 !important;
-        }
+        }}
 
         .cal-container {{ background: #0F172A; border-radius: 12px; padding: 15px; border: 1px solid #334155; color: white; margin-bottom: 15px; }}
         .cal-header {{ text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }}
