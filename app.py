@@ -25,13 +25,10 @@ TEAM_THEMES = {
     541: "#FEBE10",  # Real Madrid
     529: "#A81E3D",  # Barcelona
     33: "#DA291C",   # Manchester United
-    50: "#6CABDD",   # Manchester City (Actualizado a su celeste característico)
-    2281: "#F3E500"  # Club América (Amarillo crema oficial)
+    50: "#6CABDD",   # Manchester City
+    2281: "#F3E500"  # Club América
 }
 
-# =========================================================
-# 📂 BANCO DE DATOS DE RESPALDO (REALES - TEMPORADA 2025)
-# =========================================================
 RESPALDO_EQUIPOS = [
     {"team": {"id": 541, "name": "Real Madrid", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/541.png"}, "venue": {"name": "Estadio Santiago Bernabéu", "city": "Madrid"}},
     {"team": {"id": 529, "name": "Barcelona", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/529.png"}, "venue": {"name": "Camp Nou", "city": "Barcelona"}},
@@ -43,24 +40,19 @@ RESPALDO_EQUIPOS = [
 RESPALDO_PARTIDOS = {
     541: [
         {"fixture": {"date": "2026-05-15T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid"}, "away": {"name": "Barcelona"}}, "goals": {"home": 3, "away": 2}},
-        {"fixture": {"date": "2026-05-24T18:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Villarreal"}, "away": {"name": "Real Madrid"}}, "goals": {"home": 1, "away": 4}},
-        {"fixture": {"date": "2026-06-10T21:00:00+00:00", "status": {"short": "NS"}}, "league": {"name": "Champions League"}, "teams": {"home": {"name": "Real Madrid"}, "away": {"name": "Manchester City"}}, "goals": {"home": None, "away": None}}
+        {"fixture": {"date": "2026-05-24T18:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Villarreal"}, "away": {"name": "Real Madrid"}}, "goals": {"home": 1, "away": 4}}
     ],
     529: [
-        {"fixture": {"date": "2026-05-15T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid"}, "away": {"name": "Barcelona"}}, "goals": {"home": 3, "away": 2}},
-        {"fixture": {"date": "2026-05-20T19:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Barcelona"}, "away": {"name": "Rayo Vallecano"}}, "goals": {"home": 3, "away": 0}}
+        {"fixture": {"date": "2026-05-15T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid"}, "away": {"name": "Barcelona"}}, "goals": {"home": 3, "away": 2}}
     ],
     33: [
-        {"fixture": {"date": "2026-05-12T15:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Manchester United"}, "away": {"name": "Arsenal"}}, "goals": {"home": 1, "away": 0}},
-        {"fixture": {"date": "2026-05-19T16:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Brighton"}, "away": {"name": "Manchester United"}}, "goals": {"home": 0, "away": 2}}
+        {"fixture": {"date": "2026-05-12T15:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Manchester United"}, "away": {"name": "Arsenal"}}, "goals": {"home": 1, "away": 0}}
     ],
     50: [
-        {"fixture": {"date": "2026-05-14T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Tottenham"}, "away": {"name": "Manchester City"}}, "goals": {"home": 0, "away": 2}},
-        {"fixture": {"date": "2026-05-19T16:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Manchester City"}, "away": {"name": "West Ham"}}, "goals": {"home": 3, "away": 1}}
+        {"fixture": {"date": "2026-05-14T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Premier League"}, "teams": {"home": {"name": "Tottenham"}, "away": {"name": "Manchester City"}}, "goals": {"home": 0, "away": 2}}
     ],
     2281: [
-        {"fixture": {"date": "2026-05-10T21:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Liga MX"}, "teams": {"home": {"name": "Club América"}, "away": {"name": "Chivas Guadalajara"}}, "goals": {"home": 1, "away": 0}},
-        {"fixture": {"date": "2026-05-17T19:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Liga MX"}, "teams": {"home": {"name": "Cruz Azul"}, "away": {"name": "Club América"}}, "goals": {"home": 1, "away": 2}}
+        {"fixture": {"date": "2026-05-10T21:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "Liga MX"}, "teams": {"home": {"name": "Club América"}, "away": {"name": "Chivas Guadalajara"}}, "goals": {"home": 1, "away": 0}}
     ]
 }
 
@@ -176,9 +168,12 @@ def obtener_calendario_equipo(id_equipo):
     if modo_demo:
         return RESPALDO_PARTIDOS.get(id_equipo, RESPALDO_PARTIDOS[541]), "demo"
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2025", headers=HEADERS)
-        if response.status_code == 200 and response.json().get("response"):
-            return response.json().get("response", []), "api"
+        # Consulta abierta por últimos partidos para evitar restricciones de temporada en plan gratuito
+        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&last=10", headers=HEADERS)
+        if response.status_code == 200:
+            res_json = response.json()
+            if res_json.get("response"):
+                return res_json.get("response", []), "api"
         return RESPALDO_PARTIDOS.get(id_equipo, RESPALDO_PARTIDOS[541]), "local_fallback"
     except: 
         return RESPALDO_PARTIDOS.get(id_equipo, RESPALDO_PARTIDOS[541]), "local_fallback"
@@ -359,7 +354,7 @@ with tab4:
 st.markdown("""
     <hr style='border-color: #334155; margin-top: 40px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 20px;'>
-        <strong>Forza Football Analytics V3.2 (Respaldo Híbrido Habilitado)</strong><br>
+        <strong>Forza Football Analytics V3.3 (Conexión Directa API Habilitada)</strong><br>
         Plataforma Avanzada de Datos Deportivos | Proyecto Universitario | Desarrollado por Salomón Achar © 2026
     </div>
 """, unsafe_allow_html=True)
