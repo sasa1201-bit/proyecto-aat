@@ -16,7 +16,6 @@ def hex_to_rgba(hex_str, opacity=0.25):
 
 CITY_COORDS = {
     "Madrid": [40.4167, -3.7037],
-    "Barcelona": [41.3851, 2.1734],
     "London": [51.5074, -0.1278],
     "Manchester": [53.4808, -2.2426],
     "Milan": [45.4642, 9.1900],
@@ -32,7 +31,6 @@ CITY_COORDS = {
 
 TEAM_THEMES = {
     541: "#FEBE10",  
-    529: "#A81E3D",  
     42: "#EF0107",   
     33: "#DA291C",   
     50: "#034694",   
@@ -118,7 +116,7 @@ HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sport
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo():
     if modo_demo:
-        return [{"league": {"name": "LaLiga", "logo": ""}, "teams": {"home": {"name": "Barcelona", "logo": ""}, "away": {"name": "Real Madrid", "logo": ""}}, "goals": {"home": 2, "away": 1}, "fixture": {"status": {"elapsed": 75}}}]
+        return [{"league": {"name": "LaLiga", "logo": ""}, "teams": {"home": {"name": "Real Madrid", "logo": ""}, "away": {"name": "Atlético de Madrid", "logo": ""}}, "goals": {"home": 2, "away": 1}, "fixture": {"status": {"elapsed": 75}}}]
     try:
         response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
         if response.status_code == 200:
@@ -131,8 +129,6 @@ def obtener_partidos_en_vivo():
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_equipo_api(nombre_busqueda):
     if modo_demo:
-        if "barc" in nombre_busqueda.lower():
-            return [{"team": {"id": 529, "name": "Barcelona", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/529.png"}, "venue": {"name": "Camp Nou", "city": "Barcelona"}}]
         return [{"team": {"id": 541, "name": "Real Madrid", "country": "Spain", "logo": "https://media.api-sports.io/football/teams/541.png"}, "venue": {"name": "Santiago Bernabéu", "city": "Madrid"}}]
     if not nombre_busqueda or len(nombre_busqueda) < 3: return []
     try:
@@ -144,9 +140,8 @@ def buscar_equipo_api(nombre_busqueda):
 @st.cache_data(ttl=300, show_spinner=False)
 def obtener_calendario_equipo(id_equipo):
     if modo_demo:
-        return [{"fixture": {"date": "2026-05-10T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid", "logo": ""}, "away": {"name": "Barcelona", "logo": ""}}, "goals": {"home": 3, "away": 1}}], "demo"
+        return [{"fixture": {"date": "2026-05-10T20:00:00+00:00", "status": {"short": "FT"}}, "league": {"name": "LaLiga"}, "teams": {"home": {"name": "Real Madrid", "logo": ""}, "away": {"name": "Valencia", "logo": ""}}, "goals": {"home": 3, "away": 1}}], "demo"
     try:
-        # CORRECCIÓN DE TEMPORADA INTERACTIVA A 2025
         response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2025", headers=HEADERS)
         if response.status_code == 200:
             return response.json().get("response", []), "api"
@@ -156,7 +151,15 @@ def obtener_calendario_equipo(id_equipo):
 @st.cache_data(ttl=600, show_spinner=False)
 def obtener_plantilla(id_equipo):
     if modo_demo:
-        return [{"name": "Pedri", "number": 8, "age": 23, "position": "Midfielder"}, {"name": "Gavi", "number": 6, "age": 21, "position": "Midfielder"}]
+        return [
+            {"name": "Thibaut Courtois", "number": 1, "age": 34, "position": "Goalkeeper"},
+            {"name": "Dani Carvajal", "number": 2, "age": 34, "position": "Defender"},
+            {"name": "Éder Militão", "number": 3, "age": 28, "position": "Defender"},
+            {"name": "Jude Bellingham", "number": 5, "age": 23, "position": "Midfielder"},
+            {"name": "Kylian Mbappé", "number": 9, "age": 27, "position": "Attacker"},
+            {"name": "Vinícius Júnior", "number": 7, "age": 25, "position": "Attacker"},
+            {"name": "Federico Valverde", "number": 8, "age": 27, "position": "Midfielder"}
+        ]
     try:
         response = requests.get(f"https://v3.football.api-sports.io/players/squad?team={id_equipo}", headers=HEADERS)
         if response.status_code == 200:
