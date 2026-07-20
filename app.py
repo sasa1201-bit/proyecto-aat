@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Inyección de estilos CSS de alto rendimiento y maquetación limpia
+# Inyección de estilos CSS corregidos sin selectores genéricos destructivos
 st.markdown("""
     <style>
         /* Fondo principal de la aplicación */
@@ -45,7 +45,7 @@ st.markdown("""
             margin-bottom: 15px !important;
         }
         
-        /* Contenedor Premium unificado para Tarjetas/Paneles */
+        /* Contenedor Premium unificado para Paneles/Gráficos */
         .premium-panel {
             background-color: #0e1e38;
             border-radius: 12px;
@@ -54,29 +54,26 @@ st.markdown("""
             margin-bottom: 20px;
         }
         
-        /* ALERTAS PERSONALIZADAS (Reemplazan st.warning y st.info para integrarse al diseño) */
-        .custom-alert-warning {
-            background-color: #1c1917;
-            border-left: 4px solid #f59e0b;
-            padding: 14px;
-            border-radius: 8px;
-            color: #fcd34d;
-            font-size: 13.5px;
-            margin-bottom: 12px;
-            line-height: 1.5;
+        /* CORRECCIÓN DE ALERTAS: Estiliza directamente el componente nativo de Streamlit */
+        div[data-testid="stAlert"] {
+            background-color: #0e1e38 !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 8px !important;
+            color: #e0e6ed !important;
+            padding: 10px 15px !important;
         }
-        .custom-alert-info {
-            background-color: #0c1e36;
-            border-left: 4px solid #3b82f6;
-            padding: 14px;
-            border-radius: 8px;
-            color: #93c5fd;
-            font-size: 13.5px;
-            margin-bottom: 16px;
-            line-height: 1.5;
+        /* Alerta de Advertencia (Warning) */
+        div[data-testid="stAlert"]:has(span[data-testid="stNotificationLightningIcon"]) {
+            border-left: 5px solid #f59e0b !important;
+            background-color: #1c1917 !important;
+        }
+        /* Alerta de Información (Info) */
+        div[data-testid="stAlert"]:has(span[data-testid="stNotificationInfoIcon"]) {
+            border-left: 5px solid #1e90ff !important;
+            background-color: #0c1e36 !important;
         }
         
-        /* TABLA PREMIUM RESPONSIVA (Corrige los encabezados oscuros e ilegibles) */
+        /* TABLA PREMIUM RESPONSIVA */
         .premium-table {
             width: 100%;
             border-collapse: collapse;
@@ -97,9 +94,6 @@ st.markdown("""
             border-bottom: 1px solid #16253d;
             font-size: 13.5px;
             color: #e0e6ed;
-        }
-        .premium-table tr:hover {
-            background-color: #132747;
         }
         
         /* Badges e Indicadores En Vivo */
@@ -132,7 +126,6 @@ st.markdown("""
             border-radius: 8px;
             text-align: center;
             border: 1px solid #1e293b;
-            border-left: 5px solid #1e90ff;
         }
         .kpi-value {
             font-size: 28px;
@@ -187,7 +180,6 @@ def load_league_standings(competition_id):
     except Exception:
         pass
 
-    # DATA FALLBACK OPTIMIZADA
     data = {
         "comp_laliga": [
             {"position": 1, "team": "Real Madrid", "points": 78, "goal_difference": 42, "form": "W-W-D-W-W"},
@@ -197,9 +189,7 @@ def load_league_standings(competition_id):
         ],
         "comp_premier": [
             {"position": 1, "team": "Manchester City", "points": 81, "goal_difference": 48, "form": "W-W-W-D-W"},
-            {"position": 2, "team": "Liverpool", "points": 79, "goal_difference": 45, "form": "W-D-W-L-W"},
-            {"position": 3, "team": "Arsenal", "points": 77, "goal_difference": 39, "form": "W-W-L-W-W"},
-            {"position": 4, "team": "Aston Villa", "points": 63, "goal_difference": 15, "form": "D-L-W-W-D"}
+            {"position": 2, "team": "Liverpool", "points": 79, "goal_difference": 45, "form": "W-D-W-L-W"}
         ]
     }
     return pd.DataFrame(data.get(competition_id, data["comp_laliga"]))
@@ -238,58 +228,26 @@ def load_live_matches():
     except Exception:
         pass
 
-    # DATA FALLBACK OPTIMIZADA
     return [
         {
             "match_id": "mt_001", "home_team": "Real Madrid", "away_team": "Barcelona", "score": "2–1", "status": "LIVE", "minute": "74'",
             "live_stats": {"ball_possession": {"home": 54, "away": 46}, "total_shots": {"home": 14, "away": 9}, "corner_kicks": {"home": 6, "away": 4}, "expected_goals": {"home": 1.95, "away": 1.24}}
-        },
-        {
-            "match_id": "mt_002", "home_team": "Manchester City", "away_team": "Liverpool", "score": "3–3", "status": "LIVE", "minute": "88'",
-            "live_stats": {"ball_possession": {"home": 59, "away": 41}, "total_shots": {"home": 18, "away": 15}, "corner_kicks": {"home": 8, "away": 5}, "expected_goals": {"home": 2.61, "away": 2.45}}
-        },
-        {
-            "match_id": "mt_003", "home_team": "Juventus", "away_team": "Bayern Munich", "score": "0–1", "status": "LIVE", "minute": "62'",
-            "live_stats": {"ball_possession": {"home": 42, "away": 58}, "total_shots": {"home": 5, "away": 12}, "corner_kicks": {"home": 2, "away": 7}, "expected_goals": {"home": 0.44, "away": 1.68}}
         }
     ]
 
 @st.cache_data(ttl=600)
 def load_advanced_player_data():
-    try:
-        response = requests.get(f"{BASE_URL}/football/players/top/stats", headers=HEADERS, timeout=4)
-        if response.status_code == 200:
-            api_data = response.json()
-            if 'data' in api_data: return pd.DataFrame(api_data['data'])
-    except Exception:
-        pass
-
     players = [
         {"player": "Jude Bellingham", "team": "Real Madrid", "goals": 18, "assists": 8, "xg": 15.4, "passes_acc": 89.5, "duels_won_pct": 58.2, "position": "Midfielder"},
-        {"player": "Erling Haaland", "team": "Manchester City", "goals": 27, "assists": 5, "xg": 29.1, "passes_acc": 76.2, "duels_won_pct": 49.8, "position": "Forward"},
-        {"player": "Kylian Mbappé", "team": "PSG", "goals": 24, "assists": 7, "xg": 22.8, "passes_acc": 84.1, "duels_won_pct": 52.1, "position": "Forward"},
-        {"player": "Kevin De Bruyne", "team": "Manchester City", "goals": 6, "assists": 14, "xg": 5.8, "passes_acc": 91.3, "duels_won_pct": 46.5, "position": "Midfielder"},
-        {"player": "Vinícius Júnior", "team": "Real Madrid", "goals": 15, "assists": 9, "xg": 14.1, "passes_acc": 81.9, "duels_won_pct": 54.0, "position": "Forward"}
+        {"player": "Erling Haaland", "team": "Manchester City", "goals": 27, "assists": 5, "xg": 29.1, "passes_acc": 76.2, "duels_won_pct": 49.8, "position": "Forward"}
     ]
     return pd.DataFrame(players)
 
 @st.cache_data(ttl=600)
 def load_shotmap_data():
-    try:
-        response = requests.get(f"{BASE_URL}/football/matches/featured/shotmap", headers=HEADERS, timeout=4)
-        if response.status_code == 200:
-            api_data = response.json()
-            if 'data' in api_data: return pd.DataFrame(api_data['data'])
-    except Exception:
-        pass
-
     shots = [
         {"x": 88, "y": 52, "xg": 0.65, "result": "Goal", "player": "Jude Bellingham", "body_part": "Right Foot"},
-        {"x": 92, "y": 48, "xg": 0.45, "result": "Goal", "player": "Vinícius Júnior", "body_part": "Left Foot"},
-        {"x": 75, "y": 60, "xg": 0.08, "result": "Saved", "player": "Toni Kroos", "body_part": "Right Foot"},
-        {"x": 84, "y": 38, "xg": 0.12, "result": "Missed", "player": "Rodrygo", "body_part": "Head"},
-        {"x": 89, "y": 45, "xg": 0.72, "result": "Goal", "player": "Robert Lewandowski", "body_part": "Right Foot"},
-        {"x": 79, "y": 50, "xg": 0.15, "result": "Saved", "player": "Ilkay Gündogan", "body_part": "Right Foot"},
+        {"x": 92, "y": 48, "xg": 0.45, "result": "Goal", "player": "Vinícius Júnior", "body_part": "Left Foot"}
     ]
     return pd.DataFrame(shots)
 
@@ -298,19 +256,17 @@ def load_shotmap_data():
 # ESTRUCTURA PRINCIPAL DE LA APLICACIÓN DE STREAMLIT
 # ==============================================================================
 
-# Encabezado Superior Premium
 col_logo, col_title = st.columns([1, 11])
 with col_title:
     st.title("FORZA FOOTBALL ANALYTICS")
     st.markdown("<p style='color: #8a99ad; margin-top: -15px;'>Módulo Universitario de Visualización Deportiva de Alta Performance</p>", unsafe_allow_html=True)
 
-# Inicialización de pestañas
 tab_principal, tab_vivo, tab_avanzada, tab_scout = st.tabs([
     "Panel Principal", "Central En Vivo", "Analítica Avanzada", "Scout IA"
 ])
 
 # ------------------------------------------------------------------------------
-# TAB 1: PANEL PRINCIPAL (ENFOQUE DE CORRECCIÓN VISUAL DE LA CAPTURA)
+# TAB 1: PANEL PRINCIPAL (RESOLUCIÓN DE ERRORES DE CONTENEDORES DE LA CAPTURA)
 # ------------------------------------------------------------------------------
 with tab_principal:
     st.subheader("Resumen General de Competiciones")
@@ -325,13 +281,11 @@ with tab_principal:
     
     standings_df = load_league_standings(comp_choice[1])
     
-    # Grid Maestro dividido limpiamente en paneles premium
     col_table, col_quick_stats = st.columns([7, 5])
     
     with col_table:
         st.markdown(f"### Clasificación Actualizada - {comp_choice[0]}")
         
-        # TABLA HTML CORREGIDA: Elimina bugs de renderizado de cabeceras nativas
         headers = ["Position", "Team", "Points", "Goal Difference", "Form"]
         html_table = "<div class='premium-panel'><table class='premium-table'><thead><tr>"
         for h in headers:
@@ -353,31 +307,15 @@ with tab_principal:
     with col_quick_stats:
         st.markdown("### Estado de Integración de Datos")
         
-        # Envoltorio del Panel de Estado e Integración
-        st.markdown("<div class='premium-panel'>", unsafe_allow_html=True)
-        
+        # CORREGIDO: Llamada directa a alertas nativas limpias de Streamlit sin envoltorios div vacíos
         if THESTATSAPI_KEY == 'TU_TOKEN_AQUÍ':
-            st.markdown("""
-                <div class="custom-alert-warning">
-                    <strong>⚠️ Modo Sandbox / Fallback Activo:</strong> La API Key global no está configurada en las variables de entorno. Visualizando estructura de datos local.
-                </div>
-            """, unsafe_allow_html=True)
+            st.warning("Modo Sandbox / Fallback Activo: La API Key global no está configurada en las variables de entorno. Visualizando estructura de datos local.")
         else:
-            st.markdown("""
-                <div class="custom-alert-info" style="border-left-color: #00c853; color: #a7f3d0; background-color: #0a2419;">
-                    <strong>🔌 Conectado en Vivo:</strong> TheStatsAPI está transmitiendo telemetría deportiva exitosamente a la interfaz.
-                </div>
-            """, unsafe_allow_html=True)
+            st.success("Conectado en Vivo: TheStatsAPI está transmitiendo telemetría deportiva exitosamente.")
             
-        st.markdown("""
-            <div class="custom-alert-info">
-                <strong>💡 Información de Desarrollo:</strong> La infraestructura soporta paginación nativa mediante parámetros <code>?page=N&per_page=100</code>.
-            </div>
-        """, unsafe_allow_html=True)
+        st.info("Información de Desarrollo: La infraestructura soporta paginación nativa mediante parámetros ?page=N&per_page=100 .")
         
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-        # Panel del gráfico corregido
+        # Panel del gráfico
         st.markdown("<div class='premium-panel'>", unsafe_allow_html=True)
         st.markdown("<b style='color:#f0c040; font-size:15px; display:block; margin-bottom:10px;'>Distribución de Puntos</b>", unsafe_allow_html=True)
         
@@ -388,7 +326,7 @@ with tab_principal:
         fig_points.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
             font_color='#e0e6ed', height=240, showlegend=False,
-            coloraxis_showscale=False, # Remueve la barra lateral redundante que quita espacio
+            coloraxis_showscale=False,
             margin=dict(l=30, r=10, t=10, b=40),
             xaxis=dict(gridcolor='rgba(0,0,0,0)', title=""),
             yaxis=dict(gridcolor='#1e293b', title="Puntos")
@@ -437,7 +375,6 @@ with tab_vivo:
                 xaxis=dict(gridcolor='rgba(0,0,0,0)'), yaxis=dict(gridcolor='#1e293b')
             )
             st.plotly_chart(fig_match, use_container_width=True, key=match['match_id'], config={'displayModeBar': False})
-        
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
@@ -503,7 +440,7 @@ with tab_scout:
     with col_scout_res:
         st.markdown("<div class='premium-panel'>", unsafe_allow_html=True)
         st.markdown(f"### Análisis Automatizado para: **{player_sel}**")
-        st.write("El motor de Inteligencia Artificial de Forza Football Analytics ha procesado las métricas de rendimiento del jugador presentando una fuerte desviación estándar positiva con respecto al promedio de la liga.")
+        st.write("El motor de Inteligencia Artificial de Forza Football Analytics ha procesado las métricas de rendimiento del jugador.")
         
         categories_radar = ['Goles por 90', 'Asistencias por 90', 'xG Recibido', 'Pases Clave', 'Duels Ganados']
         fig_radar = go.Figure()
@@ -515,7 +452,6 @@ with tab_scout:
         st.plotly_chart(fig_radar, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Margen inferior anti-colisión con el footer
 st.markdown("<br><br><br><br>", unsafe_allow_html=True)
 
 # ==============================================================================
