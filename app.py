@@ -254,23 +254,28 @@ if live_fixtures:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
+# Inicialización segura de session_state al inicio absoluto
+if "id_seleccionado" not in st.session_state:
+    st.session_state.id_seleccionado = 541
+if "nombre_seleccionado" not in st.session_state:
+    st.session_state.nombre_seleccionado = "Real Madrid"
+if "pais_seleccionado" not in st.session_state:
+    st.session_state.pais_seleccionado = "Spain"
+if "logo_seleccionado" not in st.session_state:
+    st.session_state.logo_seleccionado = "https://media.api-sports.io/football/teams/541.png"
+if "busqueda_query" not in st.session_state:
+    st.session_state.busqueda_query = ""
+
 tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo", "📈 Analítica Avanzada", "🤖 Scout IA"])
 
 with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     
-    if "id_seleccionado" not in st.session_state:
-        st.session_state.id_seleccionado = 541
-        st.session_state.nombre_seleccionado = "Real Madrid"
-        st.session_state.pais_seleccionado = "Spain"
-        st.session_state.logo_seleccionado = "https://media.api-sports.io/football/teams/541.png"
-        st.session_state.busqueda_query = ""
-
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
-        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value=st.session_state.busqueda_query, key="input_busqueda")
+        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value=st.session_state.get("busqueda_query", ""), key="input_busqueda")
         
-        if busqueda_usuario != st.session_state.busqueda_query:
+        if busqueda_usuario != st.session_state.get("busqueda_query", ""):
             st.session_state.busqueda_query = busqueda_usuario
             st.rerun()
 
@@ -280,7 +285,7 @@ with tab1:
                 opciones = {f"{i['team']['name']} ({i['team']['country']})": i['team'] for i in resultados}
                 
                 def actualizar_equipo():
-                    sel_name = st.session_state.select_equipo_key
+                    sel_name = st.session_state.get("select_equipo_key")
                     if sel_name in opciones:
                         t = opciones[sel_name]
                         st.session_state.id_seleccionado = t['id']
