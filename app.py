@@ -243,7 +243,7 @@ def buscar_equipo_api(nombre_busqueda):
 def obtener_calendario_equipo(id_equipo):
     fixtures = []
     try:
-        # FIX: Se actualizó el parámetro season a 2026 para mapear la temporada del año en curso
+        # Se mantiene en la temporada actual 2026
         response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2026", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
@@ -294,7 +294,15 @@ with tab1:
             resultados = buscar_equipo_api(busqueda_usuario)
             if resultados:
                 opciones = {f"{i['team']['name']} ({i['team']['country']})": i for i in resultados}
-                sel = st.selectbox("Resultados:", list(opciones.keys()))
+                
+                # FIX CRUCIAL: Se añade index=None y placeholder para evitar que auto-seleccione el primer item y cicle la app
+                sel = st.selectbox(
+                    "Resultados encontrados:", 
+                    list(opciones.keys()), 
+                    index=None, 
+                    placeholder="Haz clic aquí para elegir tu equipo..."
+                )
+                
                 if sel:
                     item_sel = opciones[sel]
                     t = item_sel['team']
@@ -606,7 +614,7 @@ with tab4:
             elif any(x in p for x in ["victoria", "ganado", "triunfos"]):
                 respuesta = f"En la temporada actual, el equipo ha logrado {victorias} victorias."
             elif any(x in p for x in ["derrota", "perdido"]):
-                respuesta = f"El equipo suma {derrotas} derrotas en el registro actual."
+                respuesta = f"El equipo suma {derrotas} derrotas in el registro actual."
             elif any(x in p for x in ["efectividad", "porcentaje", "desempeño"]):
                 respuesta = f"El nivel de efectividad actual es del {efectividad}%, basado en {partidos_jugados} partidos."
             elif "partidos" in p or "jugados" in p:
