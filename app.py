@@ -286,7 +286,7 @@ if live_races:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# Navegación con 11 pestañas maestras 10/10 (incluyendo FastF1 Telemetry, Pit-Stop Gantt y Fantasy F1)
+# Navegación con 11 pestañas maestras 10/10
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "🏠 Panel", 
     "⚔️ H2H", 
@@ -721,9 +721,10 @@ with tab9:
         dict(Driver="Lewis Hamilton", Compound="Soft (C5)", Start=1, Finish=18),
         dict(Driver="Lewis Hamilton", Compound="Hard (C1)", Start=18, Finish=55)
     ])
+    df_gantt["Duration"] = df_gantt["Finish"] - df_gantt["Start"]
 
-    fig_gantt = px.timeline(
-        df_gantt, x_start="Start", x_finish="Finish", y="Driver", color="Compound",
+    fig_gantt = px.bar(
+        df_gantt, x="Duration", y="Driver", base="Start", orientation="h", color="Compound",
         color_discrete_map={"Soft (C5)": "#FF1801", "Medium (C3)": "#F59E0B", "Hard (C1)": "#F1F5F9"},
         template="plotly_dark"
     )
@@ -838,7 +839,7 @@ with tab11:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 10/10 V13.0 (Ultimate Engineering)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 10/10 V13.1 (Fixed Timeline)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1 & Radio IA<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
