@@ -284,7 +284,6 @@ TODOS_OS_PILOTOS_2024 = [
     "Zhou Guanyu", "Kevin Magnussen", "Daniel Ricciardo", "Oliver Bearman"
 ]
 
-# Base de datos de Fantasy F1 calibrada y realista basada en los resultados y puntos oficiales de la temporada 2024
 FANTASY_DB = {
     "Max Verstappen": {"costo": 30.5, "puntos": 437},
     "Lando Norris": {"costo": 26.0, "puntos": 374},
@@ -308,7 +307,6 @@ FANTASY_DB = {
     "Zhou Guanyu": {"costo": 6.0, "puntos": 0}
 }
 
-# Inicializar Estados Globales en st.session_state para reactividad total en tiempo real
 if "df_puntos_state" not in st.session_state:
     st.session_state["df_puntos_state"] = pd.DataFrame([
         {"Piloto": "Max Verstappen", "Escudería": "Red Bull Racing", "Puntos": 437},
@@ -628,29 +626,78 @@ with tab5:
 
 with tab6:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>💰 Gestor de Límite de Presupuesto y Desarrollo (Cost Cap Manager)</div>", unsafe_allow_html=True)
-    st.write("Ajusta las inversiones en tiempo real para verificar el cumplimiento del límite financiero de la FIA.")
+    st.markdown("<div class='section-header'>💰 Gestor Financiero Avanzado y Límite de Presupuesto (Cost Cap War Room)</div>", unsafe_allow_html=True)
+    st.write("Simula la asignación financiera de la escudería, el impacto de los paquetes de mejoras en pista y evalúa el cumplimiento del reglamento financiero de la FIA.")
 
-    presupuesto_total = 135.0
-    gasto_aero = st.slider("Inversión en Desarrollo Aerodinámico ($M):", min_value=20.0, max_value=70.0, value=48.5, key="cc_aero")
-    gasto_motor = st.slider("Inversión en Fiabilidad de Unidad de Potencia ($M):", min_value=15.0, max_value=50.0, value=35.0, key="cc_motor")
-    gasto_chasis = st.slider("Inversión en Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0, key="cc_chasis")
+    col_cc1, col_cc2 = st.columns(2)
+    with col_cc1:
+        presupuesto_base = st.number_input("Límite Base FIA ($M):", min_value=100.0, max_value=150.0, value=135.0, step=0.5, key="cc_base")
+        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel de Viento ($M):", min_value=20.0, max_value=70.0, value=48.5, step=0.5, key="cc_aero")
+        gasto_motor = st.slider("Integración y Fiabilidad de Unidad de Potencia ($M):", min_value=15.0, max_value=50.0, value=35.0, step=0.5, key="cc_motor")
+    with col_cc2:
+        gasto_chasis = st.slider("Manufactura y Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0, step=0.5, key="cc_chasis")
+        gasto_operaciones = st.slider("Logística, Viajes y Operaciones de Fábrica ($M):", min_value=10.0, max_value=30.0, value=18.0, step=0.5, key="cc_ops")
+        paquete_mejoras = st.selectbox("Paquete de Mejoras Previsto para el Siguiente GP:", ["Ninguno ($0M)", "Actualización menor - Suelo y Difusor ($2.5M)", "Paquete Mayor - Rediseño Total de Pontones ($5.8M)"], key="cc_upgrades")
 
-    gasto_total = round(gasto_aero + gasto_motor + gasto_chasis, 2)
-    remanente = round(presupuesto_total - gasto_total, 2)
-    cumplimiento = "✅ CUMPLE REGLAMENTO FINANCIERO FIA" if remanente >= 0 else "❌ ALERTA: EXCESO DE PRESUPUESTO (MULTA FIA)"
+    costo_upgrades_val = 0.0
+    if "Suelo" in paquete_mejoras:
+        costo_upgrades_val = 2.5
+    elif "Pontones" in paquete_mejoras:
+        costo_upgrades_val = 5.8
 
-    st.markdown(f"""
-        <div style='background: #080C16; padding: 22px; border-radius: 14px; border: 1px solid rgba(16,185,129,0.4); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);'>
-            <h3 style='color: #10B981; margin-top:0;'>📊 Auditoría Financiera del Cost Cap</h3>
-            <p><strong>Límite de Gasto Establecido:</strong> ${presupuesto_total}M</p>
-            <p><strong>Gasto Acumulado en el Monoplaza:</strong> ${gasto_total}M</p>
-            <p><strong>Presupuesto Remanente:</strong> ${remanente}M</p>
-            <div style='background: rgba(16, 185, 129, 0.15); padding: 14px; border-radius: 10px; border-left: 5px solid #10B981; margin-top: 15px;'>
-                <span style='color: #10B981; font-weight: 900;'>ESTADO DE LA ESCUDERÍA:</span> {cumplimiento}
+    gasto_total = round(gasto_aero + gasto_motor + gasto_chasis + gasto_operaciones + costo_upgrades_val, 2)
+    remanente = round(presupuesto_base - gasto_total, 2)
+
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
+
+    col_res_cc, col_graf_cc = st.columns([1, 1.2])
+
+    with col_res_cc:
+        if remanente >= 0:
+            cumplimiento = "✅ CUMPLE REGLAMENTO FINANCIERO FIA"
+            color_estado = "#10B981"
+            detalle_sancion = "Sin riesgo de penalización en túnel de viento ni puntos."
+        elif remanente >= -7.0:
+            cumplimiento = "⚠️ INFRACCIÓN MENOR DE GASTO (<5%)"
+            color_estado = "#F59E0B"
+            detalle_sancion = "Riesgo de multa económica o reprimenda deportiva de la FIA."
+        else:
+            cumplimiento = "❌ INFRACCIÓN MATERIAL GRAVE (>5%)"
+            color_estado = "#FF1801"
+            detalle_sancion = "Sanción severa: Deducción drástica de puntos en el Mundial y reducción del 20% en túnel de viento."
+
+        st.markdown(f"""
+            <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid {color_estado};'>
+                <h4 style='color: {color_estado}; margin-top:0;'>📊 Auditoría Financiera FIA</h4>
+                <p><strong>Límite de Gasto Autorizado:</strong> ${presupuesto_base}M</p>
+                <p><strong>Gasto Acumulado Total:</strong> ${gasto_total}M</p>
+                <p><strong>Presupuesto Remanente:</strong> <span style='color: {color_estado}; font-weight: 800;'>${remanente}M</span></p>
+                <hr style='border-color: rgba(255,255,255,0.1);'>
+                <div style='background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;'>
+                    <span style='color: {color_estado}; font-weight: 900; display:block; margin-bottom: 5px;'>{cumplimiento}</span>
+                    <small style='color: #94A3B8;'>{detalle_sancion}</small>
+                </div>
             </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+
+    with col_graf_cc:
+        df_costos = pd.DataFrame({
+            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones / Logística", "Paquete Mejoras"],
+            "Costo": [gasto_aero, gasto_motor, gasto_chasis, gasto_operaciones, costo_upgrades_val]
+        })
+        fig_donut = px.pie(
+            df_costos, names="Rubro", values="Costo", hole=0.55,
+            title="Distribución del Presupuesto de la Escudería",
+            color_discrete_sequence=["#FF1801", "#38BDF8", "#F59E0B", "#10B981", "#8B5CF6"]
+        )
+        fig_donut.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(t=30, b=10, l=10, r=10),
+            legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5)
+        )
+        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab7:
@@ -828,8 +875,8 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.4 (Fantasy & Gantt Final Fix)</strong><br>
-        Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy Optimizer, Radio IA & Live Data Editor<br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.5 (Cost Cap War Room & Analytics Pro)</strong><br>
+        Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap War Room, Fantasy Optimizer, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
