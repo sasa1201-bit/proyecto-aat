@@ -193,7 +193,7 @@ def render_mini_calendario():
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
 
-# Encabezado Espectacular de Presentación 10/10 Absoluto (Temporada 2024)
+# Encabezado Espectacular de Presentación (Temporada 2024)
 st.markdown("""
     <div style='margin-bottom: 35px; display: flex; align-items: center; justify-content: space-between;'>
         <div style='display: flex; align-items: center; gap: 20px;'>
@@ -294,14 +294,13 @@ if live_races:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# Navegación con 11 pestañas maestras (Sin la pestaña de parrilla, enfocada en 2024 con tabla y gráfica dinámica)
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+# Navegación con 10 pestañas maestras (Sin la pestaña de parrilla ni la pestaña de ML)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🏠 Panel 2024", 
     "⚔️ H2H", 
     "🔴 En Vivo", 
     "📈 FastF1 Telemetry", 
     "⛅ Clima", 
-    "🔮 ML Podio", 
     "💰 Cost Cap", 
     "🚦 Luces Salida", 
     "🛑 Estrategia Gantt", 
@@ -403,12 +402,11 @@ with tab1:
     with k4:
         st.markdown(f"<div class='telemetry-card' style='padding: 22px;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.9rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
-    # NUEVA SECCIÓN: Solución aplicada con Tabla de Puntos Interactiva (st.data_editor) y Gráfica Dinámica en Tiempo Real
+    # Solución aplicada: Tabla de Puntos Interactiva (st.data_editor) y Gráfica Dinámica en Tiempo Real
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📊 Clasificación y Gráfica Dinámica de Puntos 2024</div>", unsafe_allow_html=True)
     st.info("**Solución aplicada:** Se ha incorporado una gráfica de columnas profesional vinculada directamente a la tabla interactiva de puntos. Si cambias los valores numéricos de los puntos en la tabla a continuación, la gráfica se moverá y actualizará al instante de forma completamente dinámica.")
 
-    # Datos iniciales 2024 para la tabla interactiva
     df_puntos_default = pd.DataFrame([
         {"Piloto": "Max Verstappen", "Escudería": "Red Bull Racing", "Puntos": 429},
         {"Piloto": "Lando Norris", "Escudería": "McLaren", "Puntos": 374},
@@ -649,25 +647,6 @@ with tab5:
 
 with tab6:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🔮 Predictor de Podio con Machine Learning (Simulador Táctico 2024)</div>", unsafe_allow_html=True)
-    st.write("Modelo predictivo basado en datos históricos de la temporada 2024 para estimar las probabilidades porcentuales de podio.")
-
-    df_ml_pred = pd.DataFrame({
-        'Piloto / Escudería': ['Max Verstappen (Red Bull)', 'Lando Norris (McLaren)', 'Charles Leclerc (Ferrari)', 'Oscar Piastri (McLaren)', 'Carlos Sainz (Ferrari)', 'George Russell (Mercedes)'],
-        'Probabilidad de Victoria (%)': [40.5, 22.0, 18.5, 9.0, 6.5, 3.5]
-    })
-    
-    fig_ml = px.bar(
-        df_ml_pred, x='Probabilidad de Victoria (%)', y='Piloto / Escudería',
-        orientation='h', color='Probabilidad de Victoria (%)',
-        color_continuous_scale='Reds', template='plotly_dark'
-    )
-    fig_ml.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=10, b=10, l=10, r=10), yaxis={'categoryorder':'total ascending'})
-    st.plotly_chart(fig_ml, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with tab7:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💰 Gestor de Límite de Presupuesto y Desarrollo (Cost Cap Manager)</div>", unsafe_allow_html=True)
     st.write("Gestione el límite financiero de 135 millones de dólares de la FIA distribuyendo el capital en mejoras aerodinámicas, fiabilidad de motor y reducción de peso.")
 
@@ -693,7 +672,7 @@ with tab7:
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab8:
+with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🚦 Simulador Interactivo de Semáforos de Salida (Starting Grid Lights Out)</div>", unsafe_allow_html=True)
     st.write("Pruebe sus reflejos de piloto profesional. Presione el botón de salida y mida su tiempo de reacción en milisegundos cuando se apaguen los semáforos.")
@@ -726,7 +705,7 @@ with tab8:
                 st.error("Primero debes iniciar la secuencia con el botón rojo.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab9:
+with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
     st.write("Visualice de forma gráfica los stints de neumáticos (Soft, Medium, Hard) de la parrilla principal a lo largo de las vueltas de carrera.")
@@ -761,7 +740,7 @@ with tab9:
     st.plotly_chart(fig_gantt, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab10:
+with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💵 Fantasy F1 Constructor & Driver Budget Manager</div>", unsafe_allow_html=True)
     st.write("Arma tu alineación de ensueño seleccionando libremente entre **todos los pilotos de la parrilla 2024** respetando un presupuesto límite de 100.0 millones.")
@@ -798,7 +777,7 @@ with tab10:
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab11:
+with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛠️ Simulador Táctico Pit-Stop & Radio IA</div>", unsafe_allow_html=True)
     
@@ -861,7 +840,7 @@ with tab11:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V15.0 (Dynamic Table & Chart)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V16.0 (Dynamic Table & Chart)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
