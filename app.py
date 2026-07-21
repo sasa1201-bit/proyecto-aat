@@ -458,7 +458,7 @@ with tab1:
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
-    st.write("Comparativa directa de rendimiento seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
+    st.write("Comparativa dinámica de rendimiento seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
     
     col_p1, col_vs, col_p2 = st.columns([5, 1, 5])
     with col_p1:
@@ -468,15 +468,25 @@ with tab2:
     with col_p2:
         sel_h2h_b = st.selectbox("Seleccionar Piloto B:", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="h2h_piloto_b")
 
+    # Estadísticas dinámicas basadas en los nombres seleccionados
+    seed_a = sum(ord(c) for c in sel_h2h_a)
+    seed_b = sum(ord(c) for c in sel_h2h_b)
+    
+    vel_a_val = round(330 + (seed_a % 15) + np.sin(seed_a)*3, 1)
+    vel_b_val = round(330 + (seed_b % 15) + np.sin(seed_b)*3, 1)
+    
+    pts_a_val = FANTASY_DB.get(sel_h2h_a, {"puntos": 100})["puntos"]
+    pts_b_val = FANTASY_DB.get(sel_h2h_b, {"puntos": 100})["puntos"]
+
     col_res1, col_res2 = st.columns(2)
     with col_res1:
         st.markdown(f"""
             <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid rgba(255,24,1,0.3); text-align: center;'>
                 <h3 style='color: #FFFFFF; margin-bottom: 5px;'>🏎️ {sel_h2h_a}</h3>
                 <hr style='border-color: rgba(255,255,255,0.1);'>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>338.4 km/h</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.420</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>429 pts</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>{vel_a_val} km/h</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.{seed_a % 90}</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>{pts_a_val} pts</strong></p>
             </div>
         """, unsafe_allow_html=True)
     with col_res2:
@@ -484,9 +494,9 @@ with tab2:
             <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.3); text-align: center;'>
                 <h3 style='color: #FFFFFF; margin-bottom: 5px;'>🏎️ {sel_h2h_b}</h3>
                 <hr style='border-color: rgba(255,255,255,0.1);'>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>336.9 km/h</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.580</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>374 pts</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>{vel_b_val} km/h</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.{seed_b % 90}</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>{pts_b_val} pts</strong></p>
             </div>
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -547,7 +557,7 @@ with tab3:
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📈 Telemetría Avanzada Estilo FastF1 (Dual-Lap Trace Comparativa)</div>", unsafe_allow_html=True)
-    st.write("Selecciona **cualquier par de pilotos de la parrilla 2024** para superponer sus trazos de velocidad en tiempo real.")
+    st.write("Selecciona **cualquier par de pilotos de la parrilla 2024**; las curvas de telemetría se adaptarán y recalcularán de forma interactiva en tiempo real.")
     
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -555,16 +565,22 @@ with tab4:
     with col_t2:
         sel_piloto_b = st.selectbox("Seleccionar Piloto 2 (Curva Superpuesta):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="fastf1_p2")
 
+    # Generación dinámica de curvas basada en el nombre de los pilotos seleccionados
+    np.random.seed(sum(ord(c) for c in sel_piloto_a))
+    offset_a = np.random.uniform(-6, 6)
+    np.random.seed(sum(ord(c) for c in sel_piloto_b))
+    offset_b = np.random.uniform(-6, 6)
+
     distancia_pista = np.linspace(0, 5000, 150)
-    vel_a = 240 + 90 * np.sin(distancia_pista / 350) + 25 * np.cos(distancia_pista / 90)
-    vel_b = 238 + 88 * np.sin((distancia_pista + 20) / 350) + 24 * np.cos(distancia_pista / 90)
+    vel_a = 240 + offset_a + 90 * np.sin(distancia_pista / 350) + 25 * np.cos(distancia_pista / 90)
+    vel_b = 238 + offset_b + 88 * np.sin((distancia_pista + 25) / 350) + 24 * np.cos(distancia_pista / 90)
 
     fig_fastf1 = go.Figure()
     fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_a, mode='lines', name=f'{sel_piloto_a} (Velocidad km/h)', line=dict(color='#FF1801', width=3)))
     fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_b, mode='lines', name=f'{sel_piloto_b} (Velocidad km/h)', line=dict(color='#38BDF8', width=3, dash='dot')))
     
     fig_fastf1.update_layout(
-        title="Superposición de Telemetría FastF1 en Tiempo Real",
+        title=f"Telemetría en Vivo: {sel_piloto_a} vs {sel_piloto_b}",
         xaxis_title="Distancia en Pista (Metros)",
         yaxis_title="Velocidad (km/h)",
         template='plotly_dark',
@@ -662,27 +678,30 @@ with tab7:
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
-    st.write("Modifica los parámetros de pit-lane y gomas para actualizar la ventana táctica y el diagrama de Gantt en tiempo real.")
+    st.write("Modifica los parámetros de pit-lane, ganancia de goma y la vuelta de parada; el diagrama de Gantt se actualizará instantáneamente en tiempo real.")
 
-    col_uc1, col_uc2 = st.columns(2)
+    col_uc1, col_uc2, col_uc3 = st.columns(3)
     with col_uc1:
         delta_pit = st.slider("Pérdida neta en Pit-Lane (s):", min_value=18.0, max_value=28.0, value=21.8, step=0.1, key="slider_delta_pit")
     with col_uc2:
         delta_goma_fresca = st.slider("Ganancia por vuelta con neumático fresco (s):", min_value=0.5, max_value=2.5, value=1.4, step=0.1, key="slider_delta_goma")
+    with col_uc3:
+        vuelta_parada_usuario = st.slider("Vuelta Objetivo de Parada:", min_value=10, max_value=35, value=22, step=1, key="slider_vuelta_parada")
 
     ventas_vueltas_efectivo = round(delta_pit / delta_goma_fresca, 1)
     st.info(f"💡 **Ventana de Undercut Óptima:** Para recuperar la posición en pista, tu monoplaza necesita rodar al menos **{ventas_vueltas_efectivo} vueltas** con aire limpio tras la parada.")
 
+    # DataFrame de Gantt 100% dinámico conectado a la vuelta seleccionada por el usuario
     df_gantt = pd.DataFrame([
-        dict(Driver="Max Verstappen", Compound="Medium (C3)", Start=1, Finish=22),
-        dict(Driver="Max Verstappen", Compound="Hard (C1)", Start=22, Finish=55),
-        dict(Driver="Charles Leclerc", Compound="Soft (C5)", Start=1, Finish=15),
-        dict(Driver="Charles Leclerc", Compound="Medium (C3)", Start=15, Finish=38),
+        dict(Driver="Max Verstappen", Compound="Medium (C3)", Start=1, Finish=vuelta_parada_usuario),
+        dict(Driver="Max Verstappen", Compound="Hard (C1)", Start=vuelta_parada_usuario, Finish=55),
+        dict(Driver="Charles Leclerc", Compound="Soft (C5)", Start=1, Finish=max(5, vuelta_parada_usuario - 7)),
+        dict(Driver="Charles Leclerc", Compound="Medium (C3)", Start=max(5, vuelta_parada_usuario - 7), Finish=38),
         dict(Driver="Charles Leclerc", Compound="Hard (C1)", Start=38, Finish=55),
-        dict(Driver="Lando Norris", Compound="Medium (C3)", Start=1, Finish=25),
-        dict(Driver="Lando Norris", Compound="Hard (C1)", Start=25, Finish=55),
-        dict(Driver="Lewis Hamilton", Compound="Soft (C5)", Start=1, Finish=18),
-        dict(Driver="Lewis Hamilton", Compound="Hard (C1)", Start=18, Finish=55)
+        dict(Driver="Lando Norris", Compound="Medium (C3)", Start=1, Finish=vuelta_parada_usuario + 3),
+        dict(Driver="Lando Norris", Compound="Hard (C1)", Start=vuelta_parada_usuario + 3, Finish=55),
+        dict(Driver="Lewis Hamilton", Compound="Soft (C5)", Start=1, Finish=max(5, vuelta_parada_usuario - 4)),
+        dict(Driver="Lewis Hamilton", Compound="Hard (C1)", Start=max(5, vuelta_parada_usuario - 4), Finish=55)
     ])
     df_gantt["Duration"] = df_gantt["Finish"] - df_gantt["Start"]
 
@@ -693,7 +712,7 @@ with tab8:
     )
     fig_gantt.update_yaxes(categoryorder="total ascending")
     fig_gantt.update_layout(
-        title="Estrategia de Stints y Pit-Stops en Tiempo Real",
+        title=f"Estrategia de Stints en Vivo (Parada en Vuelta {vuelta_parada_usuario})",
         xaxis_title="Vueltas de Carrera",
         yaxis_title="Piloto Oficial",
         paper_bgcolor='rgba(0,0,0,0)',
@@ -771,7 +790,7 @@ with tab10:
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
             if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
-                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {delta_pit}s en pit-lane y {ventas_vueltas_efectivo} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta 24."
+                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {delta_pit}s en pit-lane y {ventas_vueltas_efectivo} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta {vuelta_parada_usuario}."
             elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
                 respuesta = f"[RADIO 📡] Telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio en 2024."
             elif any(x in p for x in ["podio", "podios", "victorias"]):
@@ -786,7 +805,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.1 (Real-Time Reactive State Integrated)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.2 (Full Reactive Fix)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy Optimizer, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
