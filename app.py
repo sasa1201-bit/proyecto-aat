@@ -799,57 +799,105 @@ with tab6:
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🚦 Simulador de Luces de Salida & Tiempo de Reacción F1</div>", unsafe_allow_html=True)
-    st.write("Pon a prueba tus reflejos como piloto de Fórmula 1. Espera a que se apaguen las 5 luces rojas y presiona el botón lo más rápido posible.")
+    st.write("Pon a prueba tus reflejos como piloto de Fórmula 1. Espera a que se apaguen las 5 luces rojas y presiona el botón lo más rápido posible sin cometer salida falsa.")
 
-    if "fase_semáforo" not in st.session_state:
-        st.session_state["fase_semáforo"] = "inicio" # inicio, esperando, listo, saltado, terminado
+    if "fase_semaforo" not in st.session_state:
+        st.session_state["fase_semaforo"] = "inicio" # inicio, esperando, listo, saltado, terminado
 
-    col_btn1, col_btn2 = st.columns(2)
-    
-    if st.session_state["fase_semáforo"] == "inicio":
-        if st.button("🚀 Iniciar Procedimiento de Salida", use_container_width=True):
-            st.session_state["fase_semáforo"] = "esperando"
+    fase = st.session_state["fase_semaforo"]
+
+    if fase == "inicio":
+        st.markdown("""
+            <div style='background: rgba(255,255,255,0.02); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); margin: 20px 0;'>
+                <h3 style='color: #F8FAFC; margin-bottom: 10px;'>¿Listo para largar desde la Pole Position?</h3>
+                <p style='color: #94A3B8; font-size: 0.95rem;'>Las luces rojas se encenderán secuencialmente y se apagarán tras un intervalo aleatorio.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🚀 Iniciar Procedimiento de Salida", use_container_width=True, key="btn_start_semaforo"):
+            st.session_state["fase_semaforo"] = "esperando"
             st.session_state["tiempo_inicio_salida"] = time.time()
-            st.session_state["tiempo_espera_aleatorio"] = np.random.uniform(1.5, 4.0)
+            st.session_state["tiempo_espera_aleatorio"] = np.random.uniform(2.0, 5.0)
             st.rerun()
 
-    elif st.session_state["fase_semáforo"] == "esperando":
+    elif fase == "esperando":
         tiempo_transcurrido = time.time() - st.session_state["tiempo_inicio_salida"]
-        if tiempo_transcurrido < st.session_state["tiempo_espera_aleatorio"]:
-            st.markdown("<h2 style='text-align: center; color: #FF1801;'>🔴 🔴 🔴 🔴 🔴<br>SEMÁFORO ENCENDIDO... ESPERA A QUE SE APAGUEN</h2>", unsafe_allow_html=True)
-            if st.button("⚡ ¡ACELERAR (SALIR)!", use_container_width=True):
-                st.session_state["fase_semáforo"] = "saltado"
+        espera = st.session_state["tiempo_espera_aleatorio"]
+        
+        if tiempo_transcurrido < espera:
+            st.markdown("""
+                <div style='background: rgba(239, 68, 68, 0.05); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2); margin: 20px 0;'>
+                    <h1 style='color: #EF4444; letter-spacing: 12px; margin: 0;'>🔴 🔴 🔴 🔴 🔴</h1>
+                    <h4 style='color: #F8FAFC; margin-top: 15px;'>SEMÁFORO ACTIVO — ESPERA EL APAGÓN</h4>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            if st.button("⚡ ¡ACELERAR (SALIR) AHORA!", use_container_width=True, key="btn_jump_start", type="primary"):
+                st.session_state["fase_semaforo"] = "saltado"
                 st.rerun()
-            time.sleep(0.1)
+            
+            time.sleep(0.05)
             st.rerun()
         else:
-            st.session_state["fase_semáforo"] = "listo"
+            st.session_state["fase_semaforo"] = "listo"
             st.session_state["tiempo_apagado"] = time.time()
             st.rerun()
 
-    elif st.session_state["fase_semáforo"] == "listo":
-        st.markdown("<h2 style='text-align: center; color: #10B981;'>🟢 🟢 🟢 🟢 🟢<br>¡APAGÓN DE LUCes! ¡YA!</h2>", unsafe_allow_html=True)
-        if st.button("⚡ ¡ACELERAR (SALIR) AHORA!", use_container_width=True):
+    elif fase == "listo":
+        st.markdown("""
+            <div style='background: rgba(16, 185, 129, 0.05); padding: 30px; border-radius: 12px; text-align: center; border: 1px solid rgba(16, 185, 129, 0.25); margin: 20px 0;'>
+                <h1 style='color: #10B981; letter-spacing: 12px; margin: 0;'>🟢 🟢 🟢 🟢 🟢</h1>
+                <h3 style='color: #10B981; margin-top: 15px;'>¡APAGÓN DE LUCES! ¡FUERA!</h3>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("⚡ ¡ACELERAR (SALIR) YA!", use_container_width=True, key="btn_react", type="primary"):
             reaccion_ms = int((time.time() - st.session_state["tiempo_apagado"]) * 1000)
             st.session_state["resultado_reaccion"] = reaccion_ms
-            st.session_state["fase_semáforo"] = "terminado"
+            st.session_state["fase_semaforo"] = "terminado"
             st.rerun()
 
-    elif st.session_state["fase_semáforo"] == "saltado":
-        st.error("❌ ¡SALIDA FALSA! Te adelantaste al semáforo. Sanción de 5 segundos.")
-        if st.button("🔄 Intentar Nuevamente"):
-            st.session_state["fase_semáforo"] = "inicio"
+    elif fase == "saltado":
+        st.markdown("""
+            <div style='background: rgba(239, 68, 68, 0.08); padding: 25px; border-radius: 12px; border: 1px solid #EF4444; text-align: center; margin: 20px 0;'>
+                <h3 style='color: #EF4444; margin-top: 0;'>❌ ¡SALIDA FALSA (JUMP START)!</h3>
+                <p style='color: #F8FAFC;'>Te adelantaste al apagón de los semáforos. Sanción de 5 segundos aplicada por los comisarios.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🔄 Intentar Nuevamente", use_container_width=True, key="btn_retry_jump"):
+            st.session_state["fase_semaforo"] = "inicio"
             st.rerun()
 
-    elif st.session_state["fase_semáforo"] == "terminado":
+    elif fase == "terminado":
         ms = st.session_state["resultado_reaccion"]
-        calificacion = "🏆 ¡Reflejos de Campeón del Mundo!" if ms < 220 else ("👍 ¡Buen tiempo de reacción!" if ms < 300 else "🐢 Un poco lento, ¡a entrenar reflejos!")
-        st.success(f"⏱️ Tiempo de Reacción: **{ms} ms**\n\n{calificacion}")
-        if st.button("🔄 Repetir Prueba de Salida"):
-            st.session_state["fase_semáforo"] = "inicio"
+        
+        if ms < 200:
+            calificacion = "🏆 ¡Reflejos de Élite F1 (Nivel Verstappen/Hamilton)!"
+            color_res = "#10B981"
+        elif ms < 260:
+            calificacion = "🔥 ¡Excelente tiempo de reacción! Zona de puntos asegurada."
+            color_res = "#38BDF8"
+        elif ms < 320:
+            calificacion = "👍 Buen ritmo, pero puedes afinar los reflejos."
+            color_res = "#F59E0B"
+        else:
+            calificacion = "🐢 Salida tardía. ¡Te ha adelantado media parrilla en la curva 1!"
+            color_res = "#EF4444"
+
+        st.markdown(f"""
+            <div style='background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 12px; border: 1px solid {color_res}; text-align: center; margin: 20px 0;'>
+                <div style='font-size: 0.9rem; color: #94A3B8; text-transform: uppercase;'>Cronometraje Oficial FIA</div>
+                <h1 style='color: {color_res}; font-size: 3rem; margin: 10px 0;'>{ms} ms</h1>
+                <h4 style='color: #F8FAFC; margin-bottom: 5px;'>{calificacion}</h4>
+            </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("🔄 Repetir Prueba de Salida", use_container_width=True, key="btn_repeat_ok"):
+            st.session_state["fase_semaforo"] = "inicio"
             st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) 
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
