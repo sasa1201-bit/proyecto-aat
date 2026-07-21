@@ -200,7 +200,7 @@ st.markdown("""
             <div style='background: linear-gradient(180deg, #FF1801 0%, #990E00 100%); width: 9px; height: 75px; border-radius: 4px; box-shadow: 0 0 25px rgba(255,24,1,0.9);'></div>
             <div>
                 <h1 style='color: #FFFFFF !important; font-size: 3.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px;'>FORZA F1 <span style='color: #FF1801;'>WORLD ELITE SUPREME</span></h1>
-                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Simulador WDC Reactivo en Tiempo Real, Cost Cap & Luces 100/100</p>
+                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Telemetría Avanzada, Cost Cap, Luces & Radio IA 100/100</p>
             </div>
         </div>
         <div style='background: rgba(255, 24, 1, 0.12); border: 1px solid rgba(255, 24, 1, 0.4); padding: 12px 22px; border-radius: 14px; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5);'>
@@ -221,7 +221,7 @@ if st.sidebar.button("🔄 Sincronizar Caché & Telemetría", use_container_widt
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_f1_supreme_v7")
+        geolocator = Nominatim(user_agent="forza_f1_supreme_v8")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -286,15 +286,14 @@ if live_races:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# Navegación con 10 pestañas maestras absolutas
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+# Navegación con 9 pestañas maestras (WDC eliminado)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "🏠 Panel", 
     "⚔️ H2H", 
     "🔴 En Vivo", 
     "📈 Analítico", 
     "⛅ Clima", 
     "🔮 ML Podio", 
-    "🏆 Simulador WDC", 
     "💰 Cost Cap", 
     "🚦 Luces Salida", 
     "🛠️ Radio IA"
@@ -664,54 +663,6 @@ with tab6:
 
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🏆 Simulador WDC Reactivo en Tiempo Real & Auto-Simulación</div>", unsafe_allow_html=True)
-    st.write("Modo dual: modifique los sliders interactivos para actualización instantánea o active el motor de auto-simulación en tiempo real vuelta a vuelta.")
-
-    pilotos_activos = obtener_pilotos(id_activo)
-    p1_nombre = pilotos_activos[0].get("driver", {}).get("name", "Piloto Principal A") if len(pilotos_activos) > 0 else "Max Verstappen"
-    p2_nombre = pilotos_activos[1].get("driver", {}).get("name", "Piloto Principal B") if len(pilotos_activos) > 1 else "Charles Leclerc"
-
-    if "auto_sim_active" not in st.session_state:
-        st.session_state["auto_sim_active"] = 0
-
-    col_wdc1, col_wdc2 = st.columns(2)
-    with col_wdc1:
-        pts_p1 = st.slider(f"Puntos GP - {p1_nombre}:", min_value=0, max_value=26, value=25, key="live_pts_p1")
-    with col_wdc2:
-        pts_p2 = st.slider(f"Puntos GP - {p2_nombre}:", min_value=0, max_value=26, value=18, key="live_pts_p2")
-
-    if st.button("🚀 Iniciar Auto-Simulación de Carrera en Vivo", use_container_width=True):
-        progress_bar = st.progress(0)
-        for step in range(1, 11):
-            st.session_state["auto_sim_active"] = step * 3
-            time.sleep(0.25)
-            progress_bar.progress(step * 10)
-        st.success("¡Simulación en tiempo real completada con éxito!")
-
-    bonus_tiempo_real = st.session_state.get("auto_sim_active", 0)
-    base_puntos_eq = puntos_totales if puntos_totales > 0 else 320
-
-    df_wdc = pd.DataFrame({
-        'Contendiente': [p1_nombre, p2_nombre, "Max Verstappen", "Lando Norris", "Oscar Piastri"],
-        'Puntos Totales (En Vivo)': [
-            base_puntos_eq + 60 + pts_p1 + bonus_tiempo_real,
-            base_puntos_eq + 40 + pts_p2 + (bonus_tiempo_real // 2),
-            base_puntos_eq + 30,
-            base_puntos_eq + 10,
-            base_puntos_eq - 15
-        ]
-    }).sort_values(by='Puntos Totales (En Vivo)', ascending=False)
-
-    fig_wdc = px.bar(
-        df_wdc, x='Contendiente', y='Puntos Totales (En Vivo)', color='Puntos Totales (En Vivo)',
-        color_continuous_scale='Reds', template='plotly_dark'
-    )
-    fig_wdc.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=10, b=10, l=10, r=10))
-    st.plotly_chart(fig_wdc, use_container_width=True, key="live_wdc_chart_v2")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with tab8:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💰 Gestor de Límite de Presupuesto y Desarrollo (Cost Cap Manager)</div>", unsafe_allow_html=True)
     st.write("Gestione el límite financiero de 135 millones de dólares de la FIA distribuyendo el capital en mejoras aerodinámicas, fiabilidad de motor y reducción de peso.")
 
@@ -737,7 +688,7 @@ with tab8:
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab9:
+with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🚦 Simulador Interactivo de Semáforos de Salida (Starting Grid Lights Out)</div>", unsafe_allow_html=True)
     st.write("Pruebe sus reflejos de piloto profesional. Presione el botón de salida y mida su tiempo de reacción en milisegundos cuando se apaguen los semáforos.")
@@ -770,7 +721,7 @@ with tab9:
                 st.error("Primero debes iniciar la secuencia con el botón rojo.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab10:
+with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛠️ Simulador Táctico Pit-Stop & Radio IA</div>", unsafe_allow_html=True)
     
@@ -833,8 +784,8 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V11.0 (Real-Time Reactive & Auto-Simulation)</strong><br>
-        Plataforma Suprema de Telemetría, Simulador WDC en Vivo, Cost Cap, Luces de Salida & Radio IA<br>
+        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V12.0 (Clean Architecture)</strong><br>
+        Plataforma Suprema de Telemetría, Cost Cap, Luces de Salida & Radio IA<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
