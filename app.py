@@ -164,7 +164,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-API_KEY = "2540a6ade056a06d82e67727b70a5f00"
+API_KEY = "6e2b9712ca7c0351fe3117b5c6d7c09e"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
 st.sidebar.markdown("### ⚙️ Centro de Control")
