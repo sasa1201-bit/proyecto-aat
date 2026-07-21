@@ -654,28 +654,93 @@ with tab4:
 
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>⛅ Panel de Clima Dinámico y Asfalto (Weather & Grip Intelligence)</div>", unsafe_allow_html=True)
-    st.write("Modifica los sliders de temperatura o lluvia; el coeficiente de agarre se recalculará instantáneamente en tiempo real.")
+    st.markdown("<div class='section-header'>⛅ AWS Insights: Advanced Weather Radar & Track Evolution</div>", unsafe_allow_html=True)
+    st.write("Simulador atmosférico predictivo. Modifica las condiciones para analizar en tiempo real la temperatura de asfalto y la ventana táctica Pirelli.")
+    
+    c_w1, c_w2, c_w3, c_w4 = st.columns(4)
+    with c_w1:
+        temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=42, value=25, key="nw_temp")
+    with c_w2:
+        prob_lluvia = st.slider("🌧️ Prob. de Lluvia (%)", min_value=0, max_value=100, value=15, key="nw_rain")
+    with c_w3:
+        humedad = st.slider("💧 Humedad Relativa (%)", min_value=10, max_value=100, value=45, key="nw_hum")
+    with c_w4:
+        viento = st.slider("💨 Viento (km/h)", min_value=0, max_value=60, value=12, key="nw_wind")
 
-    col_w1, col_w2, col_w3 = st.columns(3)
-    with col_w1:
-        temp_pista = st.slider("Temperatura de Pista (°C):", min_value=15, max_value=55, value=36, key="w_pista")
-    with col_w2:
-        temp_amb = st.slider("Temperatura Ambiente (°C):", min_value=10, max_value=40, value=24, key="w_amb")
-    with col_w3:
-        prob_lluvia = st.slider("Probabilidad de Lluvia (%):", min_value=0, max_value=100, value=10, key="w_lluvia")
+    impacto_sol = 15 if prob_lluvia < 30 and humedad < 60 else (5 if prob_lluvia < 60 else 0)
+    temp_pista = temp_amb + impacto_sol - (viento * 0.15)
+    temp_pista = round(max(temp_amb, temp_pista), 1)
 
-    indice_agarre = round(1.0 - (abs(temp_pista - 35) * 0.008) - (prob_lluvia * 0.004), 2)
-    estado_grip = "Óptimo (Grip Máximo)" if indice_agarre > 0.85 else ("Degradación Moderada" if indice_agarre > 0.70 else "Crítico / Pista Deslizante (Intermedios Requeridos)")
+    indice_agarre = 1.0 - (abs(temp_pista - 35) * 0.008) - (prob_lluvia * 0.007)
+    indice_agarre = round(max(0.1, min(1.0, indice_agarre)), 2)
+
+    if prob_lluvia > 75 or (prob_lluvia > 50 and indice_agarre < 0.45):
+        neumatico_rec, razon_rec, color_borde = "🔵 Lluvia Extrema (Wet)", "Alto riesgo de aquaplaning. Pista inundada.", "#0066FF"
+    elif prob_lluvia > 25 or indice_agarre < 0.65:
+        neumatico_rec, razon_rec, color_borde = "🟢 Intermedios (Inters)", "Asfalto mixto / Condiciones de transición.", "#10B981"
+    elif temp_pista > 45:
+        neumatico_rec, razon_rec, color_borde = "⚪ Duros (Hard C1/C2)", "Alta abrasión y riesgo severo de blistering térmico.", "#FFFFFF"
+    elif temp_pista < 26:
+        neumatico_rec, razon_rec, color_borde = "🔴 Blandos (Soft C4/C5)", "Necesidad de encender gomas rápido por baja temperatura.", "#FF1801"
+    else:
+        neumatico_rec, razon_rec, color_borde = "🟡 Medios (Medium C3)", "Ventana operativa ideal. Balance perfecto degradación/agarre.", "#F59E0B"
+
+    st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        fig_grip = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=indice_agarre * 100,
+            title={'text': "Nivel de Agarre (Grip Index)", 'font': {'color': '#94A3B8', 'size': 18}},
+            number={'suffix': "%", 'font': {'color': '#FFFFFF'}},
+            gauge={
+                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
+                'bar': {'color': color_borde},
+                'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 2,
+                'bordercolor': "rgba(255,255,255,0.1)",
+                'steps': [
+                    {'range': [0, 40], 'color': "rgba(255, 24, 1, 0.2)"},
+                    {'range': [40, 75], 'color': "rgba(245, 158, 11, 0.2)"},
+                    {'range': [75, 100], 'color': "rgba(16, 185, 129, 0.2)"}],
+            }
+        ))
+        fig_grip.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
+        st.plotly_chart(fig_grip, use_container_width=True)
+
+    with col_g2:
+        fig_temp = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=temp_pista,
+            title={'text': "Temperatura de Asfalto", 'font': {'color': '#94A3B8', 'size': 18}},
+            number={'suffix': "°C", 'font': {'color': '#FFFFFF'}},
+            gauge={
+                'axis': {'range': [0, 60], 'tickwidth': 1, 'tickcolor': "white"},
+                'bar': {'color': "#FF1801" if temp_pista > 45 else ("#38BDF8" if temp_pista < 25 else "#F59E0B")},
+                'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 2,
+                'bordercolor': "rgba(255,255,255,0.1)",
+                'steps': [
+                    {'range': [0, 25], 'color': "rgba(56, 189, 248, 0.2)"},
+                    {'range': [25, 45], 'color': "rgba(16, 185, 129, 0.2)"},
+                    {'range': [45, 60], 'color': "rgba(255, 24, 1, 0.2)"}],
+            }
+        ))
+        fig_temp.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
+        st.plotly_chart(fig_temp, use_container_width=True)
 
     st.markdown(f"""
-        <div style='background: #080C16; padding: 22px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.4); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);'>
-            <h3 style='color: #38BDF8; margin-top:0;'>🌦️ Diagnóstico Meteorológico del Muro de Boxes</h3>
-            <p><strong>Temperatura de Pista / Ambiente:</strong> {temp_pista}°C / {temp_amb}°C</p>
-            <p><strong>Probabilidad de Precipitaciones:</strong> {prob_lluvia}%</p>
-            <p><strong>Coeficiente de Agarre Calculado (Grip Index):</strong> <strong>{indice_agarre} / 1.00</strong></p>
-            <div style='background: rgba(56, 189, 248, 0.15); padding: 14px; border-radius: 10px; border-left: 5px solid #38BDF8; margin-top: 15px;'>
-                <span style='color: #38BDF8; font-weight: 900;'>ESTADO DEL ASFALTO:</span> {estado_grip}
+        <div style='background: linear-gradient(90deg, rgba(8,12,22,1) 0%, {color_borde}22 100%); 
+                    padding: 22px; border-radius: 14px; border-left: 6px solid {color_borde}; 
+                    border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 30px;'>
+            <div>
+                <span style='color: #94A3B8; font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;'>RECOMENDACIÓN ESTRATÉGICA PIRELLI</span>
+                <h2 style='color: {color_borde}; margin: 5px 0 0 0; font-weight: 900;'>{neumatico_rec}</h2>
+                <p style='color: #F1F5F9; margin: 5px 0 0 0; font-size: 0.95rem;'>{razon_rec}</p>
+            </div>
+            <div style='text-align: right;'>
+                <div style='font-size: 2.5rem;'>⚙️</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
