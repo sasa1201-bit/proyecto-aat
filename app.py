@@ -468,7 +468,6 @@ with tab2:
     with col_p2:
         sel_h2h_b = st.selectbox("Seleccionar Piloto B:", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="h2h_piloto_b")
 
-    # Estadísticas dinámicas basadas en los nombres seleccionados
     seed_a = sum(ord(c) for c in sel_h2h_a)
     seed_b = sum(ord(c) for c in sel_h2h_b)
     
@@ -565,7 +564,6 @@ with tab4:
     with col_t2:
         sel_piloto_b = st.selectbox("Seleccionar Piloto 2 (Curva Superpuesta):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="fastf1_p2")
 
-    # Generación dinámica de curvas basada en el nombre de los pilotos seleccionados
     np.random.seed(sum(ord(c) for c in sel_piloto_a))
     offset_a = np.random.uniform(-6, 6)
     np.random.seed(sum(ord(c) for c in sel_piloto_b))
@@ -588,7 +586,7 @@ with tab4:
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(t=30, b=10, l=10, r=10)
     )
-    st.plotly_chart(fig_fastf1, use_container_width=True, key="chart_fastf1_realtime")
+    st.plotly_chart(fig_fastf1, use_container_width=True, key=f"chart_fastf1_{sel_piloto_a}_{sel_piloto_b}")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab5:
@@ -678,7 +676,7 @@ with tab7:
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
-    st.write("Modifica los parámetros de pit-lane, ganancia de goma y la vuelta de parada; el diagrama de Gantt se actualizará instantáneamente en tiempo real.")
+    st.write("Modifica los parámetros y la vuelta objetivo de parada; el diagrama de Gantt se actualizará de inmediato para **toda la parrilla de 20 corredores**.")
 
     col_uc1, col_uc2, col_uc3 = st.columns(3)
     with col_uc1:
@@ -691,35 +689,55 @@ with tab8:
     ventas_vueltas_efectivo = round(delta_pit / delta_goma_fresca, 1)
     st.info(f"💡 **Ventana de Undercut Óptima:** Para recuperar la posición en pista, tu monoplaza necesita rodar al menos **{ventas_vueltas_efectivo} vueltas** con aire limpio tras la parada.")
 
-    # DataFrame de Gantt 100% dinámico conectado a la vuelta seleccionada por el usuario
-    df_gantt = pd.DataFrame([
-        dict(Driver="Max Verstappen", Compound="Medium (C3)", Start=1, Finish=vuelta_parada_usuario),
-        dict(Driver="Max Verstappen", Compound="Hard (C1)", Start=vuelta_parada_usuario, Finish=55),
-        dict(Driver="Charles Leclerc", Compound="Soft (C5)", Start=1, Finish=max(5, vuelta_parada_usuario - 7)),
-        dict(Driver="Charles Leclerc", Compound="Medium (C3)", Start=max(5, vuelta_parada_usuario - 7), Finish=38),
-        dict(Driver="Charles Leclerc", Compound="Hard (C1)", Start=38, Finish=55),
-        dict(Driver="Lando Norris", Compound="Medium (C3)", Start=1, Finish=vuelta_parada_usuario + 3),
-        dict(Driver="Lando Norris", Compound="Hard (C1)", Start=vuelta_parada_usuario + 3, Finish=55),
-        dict(Driver="Lewis Hamilton", Compound="Soft (C5)", Start=1, Finish=max(5, vuelta_parada_usuario - 4)),
-        dict(Driver="Lewis Hamilton", Compound="Hard (C1)", Start=max(5, vuelta_parada_usuario - 4), Finish=55)
-    ])
-    df_gantt["Duration"] = df_gantt["Finish"] - df_gantt["Start"]
+    # Generación del DataFrame dinámico para TODOS los corredores de la parrilla 2024
+    gantt_data = []
+    for piloto in TODOS_OS_PILOTOS_2024:
+        if piloto in ["Max Verstappen", "Charles Leclerc", "Lando Norris", "Lewis Hamilton", "Carlos Sainz", "Oscar Piastri"]:
+            if piloto == "Max Verstappen":
+                c1, c2 = "Medium (C3)", "Hard (C1)"
+                p_split = vuelta_parada_usuario
+            elif piloto == "Charles Leclerc":
+                c1, c2 = "Soft (C5)", "Hard (C1)"
+                p_split = max(5, vuelta_parada_usuario - 5)
+            elif piloto == "Lando Norris":
+                c1, c2 = "Medium (C3)", "Hard (C1)"
+                p_split = vuelta_parada_usuario + 2
+            elif piloto == "Lewis Hamilton":
+                c1, c2 = "Soft (C5)", "Medium (C3)"
+                p_split = max(5, vuelta_parada_usuario - 3)
+            elif piloto == "Carlos Sainz":
+                c1, c2 = "Medium (C3)", "Hard (C1)"
+                p_split = vuelta_parada_usuario + 1
+            else:
+                c1, c2 = "Medium (C3)", "Hard (C1)"
+                p_split = vuelta_parada_usuario
+            
+            gantt_data.append(dict(Driver=piloto, Compound=c1, Start=1, Finish=p_split, Duration=p_split - 1))
+            gantt_data.append(dict(Driver=piloto, Compound=c2, Start=p_split, Finish=55, Duration=55 - p_split))
+        else:
+            gantt_data.append(dict(Driver=piloto, Compound="Medium (C3)", Start=1, Finish=55, Duration=54))
+
+    df_gantt = pd.DataFrame(gantt_data)
 
     fig_gantt = px.bar(
         df_gantt, x="Duration", y="Driver", base="Start", orientation="h", color="Compound",
-        color_discrete_map={"Soft (C5)": "#FF1801", "Medium (C3)": "#F59E0B", "Hard (C1)": "#F1F5F9"},
-        template="plotly_dark"
+        color_discrete_map={"Soft (C5)": "#FF1801", "Medium (C3)": "#F59E0B", "Hard (C1)": "#38BDF8"},
+        template="plotly_dark",
+        category_orders={"Driver": TODOS_OS_PILOTOS_2024}
     )
-    fig_gantt.update_yaxes(categoryorder="total ascending")
+    # Forzar que el eje Y mantenga el orden estricto de todos los corredores y no oculte ninguno
+    fig_gantt.update_yaxes(categoryorder="array", categoryarray=TODOS_OS_PILOTOS_2024, autorange="reversed")
     fig_gantt.update_layout(
-        title=f"Estrategia de Stints en Vivo (Parada en Vuelta {vuelta_parada_usuario})",
+        title=f"Estrategia de Stints - Todos los Pilotos (Parada en Vuelta {vuelta_parada_usuario})",
         xaxis_title="Vueltas de Carrera",
-        yaxis_title="Piloto Oficial",
+        yaxis_title="Pilotos Oficiales 2024",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=30, b=10, l=10, r=10)
+        margin=dict(t=30, b=10, l=10, r=10),
+        height=680
     )
-    st.plotly_chart(fig_gantt, use_container_width=True, key="chart_gantt_realtime")
+    # Clave dinámica basada en los valores de los sliders para garantizar actualización en tiempo real
+    st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_realtime_{vuelta_parada_usuario}_{delta_pit}_{delta_goma_fresca}")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab9:
@@ -805,7 +823,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.2 (Full Reactive Fix)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.3 (All Drivers Gantt Reactive)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy Optimizer, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
