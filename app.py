@@ -720,7 +720,7 @@ with tab7:
     if "fase_semáforo" not in st.session_state:
         st.session_state["fase_semáforo"] = "inicio" # inicio, esperando, listo, saltado, terminado
 
-    col_ btn1, col_btn2 = st.columns(2)
+    col_btn1, col_btn2 = st.columns(2)
     
     if st.session_state["fase_semáforo"] == "inicio":
         if st.button("🚀 Iniciar Procedimiento de Salida", use_container_width=True):
