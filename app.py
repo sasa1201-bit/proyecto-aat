@@ -437,27 +437,77 @@ with tab1:
     render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # Diccionario con los pilotos oficiales de cada escudería para 2024
+    PILOTOS_EQUIPOS_2024 = {
+        "Red Bull Racing": [
+            {"Piloto": "Max Verstappen", "País": "Netherlands", "Número": 1},
+            {"Piloto": "Sergio Pérez", "País": "Mexico", "Número": 11}
+        ],
+        "Ferrari": [
+            {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16},
+            {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55}
+        ],
+        "McLaren": [
+            {"Piloto": "Lando Norris", "País": "United Kingdom", "Número": 4},
+            {"Piloto": "Oscar Piastri", "País": "Australia", "Número": 81}
+        ],
+        "Mercedes": [
+            {"Piloto": "Lewis Hamilton", "País": "United Kingdom", "Número": 44},
+            {"Piloto": "George Russell", "País": "United Kingdom", "Número": 63}
+        ],
+        "Aston Martin": [
+            {"Piloto": "Fernando Alonso", "País": "Spain", "Número": 14},
+            {"Piloto": "Lance Stroll", "País": "Canada", "Número": 18}
+        ],
+        "RB": [
+            {"Piloto": "Yuki Tsunoda", "País": "Japan", "Número": 22},
+            {"Piloto": "Daniel Ricciardo", "País": "Australia", "Número": 3}
+        ],
+        "Haas": [
+            {"Piloto": "Nico Hulkenberg", "País": "Germany", "Número": 27},
+            {"Piloto": "Kevin Magnussen", "País": "Denmark", "Número": 20}
+        ],
+        "Alpine": [
+            {"Piloto": "Pierre Gasly", "País": "France", "Número": 10},
+            {"Piloto": "Esteban Ocon", "País": "France", "Número": 31}
+        ],
+        "Williams": [
+            {"Piloto": "Alexander Albon", "País": "Thailand", "Número": 23},
+            {"Piloto": "Logan Sargeant", "País": "United States", "Número": 2}
+        ],
+        "Kick Sauber": [
+            {"Piloto": "Valtteri Bottas", "País": "Finland", "Número": 77},
+            {"Piloto": "Zhou Guanyu", "País": "China", "Número": 24}
+        ]
+    }
+
     col_plantilla, col_mapa = st.columns(2)
     with col_plantilla:
-        st.markdown("<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos 2024</div>", unsafe_allow_html=True)
-        pilotos = obtener_pilotos(id_activo)
-        if pilotos:
-            datos_formateados = []
-            for p in pilotos:
-                driver_info = p.get("driver", {})
-                datos_formateados.append({
-                    "Piloto": driver_info.get("name", "N/A"),
-                    "País": driver_info.get("country", "-"),
-                    "Número": driver_info.get("number", "-")
-                })
-            df_final = pd.DataFrame(datos_formateados)
+        st.markdown(f"<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos - {equipo_seleccionado_nombre}</div>", unsafe_allow_html=True)
+        
+        pilotos_equipo_info = PILOTOS_EQUIPOS_2024.get(equipo_seleccionado_nombre, [])
+        if pilotos_equipo_info:
+            df_final = pd.DataFrame(pilotos_equipo_info)
             st.dataframe(df_final, hide_index=True, use_container_width=True)
         else:
-            df_default_pilotos = pd.DataFrame([
-                {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16},
-                {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55}
-            ])
-            st.dataframe(df_default_pilotos, hide_index=True, use_container_width=True)
+            pilotos = obtener_pilotos(id_activo)
+            if pilotos:
+                datos_formateados = []
+                for p in pilotos:
+                    driver_info = p.get("driver", {})
+                    datos_formateados.append({
+                        "Piloto": driver_info.get("name", "N/A"),
+                        "País": driver_info.get("country", "-"),
+                        "Número": driver_info.get("number", "-")
+                    })
+                df_final = pd.DataFrame(datos_formateados)
+                st.dataframe(df_final, hide_index=True, use_container_width=True)
+            else:
+                df_default_pilotos = pd.DataFrame([
+                    {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16},
+                    {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55}
+                ])
+                st.dataframe(df_default_pilotos, hide_index=True, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_mapa:
