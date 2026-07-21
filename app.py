@@ -487,6 +487,9 @@ with tab2:
     pts_a_val = FANTASY_DB.get(sel_h2h_a, {"puntos": 50})["puntos"]
     pts_b_val = FANTASY_DB.get(sel_h2h_b, {"puntos": 50})["puntos"]
 
+    q3_a = (seed_a % 40) + 60
+    q3_b = (seed_b % 40) + 60
+
     col_res1, col_res2 = st.columns(2)
     with col_res1:
         st.markdown(f"""
@@ -511,15 +514,17 @@ with tab2:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Gráfica comparativa visual Plotly
+    # Gráfica comparativa visual Plotly con formato ordenado (tidy dataframe)
     df_h2h = pd.DataFrame({
         "Métrica": ["Puntos 2024", "Velocidad Punta (km/h)", "Índice Q3"],
-        sel_h2h_a: [pts_a_val, vel_a_val, (seed_a % 40) + 60],
-        sel_h2h_b: [pts_b_val, vel_b_val, (seed_b % 40) + 60]
+        sel_h2h_a: [pts_a_val, vel_a_val, q3_a],
+        sel_h2h_b: [pts_b_val, vel_b_val, q3_b]
     })
     
+    df_melted = df_h2h.melt(id_vars=["Métrica"], var_name="Piloto", value_name="Valor")
+
     fig_h2h = px.bar(
-        df_h2h, x="Métrica", y=[sel_h2h_a, sel_h2h_b], barmode="group",
+        df_melted, x="Métrica", y="Valor", color="Piloto", barmode="group",
         template="plotly_dark", title="Comparativa Gráfica Directa H2H",
         color_discrete_map={sel_h2h_a: "#FF1801", sel_h2h_b: "#38BDF8"}
     )
@@ -529,6 +534,20 @@ with tab2:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig_h2h, use_container_width=True, key=f"chart_h2h_{sel_h2h_a}_{sel_h2h_b}")
+
+    # Veredicto dinámico basado en puntos
+    if pts_a_val > pts_b_val:
+        ganador_pts = sel_h2h_a
+    elif pts_b_val > pts_a_val:
+        ganador_pts = sel_h2h_b
+    else:
+        ganador_pts = "Empate técnico"
+
+    st.markdown(f"""
+        <div style='background: rgba(255,255,255,0.02); padding: 12px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); text-align: center; margin-top: 15px;'>
+            <span style='color: #94A3B8; font-size: 0.85rem;'>🏁 <b>Veredicto H2H 2024:</b> En la acumulada de puntos de la temporada, el piloto con ventaja es <b style='color: #10B981;'>{ganador_pts}</b>.</span>
+        </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 with tab3:
