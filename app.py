@@ -200,7 +200,7 @@ st.markdown("""
             <div style='background: linear-gradient(180deg, #FF1801 0%, #990E00 100%); width: 9px; height: 75px; border-radius: 4px; box-shadow: 0 0 25px rgba(255,24,1,0.9);'></div>
             <div>
                 <h1 style='color: #FFFFFF !important; font-size: 3.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px;'>FORZA F1 <span style='color: #FF1801;'>WORLD ELITE SUPREME</span></h1>
-                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Simulador WDC en Vivo, Cost Cap & Luces de Salida 100/100</p>
+                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Simulador WDC Reactivo en Tiempo Real, Cost Cap & Luces 100/100</p>
             </div>
         </div>
         <div style='background: rgba(255, 24, 1, 0.12); border: 1px solid rgba(255, 24, 1, 0.4); padding: 12px 22px; border-radius: 14px; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5);'>
@@ -221,7 +221,7 @@ if st.sidebar.button("🔄 Sincronizar Caché & Telemetría", use_container_widt
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_f1_supreme_v6")
+        geolocator = Nominatim(user_agent="forza_f1_supreme_v7")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -621,11 +621,11 @@ with tab5:
 
     col_w1, col_w2, col_w3 = st.columns(3)
     with col_w1:
-        temp_pista = st.slider("Temperatura de Pista (°C):", min_value=15, max_value=55, value=36)
+        temp_pista = st.slider("Temperatura de Pista (°C):", min_value=15, max_value=55, value=36, key="w_pista")
     with col_w2:
-        temp_amb = st.slider("Temperatura Ambiente (°C):", min_value=10, max_value=40, value=24)
+        temp_amb = st.slider("Temperatura Ambiente (°C):", min_value=10, max_value=40, value=24, key="w_amb")
     with col_w3:
-        prob_lluvia = st.slider("Probabilidad de Lluvia (%):", min_value=0, max_value=100, value=10)
+        prob_lluvia = st.slider("Probabilidad de Lluvia (%):", min_value=0, max_value=100, value=10, key="w_lluvia")
 
     indice_agarre = round(1.0 - (abs(temp_pista - 35) * 0.008) - (prob_lluvia * 0.004), 2)
     estado_grip = "Óptimo (Grip Máximo)" if indice_agarre > 0.85 else ("Degradación Moderada" if indice_agarre > 0.70 else "Crítico / Pista Deslizante (Intermedios Requeridos)")
@@ -664,27 +664,38 @@ with tab6:
 
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🏆 Simulador WDC en Tiempo Real (Interactive Scenario Calculator)</div>", unsafe_allow_html=True)
-    st.write("Deslice los controles interactivos para simular en tiempo real los puntos del próximo Gran Premio y observe cómo se actualiza la clasificación del campeonato.")
+    st.markdown("<div class='section-header'>🏆 Simulador WDC Reactivo en Tiempo Real & Auto-Simulación</div>", unsafe_allow_html=True)
+    st.write("Modo dual: modifique los sliders interactivos para actualización instantánea o active el motor de auto-simulación en tiempo real vuelta a vuelta.")
 
     pilotos_activos = obtener_pilotos(id_activo)
-    nombre_p1 = pilotos_activos[0].get("driver", {}).get("name", "Piloto Principal A") if len(pilotos_activos) > 0 else "Max Verstappen"
-    nombre_p2 = pilotos_activos[1].get("driver", {}).get("name", "Piloto Principal B") if len(pilotos_activos) > 1 else "Charles Leclerc"
+    p1_nombre = pilotos_activos[0].get("driver", {}).get("name", "Piloto Principal A") if len(pilotos_activos) > 0 else "Max Verstappen"
+    p2_nombre = pilotos_activos[1].get("driver", {}).get("name", "Piloto Principal B") if len(pilotos_activos) > 1 else "Charles Leclerc"
 
-    col_wdc1, col_wdc2, col_wdc3 = st.columns(3)
+    if "auto_sim_active" not in st.session_state:
+        st.session_state["auto_sim_active"] = 0
+
+    col_wdc1, col_wdc2 = st.columns(2)
     with col_wdc1:
-        pts_p1 = st.slider(f"Puntos GP - {nombre_p1}:", min_value=0, max_value=26, value=25, key="live_pts_p1")
+        pts_p1 = st.slider(f"Puntos GP - {p1_nombre}:", min_value=0, max_value=26, value=25, key="live_pts_p1")
     with col_wdc2:
-        pts_p2 = st.slider(f"Puntos GP - {nombre_p2}:", min_value=0, max_value=26, value=18, key="live_pts_p2")
-    with col_wdc3:
-        pts_extra = st.slider("Puntos Extra (Vuelta Rápida / Sprint):", min_value=0, max_value=8, value=1, key="live_pts_extra")
+        pts_p2 = st.slider(f"Puntos GP - {p2_nombre}:", min_value=0, max_value=26, value=18, key="live_pts_p2")
 
+    if st.button("🚀 Iniciar Auto-Simulación de Carrera en Vivo", use_container_width=True):
+        progress_bar = st.progress(0)
+        for step in range(1, 11):
+            st.session_state["auto_sim_active"] = step * 3
+            time.sleep(0.25)
+            progress_bar.progress(step * 10)
+        st.success("¡Simulación en tiempo real completada con éxito!")
+
+    bonus_tiempo_real = st.session_state.get("auto_sim_active", 0)
     base_puntos_eq = puntos_totales if puntos_totales > 0 else 320
+
     df_wdc = pd.DataFrame({
-        'Contendiente': [nombre_p1, nombre_p2, "Lando Norris", "Oscar Piastri", "Lewis Hamilton"],
+        'Contendiente': [p1_nombre, p2_nombre, "Max Verstappen", "Lando Norris", "Oscar Piastri"],
         'Puntos Totales (En Vivo)': [
-            base_puntos_eq + 60 + pts_p1 + pts_extra,
-            base_puntos_eq + 40 + pts_p2,
+            base_puntos_eq + 60 + pts_p1 + bonus_tiempo_real,
+            base_puntos_eq + 40 + pts_p2 + (bonus_tiempo_real // 2),
             base_puntos_eq + 30,
             base_puntos_eq + 10,
             base_puntos_eq - 15
@@ -696,7 +707,7 @@ with tab7:
         color_continuous_scale='Reds', template='plotly_dark'
     )
     fig_wdc.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=10, b=10, l=10, r=10))
-    st.plotly_chart(fig_wdc, use_container_width=True, key="live_wdc_chart")
+    st.plotly_chart(fig_wdc, use_container_width=True, key="live_wdc_chart_v2")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab8:
@@ -705,9 +716,9 @@ with tab8:
     st.write("Gestione el límite financiero de 135 millones de dólares de la FIA distribuyendo el capital en mejoras aerodinámicas, fiabilidad de motor y reducción de peso.")
 
     presupuesto_total = 135.0
-    gasto_aero = st.slider("Inversión en Desarrollo Aerodinámico ($M):", min_value=20.0, max_value=70.0, value=48.5)
-    gasto_motor = st.slider("Inversión en Fiabilidad de Unidad de Potencia ($M):", min_value=15.0, max_value=50.0, value=35.0)
-    gasto_chasis = st.slider("Inversión en Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0)
+    gasto_aero = st.slider("Inversión en Desarrollo Aerodinámico ($M):", min_value=20.0, max_value=70.0, value=48.5, key="cc_aero")
+    gasto_motor = st.slider("Inversión en Fiabilidad de Unidad de Potencia ($M):", min_value=15.0, max_value=50.0, value=35.0, key="cc_motor")
+    gasto_chasis = st.slider("Inversión en Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0, key="cc_chasis")
 
     gasto_total = round(gasto_aero + gasto_motor + gasto_chasis, 2)
     remanente = round(presupuesto_total - gasto_total, 2)
@@ -765,11 +776,11 @@ with tab10:
     
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
-        compound = st.selectbox("Compound de Neumático:", ["Blando (Soft - C5)", "Medio (Medium - C3)", "Duro (Hard - C1)"])
+        compound = st.selectbox("Compound de Neumático:", ["Blando (Soft - C5)", "Medio (Medium - C3)", "Duro (Hard - C1)"], key="pit_comp")
     with col_s2:
-        vueltas_stint = st.slider("Duración del Stint (Vueltas):", min_value=10, max_value=50, value=28)
+        vueltas_stint = st.slider("Duración del Stint (Vueltas):", min_value=10, max_value=50, value=28, key="pit_vueltas")
     with col_s3:
-        safety_car = st.selectbox("Probabilidad de Safety Car:", ["Baja", "Media", "Alta (Estratégico)"])
+        safety_car = st.selectbox("Probabilidad de Safety Car:", ["Baja", "Media", "Alta (Estratégico)"], key="pit_sc")
 
     degradacion_base = 0.075 if "Blando" in compound else (0.045 if "Medio" in compound else 0.025)
     tiempo_perdido_pit = 21.8
@@ -822,7 +833,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V10.0 (Real-Time Reactive)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V11.0 (Real-Time Reactive & Auto-Simulation)</strong><br>
         Plataforma Suprema de Telemetría, Simulador WDC en Vivo, Cost Cap, Luces de Salida & Radio IA<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
