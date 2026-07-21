@@ -367,28 +367,39 @@ with tab1:
     efectividad = datos_equipo["efectividad"]
     promedio_puntos = datos_equipo["promedio"]
 
+    # Panel de métricas clave (KPIs estilizados con altura uniforme)
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         logo_html_str = render_logo_html(logo_activo, width=48, fallback_emoji="🏎️")
         st.markdown(f"""
-            <div class='telemetry-card' style='display:flex; align-items:center; gap:16px; border-left: 5px solid #FF1801; padding: 22px;'>
+            <div class='telemetry-card' style='display:flex; align-items:center; gap:16px; border-left: 5px solid #FF1801; padding: 22px; height: 100%;'>
                 {logo_html_str}
                 <div>
-                    <h3 style='margin:0; font-size:1.05rem; font-weight:800;'>{nombre_activo}</h3>
+                    <h3 style='margin:0; font-size:1.05rem; font-weight:800; color: #FFFFFF;'>{nombre_activo}</h3>
                     <small style='color:#94A3B8; font-weight:600;'>{pais_activo} (Temporada 2024)</small>
                 </div>
             </div>
         """, unsafe_allow_html=True)
     with k2:
-        st.markdown(f"<div class='telemetry-card' style='padding: 22px;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>EFECTIVIDAD PODIOS</small><h2 style='margin:6px 0 0 0; color:#10B981 !important; font-weight:900; font-size:1.9rem;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>EFECTIVIDAD PODIOS</small><h2 style='margin:6px 0 0 0; color:#10B981 !important; font-weight:900; font-size:1.8rem;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
     with k3:
-        st.markdown(f"<div class='telemetry-card' style='padding: 22px;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PROMEDIO PUNTOS / GP</small><h2 style='margin:6px 0 0 0; color:#F59E0B !important; font-weight:900; font-size:1.9rem;'>{promedio_puntos}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PROMEDIO PUNTOS / GP</small><h2 style='margin:6px 0 0 0; color:#F59E0B !important; font-weight:900; font-size:1.8rem;'>{promedio_puntos}</h2></div>", unsafe_allow_html=True)
     with k4:
-        st.markdown(f"<div class='telemetry-card' style='padding: 22px;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.9rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.8rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📊 Clasificación y Gráfica Dinámica de Puntos 2024</div>", unsafe_allow_html=True)
     st.info("Modifica los valores numéricos de los puntos en la tabla interactiva y la gráfica se actualizará al instante en tiempo real.")
+
+    # Inicialización de respaldo para el estado del editor de puntos
+    if "df_puntos_state" not in st.session_state:
+        st.session_state["df_puntos_state"] = pd.DataFrame([
+            {"Piloto": "Max Verstappen", "Puntos": 429},
+            {"Piloto": "Lando Norris", "Puntos": 349},
+            {"Piloto": "Charles Leclerc", "Puntos": 341},
+            {"Piloto": "Oscar Piastri", "Puntos": 292},
+            {"Piloto": "Carlos Sainz", "Puntos": 290}
+        ])
 
     col_tabla, col_grafica = st.columns([1, 1.2])
     with col_tabla:
@@ -456,10 +467,10 @@ with tab1:
         lat, lon = obtener_coordenadas(ciudad_activa, pais_activo)
         if lat and lon:
             df_mapa = pd.DataFrame({'lat': [lat], 'lon': [lon]})
-            st.map(df_mapa, zoom=10, use_container_width=True)
+            st.map(df_mapa, zoom=10)
         else:
             df_mapa = pd.DataFrame({'lat': [44.5385], 'lon': [10.8643]})
-            st.map(df_mapa, zoom=10, use_container_width=True)
+            st.map(df_mapa, zoom=10)
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
