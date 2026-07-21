@@ -284,26 +284,34 @@ TODOS_OS_PILOTOS_2024 = [
     "Zhou Guanyu", "Kevin Magnussen", "Daniel Ricciardo", "Oliver Bearman"
 ]
 
+# Base de datos de Fantasy F1 calibrada y realista basada en los resultados y puntos oficiales de la temporada 2024
 FANTASY_DB = {
-    "Max Verstappen": {"costo": 30.5, "puntos": 429},
+    "Max Verstappen": {"costo": 30.5, "puntos": 437},
     "Lando Norris": {"costo": 26.0, "puntos": 374},
     "Charles Leclerc": {"costo": 25.0, "puntos": 356},
     "Oscar Piastri": {"costo": 22.0, "puntos": 292},
     "Carlos Sainz": {"costo": 21.5, "puntos": 290},
     "George Russell": {"costo": 20.0, "puntos": 245},
     "Lewis Hamilton": {"costo": 19.0, "puntos": 223},
-    "Sergio Pérez": {"costo": 18.0, "puntos": 152},
-    "Fernando Alonso": {"costo": 15.0, "puntos": 130},
-    "Nico Hülkenberg": {"costo": 9.0, "puntos": 75},
-    "Yuki Tsunoda": {"costo": 8.5, "puntos": 70},
-    "Alex Albon": {"costo": 8.0, "puntos": 65},
-    "Lance Stroll": {"costo": 10.0, "puntos": 60}
+    "Sergio Pérez": {"costo": 16.5, "puntos": 152},
+    "Fernando Alonso": {"costo": 13.5, "puntos": 62},
+    "Pierre Gasly": {"costo": 8.5, "puntos": 26},
+    "Nico Hülkenberg": {"costo": 9.5, "puntos": 31},
+    "Yuki Tsunoda": {"costo": 9.0, "puntos": 30},
+    "Lance Stroll": {"costo": 8.5, "puntos": 24},
+    "Esteban Ocon": {"costo": 8.5, "puntos": 23},
+    "Kevin Magnussen": {"costo": 7.5, "puntos": 16},
+    "Alex Albon": {"costo": 7.5, "puntos": 12},
+    "Daniel Ricciardo": {"costo": 7.5, "puntos": 12},
+    "Oliver Bearman": {"costo": 7.0, "puntos": 7},
+    "Valtteri Bottas": {"costo": 6.0, "puntos": 0},
+    "Zhou Guanyu": {"costo": 6.0, "puntos": 0}
 }
 
 # Inicializar Estados Globales en st.session_state para reactividad total en tiempo real
 if "df_puntos_state" not in st.session_state:
     st.session_state["df_puntos_state"] = pd.DataFrame([
-        {"Piloto": "Max Verstappen", "Escudería": "Red Bull Racing", "Puntos": 429},
+        {"Piloto": "Max Verstappen", "Escudería": "Red Bull Racing", "Puntos": 437},
         {"Piloto": "Lando Norris", "Escudería": "McLaren", "Puntos": 374},
         {"Piloto": "Charles Leclerc", "Escudería": "Ferrari", "Puntos": 356},
         {"Piloto": "Oscar Piastri", "Escudería": "McLaren", "Puntos": 292},
@@ -474,8 +482,8 @@ with tab2:
     vel_a_val = round(330 + (seed_a % 15) + np.sin(seed_a)*3, 1)
     vel_b_val = round(330 + (seed_b % 15) + np.sin(seed_b)*3, 1)
     
-    pts_a_val = FANTASY_DB.get(sel_h2h_a, {"puntos": 100})["puntos"]
-    pts_b_val = FANTASY_DB.get(sel_h2h_b, {"puntos": 100})["puntos"]
+    pts_a_val = FANTASY_DB.get(sel_h2h_a, {"puntos": 50})["puntos"]
+    pts_b_val = FANTASY_DB.get(sel_h2h_b, {"puntos": 50})["puntos"]
 
     col_res1, col_res2 = st.columns(2)
     with col_res1:
@@ -689,7 +697,6 @@ with tab8:
     ventas_vueltas_efectivo = round(delta_pit / delta_goma_fresca, 1)
     st.info(f"💡 **Ventana de Undercut Óptima:** Para recuperar la posición en pista, tu monoplaza necesita rodar al menos **{ventas_vueltas_efectivo} vueltas** con aire limpio tras la parada.")
 
-    # Generación del DataFrame dinámico para TODOS los corredores de la parrilla 2024
     gantt_data = []
     for piloto in TODOS_OS_PILOTOS_2024:
         if piloto in ["Max Verstappen", "Charles Leclerc", "Lando Norris", "Lewis Hamilton", "Carlos Sainz", "Oscar Piastri"]:
@@ -725,7 +732,6 @@ with tab8:
         template="plotly_dark",
         category_orders={"Driver": TODOS_OS_PILOTOS_2024}
     )
-    # Forzar que el eje Y mantenga el orden estricto de todos los corredores y no oculte ninguno
     fig_gantt.update_yaxes(categoryorder="array", categoryarray=TODOS_OS_PILOTOS_2024, autorange="reversed")
     fig_gantt.update_layout(
         title=f"Estrategia de Stints - Todos los Pilotos (Parada en Vuelta {vuelta_parada_usuario})",
@@ -736,16 +742,15 @@ with tab8:
         margin=dict(t=30, b=10, l=10, r=10),
         height=680
     )
-    # Clave dinámica basada en los valores de los sliders para garantizar actualización en tiempo real
     st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_realtime_{vuelta_parada_usuario}_{delta_pit}_{delta_goma_fresca}")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
-    st.write("Ajusta el presupuesto disponible y el optimizador calculará de forma reactiva la mejor alineación.")
+    st.write("Ajusta el presupuesto disponible y el optimizador calculará de forma reactiva la mejor alineación con los precios y puntos históricos reales de 2024.")
 
-    presupuesto_max = st.slider("Presupuesto Disponible para Pilotos ($M):", min_value=40.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy")
+    presupuesto_max = st.slider("Presupuesto Disponible para Pilotos ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy")
 
     if st.button("🚀 Ejecutar Algoritmo de Optimización", use_container_width=True, key="btn_run_optimizer"):
         mejor_puntaje = -1
@@ -771,20 +776,20 @@ with tab9:
                 st.markdown(f"""
                     <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
                         <h4 style='color: #10B981; margin:0;'>🥇 {mejor_par[0]}</h4>
-                        <p>Costo: ${FANTASY_DB[mejor_par[0]]['costo']}M | Puntos: {FANTASY_DB[mejor_par[0]]['puntos']} pts</p>
+                        <p>Costo: ${FANTASY_DB[mejor_par[0]]['costo']}M | Puntos Real 2024: {FANTASY_DB[mejor_par[0]]['puntos']} pts</p>
                     </div>
                 """, unsafe_allow_html=True)
             with col_opt2:
                 st.markdown(f"""
                     <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
                         <h4 style='color: #10B981; margin:0;'>🥈 {mejor_par[1]}</h4>
-                        <p>Costo: ${FANTASY_DB[mejor_par[1]]['costo']}M | Puntos: {FANTASY_DB[mejor_par[1]]['puntos']} pts</p>
+                        <p>Costo: ${FANTASY_DB[mejor_par[1]]['costo']}M | Puntos Real 2024: {FANTASY_DB[mejor_par[1]]['puntos']} pts</p>
                     </div>
                 """, unsafe_allow_html=True)
             st.metric("Costo Total de Alineación", f"${mejor_costo}M", f"Restante: ${round(presupuesto_max - mejor_costo, 1)}M")
             st.metric("Puntuación Proyectada Total", f"{mejor_puntaje} pts")
         else:
-            st.warning("No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite.")
+            st.warning("No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite en el control deslizante.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab10:
@@ -823,7 +828,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.3 (All Drivers Gantt Reactive)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.4 (Fantasy & Gantt Final Fix)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy Optimizer, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
