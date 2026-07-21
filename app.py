@@ -552,68 +552,43 @@ with tab2:
     st.markdown("</div>", unsafe_allow_html=True)
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🔴 Registro Completo y Mapa Geolocalizado de los 24 Grandes Premios de 2024</div>", unsafe_allow_html=True)
-    st.write("Selecciona cualquier Gran Premio de la temporada 2024 para consultar sus detalles y visualizar la ubicación exacta del circuito en el mapa interactivo.")
+    st.markdown("<div class='section-header'>🗺️ Calendario y Geolocalización de los Grandes Premios (2024)</div>", unsafe_allow_html=True)
+    st.write("Selecciona cualquier Gran Premio de la temporada para consultar los detalles clave del circuito y su ubicación exacta en el mapa.")
 
+    # Selector limpio y directo
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    
-    col_sel1, col_sel2 = st.columns([2, 1])
-    with col_sel1:
-        gp_seleccionado_mapa = st.selectbox("Selecciona un Gran Premio para ver su ubicación en el Mapa:", nombres_gps, key="selector_gp_mapa_envivo")
-    with col_sel2:
-        busqueda_gp = st.text_input("🔍 Buscar circuito o GP:", "", key="search_gp_input", placeholder="Ej. Mónaco, Monza...")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple")
 
-    datos_gp_activo = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado_mapa)
+    # Extraer datos del GP activo
+    gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
 
-    col_info_gp, col_mapa_gp = st.columns([1, 1.2])
-    with col_info_gp:
+    # Distribución en dos columnas claras
+    col_det, col_map = st.columns([1, 1])
+
+    with col_det:
         st.markdown(f"""
-            <div style='background: rgba(8, 12, 22, 0.8); padding: 22px; border-radius: 14px; border: 1px solid rgba(255,24,1,0.4); height: 100%;'>
-                <h3 style='color: #FF1801; margin-top:0;'>🏁 {datos_gp_activo['gp']}</h3>
-                <p style='margin: 8px 0;'><strong>Circuito Oficial:</strong> {datos_gp_activo['circuito']}</p>
-                <p style='margin: 8px 0;'><strong>Ubicación / Ciudad:</strong> {datos_gp_activo['ciudad']}</p>
-                <p style='margin: 8px 0;'><strong>Fecha del Evento:</strong> {datos_gp_activo['fecha']}</p>
-                <p style='margin: 8px 0;'><strong>Ganador del GP:</strong> <span style='color: #F59E0B; font-weight: 800;'>🏆 {datos_gp_activo['ganador']}</span></p>
-                <div style='background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; border-left: 4px solid #10B981; margin-top: 15px;'>
-                    <span style='color: #10B981; font-weight: 900;'>ESTADO:</span> Gran Premio Finalizado con Éxito
-                </div>
+            <div style='background: rgba(8, 12, 22, 0.7); padding: 22px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3);'>
+                <h3 style='color: #FF1801; margin-top: 0;'>🏁 {gp_info['gp']}</h3>
+                <p style='margin: 8px 0;'><b>Circuito:</b> {gp_info['circuito']}</p>
+                <p style='margin: 8px 0;'><b>Ubicación:</b> {gp_info['ciudad']}</p>
+                <p style='margin: 8px 0;'><b>Fecha:</b> {gp_info['fecha']}</p>
+                <p style='margin: 8px 0;'><b>Ganador:</b> <span style='color: #F59E0B; font-weight: bold;'>🏆 {gp_info['ganador']}</span></p>
             </div>
         """, unsafe_allow_html=True)
 
-    with col_mapa_gp:
-        st.markdown("<p style='font-weight: 700; margin-bottom: 8px;'>🗺️ Ubicación Geográfica en Pista:</p>", unsafe_allow_html=True)
-        df_mapa_circuito = pd.DataFrame({'lat': [datos_gp_activo['lat']], 'lon': [datos_gp_activo['lon']]})
-        st.map(df_mapa_circuito, zoom=11)
+    with col_map:
+        st.markdown("<p style='font-weight: 600; margin-bottom: 6px;'>📍 Ubicación en el Mapa:</p>", unsafe_allow_html=True)
+        df_mapa = pd.DataFrame({'lat': [gp_info['lat']], 'lon': [gp_info['lon']]})
+        st.map(df_mapa, zoom=10, height=200)
 
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #FFFFFF; font-weight: 800; margin-bottom: 20px;'>📋 Resumen de Todas las Carreras 2024</h4>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 15px;'>📋 Resumen de Todas las Carreras 2024</h4>", unsafe_allow_html=True)
 
-    # Filtrar carreras dinámicamente si se usa el buscador
-    carreras_filtradas = [
-        c for c in CARRERAS_2024_DATOS 
-        if busqueda_gp.lower() in c['gp'].lower() or busqueda_gp.lower() in c['circuito'].lower() or busqueda_gp.lower() in c['ciudad'].lower()
-    ] if busqueda_gp else CARRERAS_2024_DATOS
+    # Tabla nativa limpia para evitar saturación visual y confusión
+    df_carreras = pd.DataFrame(CARRERAS_2024_DATOS)[["gp", "circuito", "fecha", "ganador"]]
+    df_carreras.columns = ["Gran Premio", "Circuito Oficial", "Fecha", "Ganador"]
+    st.dataframe(df_carreras, use_container_width=True, hide_index=True)
 
-    for item in carreras_filtradas:
-        st.markdown(f"""
-            <div style='background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 12px 18px; margin-bottom: 10px;'>
-                <div style='display: flex; justify-content: space-between; align-items: center;'>
-                    <div style='width: 40%;'>
-                        <span style='font-size: 1.05rem; font-weight: 800; color: #FFFFFF;'>{item['gp']}</span><br>
-                        <span style='font-size: 0.85rem; color: #94A3B8;'>📍 {item['circuito']} ({item['ciudad']})</span>
-                    </div>
-                    <div style='width: 25%; text-align: center;'>
-                        <span style='background: rgba(16,185,129,0.1); color: #10B981; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;'>🏁 FINALIZADO</span><br>
-                        <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 700; margin-top: 4px; display:block;'>📅 {item['fecha']}</span>
-                    </div>
-                    <div style='width: 35%; text-align: right;'>
-                        <span style='font-size: 0.75rem; color: #94A3B8;'>GANADOR DE LA CARRERA</span><br>
-                        <span style='font-size: 1rem; font-weight: 800; color: #F59E0B;'>🏆 {item['ganador']}</span>
-                    </div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
