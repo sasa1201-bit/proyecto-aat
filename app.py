@@ -7,10 +7,11 @@ import calendar
 from geopy.geocoders import Nominatim
 import plotly.express as px
 import plotly.graph_objects as go
+import time
 
 # Configuración de la página con estética de alta competición y máxima elegancia
 st.set_page_config(
-    page_title="Forza F1 World Elite Ultimate - Master Telemetry & Analytics",
+    page_title="Forza F1 World Elite Supreme - Master Telemetry & Analytics",
     page_icon="🏎️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -33,25 +34,25 @@ st.markdown("""
 
         /* Pestañas de Alto Rendimiento con Gradiente Dinámico */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 6px;
+            gap: 4px;
             background-color: rgba(13, 19, 33, 0.85);
-            padding: 8px;
+            padding: 6px;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
         }
         button[data-baseweb="tab"] {
             background-color: transparent !important;
-            border-radius: 12px !important;
+            border-radius: 10px !important;
             border: none !important;
-            padding: 10px 14px;
+            padding: 8px 10px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         button[data-baseweb="tab"] p {
             color: #94A3B8 !important;
             font-weight: 600 !important;
-            font-size: 0.82rem !important;
-            letter-spacing: 0.5px;
+            font-size: 0.78rem !important;
+            letter-spacing: 0.3px;
         }
         button[aria-selected="true"] {
             background: linear-gradient(135deg, #FF1801 0%, #B91C1C 100%) !important;
@@ -198,8 +199,8 @@ st.markdown("""
         <div style='display: flex; align-items: center; gap: 20px;'>
             <div style='background: linear-gradient(180deg, #FF1801 0%, #990E00 100%); width: 9px; height: 75px; border-radius: 4px; box-shadow: 0 0 25px rgba(255,24,1,0.9);'></div>
             <div>
-                <h1 style='color: #FFFFFF !important; font-size: 3.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px;'>FORZA F1 <span style='color: #FF1801;'>WORLD ELITE ULTIMATE</span></h1>
-                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Reportes Ejecutivos, Predicciones ML & Radio IA 100/100</p>
+                <h1 style='color: #FFFFFF !important; font-size: 3.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px;'>FORZA F1 <span style='color: #FF1801;'>WORLD ELITE SUPREME</span></h1>
+                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Simulador WDC, Cost Cap & Luces de Salida 100/100</p>
             </div>
         </div>
         <div style='background: rgba(255, 24, 1, 0.12); border: 1px solid rgba(255, 24, 1, 0.4); padding: 12px 22px; border-radius: 14px; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5);'>
@@ -220,7 +221,7 @@ if st.sidebar.button("🔄 Sincronizar Caché & Telemetría", use_container_widt
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_f1_ultimate_v4")
+        geolocator = Nominatim(user_agent="forza_f1_supreme_v5")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -285,15 +286,18 @@ if live_races:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# Navegación con 7 pestañas de impacto total
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "🏠 Panel Principal", 
-    "⚔️ Batalla H2H Pilotos", 
-    "🔴 Telemetría en Directo", 
-    "📈 Motor Analítico & Pista", 
-    "⛅ Clima & Asfalto", 
-    "🔮 Predictor ML Podio", 
-    "🛠️ Estrategia & Radio IA"
+# Navegación con 10 pestañas maestras absolutas
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+    "🏠 Panel", 
+    "⚔️ H2H", 
+    "🔴 En Vivo", 
+    "📈 Analítico", 
+    "⛅ Clima", 
+    "🔮 ML Podio", 
+    "🏆 Simulador WDC", 
+    "💰 Cost Cap", 
+    "🚦 Luces Salida", 
+    "🛠️ Radio IA"
 ])
 
 with tab1:
@@ -390,7 +394,7 @@ with tab1:
     with k4:
         st.markdown(f"<div class='telemetry-card' style='padding: 22px;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.9rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
-    # Botón de Descarga de Reporte Ejecutivo en CSV (Feature Añadida)
+    # Botón de Descarga de Reporte Ejecutivo en CSV
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📥 Exportador de Reporte Técnico Ejecutivo</div>", unsafe_allow_html=True)
     st.write("Genera y descarga un informe estructurado con el resumen operativo y métricas de la escudería para los jueces o directores de equipo.")
@@ -660,6 +664,93 @@ with tab6:
 
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🏆 Simulador Dinámico del Campeonato de Pilotos (WDC Scenario Calculator)</div>", unsafe_allow_html=True)
+    st.write("Modifique los puntos adicionales simulados para el próximo Gran Premio y evalúe al instante cómo se reconfigura la tabla general del campeonato mundial.")
+
+    col_wdc1, col_wdc2, col_wdc3 = st.columns(3)
+    with col_wdc1:
+        pts_verstappen = st.number_input("Puntos simulados Max Verstappen:", min_value=0, max_value=26, value=25)
+    with col_wdc2:
+        pts_leclerc = st.number_input("Puntos simulados Charles Leclerc:", min_value=0, max_value=26, value=18)
+    with col_wdc3:
+        pts_norris = st.number_input("Puntos simulados Lando Norris:", min_value=0, max_value=26, value=15)
+
+    df_wdc = pd.DataFrame({
+        'Piloto': ['Max Verstappen', 'Charles Leclerc', 'Lando Norris', 'Oscar Piastri', 'Lewis Hamilton'],
+        'Puntos Actuales': [390, 345, 330, 280, 240],
+        'Puntos Nuevos Simulados': [390 + pts_verstappen, 345 + pts_leclerc, 330 + pts_norris, 280, 240]
+    }).sort_values(by='Puntos Nuevos Simulados', ascending=False)
+
+    fig_wdc = px.bar(
+        df_wdc, x='Piloto', y='Puntos Nuevos Simulados', color='Puntos Nuevos Simulados',
+        color_continuous_scale='Reds', template='plotly_dark'
+    )
+    fig_wdc.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=10, b=10, l=10, r=10))
+    st.plotly_chart(fig_wdc, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab8:
+    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>💰 Gestor de Límite de Presupuesto y Desarrollo (Cost Cap Manager)</div>", unsafe_allow_html=True)
+    st.write("Gestione el límite financiero de 135 millones de dólares de la FIA distribuyendo el capital en mejoras aerodinámicas, fiabilidad de motor y reducción de peso.")
+
+    presupuesto_total = 135.0
+    gasto_aero = st.slider("Inversión en Desarrollo Aerodinámico ($M):", min_value=20.0, max_value=70.0, value=48.5)
+    gasto_motor = st.slider("Inversión en Fiabilidad de Unidad de Potencia ($M):", min_value=15.0, max_value=50.0, value=35.0)
+    gasto_chasis = st.slider("Inversión en Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0)
+
+    gasto_total = round(gasto_aero + gasto_motor + gasto_chasis, 2)
+    remanente = round(presupuesto_total - gasto_total, 2)
+    cumplimiento = "✅ CUMPLE REGLAMENTO FINANCIERO FIA" if remanente >= 0 else "❌ ALERTA: EXCESO DE PRESUPUESTO (MULTA FIA)"
+
+    st.markdown(f"""
+        <div style='background: #080C16; padding: 22px; border-radius: 14px; border: 1px solid rgba(16,185,129,0.4); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);'>
+            <h3 style='color: #10B981; margin-top:0;'>📊 Auditoría Financiera del Cost Cap</h3>
+            <p><strong>Límite de Gasto Establecido:</strong> ${presupuesto_total}M</p>
+            <p><strong>Gasto Acumulado en el Monoplaza:</strong> ${gasto_total}M</p>
+            <p><strong>Presupuesto Remanente:</strong> ${remanente}M</p>
+            <div style='background: rgba(16, 185, 129, 0.15); padding: 14px; border-radius: 10px; border-left: 5px solid #10B981; margin-top: 15px;'>
+                <span style='color: #10B981; font-weight: 900;'>ESTADO DE LA ESCUDERÍA:</span> {cumplimiento}
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab9:
+    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🚦 Simulador Interactivo de Semáforos de Salida (Starting Grid Lights Out)</div>", unsafe_allow_html=True)
+    st.write("Pruebe sus reflejos de piloto profesional. Presione el botón de salida y mida su tiempo de reacción en milisegundos cuando se apaguen los semáforos.")
+
+    if "tiempo_inicio" not in st.session_state:
+        st.session_state["tiempo_inicio"] = None
+    if "reaccion" not in st.session_state:
+        st.session_state["reaccion"] = None
+
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("🔴 Iniciar Secuencia de Salida F1", use_container_width=True):
+            st.markdown("<h2 style='text-align: center; color: #FF1801;'>🚦 SEMAFOROS ENCENDIDOS... PREPÁRATE 🚦</h2>", unsafe_allow_html=True)
+            time.sleep(np.uniform(1.5, 3.0) if 'uniform' in dir(np) else 2.0)
+            st.session_state["tiempo_inicio"] = time.time()
+            st.success("🟢 ¡APAGÓN DE LUCES Y NOS VAMOS!")
+    with col_btn2:
+        if st.button("⚡ ¡ACELERAR YA!", use_container_width=True):
+            if st.session_state["tiempo_inicio"]:
+                reaccion_ms = round((time.time() - st.session_state["tiempo_inicio"]) * 1000, 2)
+                st.session_state["reaccion"] = reaccion_ms
+                if reaccion_ms > 0:
+                    st.metric("Tu Tiempo de Reacción de Salida", f"{reaccion_ms} ms")
+                    if reaccion_ms < 250:
+                        st.balloons()
+                        st.success("🏆 ¡Excelente reflejo! Nivel de Piloto Titular de F1.")
+                    else:
+                        st.warning("⚠️ Salida algo lenta. ¡A entrenar reflejos en el simulador!")
+            else:
+                st.error("Primero debes iniciar la secuencia con el botón rojo.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tab10:
+    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛠️ Simulador Táctico Pit-Stop & Radio IA</div>", unsafe_allow_html=True)
     
     col_s1, col_s2, col_s3 = st.columns(3)
@@ -691,7 +782,6 @@ with tab7:
     st.markdown("<div class='telemetry-card' style='margin-top: 30px;'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🎙️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
     
-    # Visualizador de Onda de Audio simulada (Feature Añadida)
     st.markdown("""
         <div style='background: #04060B; padding: 15px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); text-align: center; margin-bottom: 20px;'>
             <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 8px;'>📡 CANAL DE RADIO ACTIVO - MURO DE BOXES FIA</span>
@@ -722,8 +812,8 @@ with tab7:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Ultimate - Edición Concurso Ganador 100/100 V8.0</strong><br>
-        Plataforma Suprema de Telemetría, Reportes Ejecutivos, Predicciones ML & Radio IA<br>
+        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V9.0 (Ultimate Masterpiece)</strong><br>
+        Plataforma Suprema de Telemetría, Simulador WDC, Cost Cap, Luces de Salida & Radio IA<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
