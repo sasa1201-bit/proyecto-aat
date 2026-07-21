@@ -975,50 +975,72 @@ with tab8:
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
-    st.write("Ajusta el presupuesto disponible y el optimizador calculará de forma reactiva la mejor alineación con los precios y puntos históricos reales de 2024.")
+    st.write("Ajusta el presupuesto disponible y el optimizador calculará en tiempo real la mejor alineación de pilotos basada en los precios y puntos de 2024.")
 
+    # Control deslizante reactivo de presupuesto
     presupuesto_max = st.slider("Presupuesto Disponible para Pilotos ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy")
 
-    if st.button("🚀 Ejecutar Algoritmo de Optimización", use_container_width=True, key="btn_run_optimizer"):
-        mejor_puntaje = -1
-        mejor_par = None
-        mejor_costo = 0
+    # Algoritmo de optimización ejecutado de forma reactiva
+    mejor_puntaje = -1
+    mejor_par = None
+    mejor_costo = 0
 
-        pilotos_keys = list(FANTASY_DB.keys())
-        for i in range(len(pilotos_keys)):
-            for j in range(i + 1, len(pilotos_keys)):
-                p1 = pilotos_keys[i]
-                p2 = pilotos_keys[j]
-                costo_par = FANTASY_DB[p1]["costo"] + FANTASY_DB[p2]["costo"]
-                puntos_par = FANTASY_DB[p1]["puntos"] + FANTASY_DB[p2]["puntos"]
-                if costo_par <= presupuesto_max and puntos_par > mejor_puntaje:
-                    mejor_puntaje = puntos_par
-                    mejor_par = (p1, p2)
-                    mejor_costo = costo_par
+    pilotos_keys = list(FANTASY_DB.keys())
+    for i in range(len(pilotos_keys)):
+        for j in range(i + 1, len(pilotos_keys)):
+            p1 = pilotos_keys[i]
+            p2 = pilotos_keys[j]
+            costo_par = FANTASY_DB[p1]["costo"] + FANTASY_DB[p2]["costo"]
+            puntos_par = FANTASY_DB[p1]["puntos"] + FANTASY_DB[p2]["puntos"]
+            if costo_par <= presupuesto_max and puntos_par > mejor_puntaje:
+                mejor_puntaje = puntos_par
+                mejor_par = (p1, p2)
+                mejor_costo = costo_par
 
-        if mejor_par:
-            st.success(f"🏆 **¡Alineación Óptima Encontrada!**")
-            col_opt1, col_opt2 = st.columns(2)
-            with col_opt1:
+    st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 20px 0;'>", unsafe_allow_html=True)
+
+    if mejor_par:
+        st.success("🏆 **¡Alineación Óptima Encontrada!**")
+        
+        # Panel de métricas clave estilo F1
+        m_opt1, m_opt2, m_opt3 = st.columns(3)
+        with m_opt1:
+            st.metric(label="Costo Total Alineación", value=f"${mejor_costo}M", delta=f"Límite: ${presupuesto_max}M")
+        with m_opt2:
+            st.metric(label="Presupuesto Restante", value=f"${round(presupuesto_max - mejor_costo, 1)}M", delta="Ahorro en caja")
+        with m_opt3:
+            st.metric(label="Puntuación Proyectada", value=f"{mejor_puntaje} pts", delta="Rendimiento 2024")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Tarjetas visuales para los dos pilotos seleccionados
+        col_opt1, col_opt2 = st.columns(2)
+        
+        for idx, p_sel in enumerate(mejor_par):
+            p_data = FANTASY_DB[p_sel]
+            with (col_opt1 if idx == 0 else col_opt2):
                 st.markdown(f"""
-                    <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
-                        <h4 style='color: #10B981; margin:0;'>🥇 {mejor_par[0]}</h4>
-                        <p>Costo: ${FANTASY_DB[mejor_par[0]]['costo']}M | Puntos Real 2024: {FANTASY_DB[mejor_par[0]]['puntos']} pts</p>
+                    <div style='background: rgba(16, 185, 129, 0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.25);'>
+                        <div style='font-size: 0.8rem; color: #10B981; font-weight: bold; text-transform: uppercase;'>Piloto Seleccionado #{idx+1}</div>
+                        <h3 style='color: #F8FAFC; margin: 5px 0 10px 0;'>🏎️ {p_sel}</h3>
+                        <div style='display: flex; justify-content: space-between; font-size: 0.9rem; color: #94A3B8;'>
+                            <span>Costo: <b style='color: #F8FAFC;'>${p_data['costo']}M</b></span>
+                            <span>Puntos 2024: <b style='color: #F8FAFC;'>{p_data['puntos']} pts</b></span>
+                        </div>
                     </div>
                 """, unsafe_allow_html=True)
-            with col_opt2:
-                st.markdown(f"""
-                    <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
-                        <h4 style='color: #10B981; margin:0;'>🥈 {mejor_par[1]}</h4>
-                        <p>Costo: ${FANTASY_DB[mejor_par[1]]['costo']}M | Puntos Real 2024: {FANTASY_DB[mejor_par[1]]['puntos']} pts</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            st.metric("Costo Total de Alineación", f"${mejor_costo}M", f"Restante: ${round(presupuesto_max - mejor_costo, 1)}M")
-            st.metric("Puntuación Proyectada Total", f"{mejor_puntaje} pts")
-        else:
-            st.warning("No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite en el control deslizante.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    else:
+        st.warning("⚠️ No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite en el control deslizante superior.")
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Expansor útil para consultar los datos fuente de la aplicación
+    with st.expander("📊 Consultar Base de Datos de Precios y Puntos (FANTASY_DB)"):
+        df_fantasy = pd.DataFrame.from_dict(FANTASY_DB, orient='index').reset_index()
+        df_fantasy.columns = ["Piloto Oficial", "Costo ($M)", "Puntos Históricos 2024"]
+        st.dataframe(df_fantasy.sort_values(by="Puntos Históricos 2024", ascending=False), use_container_width=True, hide_index=True)
+
+    st.markdown("</div>", unsafe_allow_html=True) 
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛠️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
