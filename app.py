@@ -129,7 +129,7 @@ st.markdown("""
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px rgba(255,24,1,0.5); }
         }
         
-        .stTextInput input, .stSelectbox div[data-baseweb="select"], .stNumberInput input {
+        .stSelectbox div[data-baseweb="select"] {
             background-color: #080C16 !important;
             color: #FFFFFF !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -146,42 +146,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Diccionario de respaldos garantizados para logos de escuderías oficiales F1
-TEAM_LOGO_FALLBACKS = {
-    1: "https://media.api-sports.io/formula-1/teams/1.png",
-    2: "https://media.api-sports.io/formula-1/teams/2.png",
-    3: "https://media.api-sports.io/formula-1/teams/3.png",
-    4: "https://media.api-sports.io/formula-1/teams/4.png",
-    5: "https://media.api-sports.io/formula-1/teams/5.png",
-    6: "https://media.api-sports.io/formula-1/teams/6.png",
-    13: "https://media.api-sports.io/formula-1/teams/13.png",
-    14: "https://media.api-sports.io/formula-1/teams/14.png",
-    15: "https://media.api-sports.io/formula-1/teams/15.png",
-    18: "https://media.api-sports.io/formula-1/teams/18.png"
+# Base de datos completa y garantizada de escuderías oficiales 2024
+TEAMS_DICT_2024 = {
+    "Scuderia Ferrari": {"id": 1, "country": "Italy", "logo": "https://media.api-sports.io/formula-1/teams/1.png", "base": "Maranello", "estadio": "Pista de Fiorano", "puntos": 652, "podios": 19, "efectividad": 79.2, "promedio": 27.2},
+    "McLaren": {"id": 2, "country": "United Kingdom", "logo": "https://media.api-sports.io/formula-1/teams/2.png", "base": "Woking", "estadio": "McLaren Technology Centre", "puntos": 666, "podios": 18, "efectividad": 75.0, "promedio": 27.8},
+    "Red Bull Racing": {"id": 3, "country": "Austria", "logo": "https://media.api-sports.io/formula-1/teams/3.png", "base": "Milton Keynes", "estadio": "Red Bull Technology Campus", "puntos": 589, "podios": 14, "efectividad": 58.3, "promedio": 24.5},
+    "Mercedes": {"id": 4, "country": "Germany", "logo": "https://media.api-sports.io/formula-1/teams/4.png", "base": "Brackley", "estadio": "Mercedes-AMG Powertrains", "puntos": 468, "podios": 9, "efectividad": 37.5, "promedio": 19.5},
+    "Aston Martin": {"id": 5, "country": "United Kingdom", "logo": "https://media.api-sports.io/formula-1/teams/5.png", "base": "Silverstone", "estadio": "Aston Martin Technology Campus", "puntos": 86, "podios": 1, "efectividad": 4.2, "promedio": 3.6},
+    "Alpine": {"id": 6, "country": "France", "logo": "https://media.api-sports.io/formula-1/teams/6.png", "base": "Enstone", "estadio": "Enstone Technical Centre", "puntos": 49, "podios": 1, "efectividad": 4.2, "promedio": 2.0},
+    "Haas F1 Team": {"id": 13, "country": "United States", "logo": "https://media.api-sports.io/formula-1/teams/13.png", "base": "Kannapolis", "estadio": "Haas F1 Factory", "puntos": 58, "podios": 0, "efectividad": 25.0, "promedio": 2.4},
+    "RB F1 Team": {"id": 14, "country": "Italy", "logo": "https://media.api-sports.io/formula-1/teams/14.png", "base": "Faenza", "estadio": "Faenza Factory", "puntos": 46, "podios": 0, "efectividad": 20.0, "promedio": 1.9},
+    "Williams": {"id": 15, "country": "United Kingdom", "logo": "https://media.api-sports.io/formula-1/teams/15.png", "base": "Grove", "estadio": "Williams Conference Centre", "puntos": 17, "podios": 0, "efectividad": 10.0, "promedio": 0.7},
+    "Kick Sauber": {"id": 18, "country": "Switzerland", "logo": "https://media.api-sports.io/formula-1/teams/18.png", "base": "Hinwil", "estadio": "Sauber Motorsport Factory", "puntos": 0, "podios": 0, "efectividad": 0.0, "promedio": 0.0}
 }
 
-# Estadísticas oficiales de respaldo 2024 para cada escudería
-STATS_2024_FALLBACK = {
-    "Scuderia Ferrari": {"puntos": 652, "podios": 19, "carreras": 24, "efectividad": 79.2, "promedio": 27.2, "base": "Maranello", "estadio": "Pista de Fiorano", "pais": "Italy"},
-    "McLaren": {"puntos": 666, "podios": 18, "carreras": 24, "efectividad": 75.0, "promedio": 27.8, "base": "Woking", "estadio": "McLaren Technology Centre", "pais": "United Kingdom"},
-    "Red Bull Racing": {"puntos": 589, "podios": 14, "carreras": 24, "efectividad": 58.3, "promedio": 24.5, "base": "Milton Keynes", "estadio": "Red Bull Technology Campus", "pais": "Austria"},
-    "Mercedes": {"puntos": 468, "podios": 9, "carreras": 24, "efectividad": 37.5, "promedio": 19.5, "base": "Brackley", "estadio": "Mercedes-AMG High Performance Powertrains", "pais": "Germany"},
-    "Aston Martin": {"puntos": 86, "podios": 1, "carreras": 24, "efectividad": 4.2, "promedio": 3.6, "base": "Silverstone", "estadio": "Aston Martin Aramco Technology Campus", "pais": "United Kingdom"},
-    "Alpine": {"puntos": 49, "podios": 1, "carreras": 24, "efectividad": 4.2, "promedio": 2.0, "base": "Enstone", "estadio": "Enstone Technical Centre", "pais": "France"},
-    "Haas": {"puntos": 58, "podios": 0, "carreras": 24, "efectividad": 25.0, "promedio": 2.4, "base": "Kannapolis", "estadio": "Haas F1 Factory", "pais": "United States"},
-    "RB": {"puntos": 46, "podios": 0, "carreras": 24, "efectividad": 20.0, "promedio": 1.9, "base": "Faenza", "estadio": "Faenza Factory", "pais": "Italy"},
-    "Williams": {"puntos": 17, "podios": 0, "carreras": 24, "efectividad": 10.0, "promedio": 0.7, "base": "Grove", "estadio": "Williams Conference Centre", "pais": "United Kingdom"}
-}
-
-def obtener_url_logo_segura(team_id, url_api):
-    if url_api and isinstance(url_api, str) and url_api.startswith("http"):
-        return url_api
-    return TEAM_LOGO_FALLBACKS.get(team_id, "https://media.api-sports.io/formula-1/teams/1.png")
-
-def render_logo_html(url, width=38, fallback_emoji="🏎️", team_id=1):
-    final_url = obtener_url_logo_segura(team_id, url)
-    if final_url:
-        return f"<img src='{final_url}' width='{width}' style='border-radius: 8px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7)); background: rgba(255,255,255,0.03); padding: 4px; border: 1px solid rgba(255,255,255,0.1);' onerror=\"this.style.display='none'; this.nextElementSibling.style.display='inline';\"/><span style='display:none; font-size: {width}px;'>{fallback_emoji}</span>"
+def render_logo_html(url, width=38, fallback_emoji="🏎️"):
+    if url and isinstance(url, str) and url.startswith("http"):
+        return f"<img src='{url}' width='{width}' style='border-radius: 8px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7)); background: rgba(255,255,255,0.03); padding: 4px; border: 1px solid rgba(255,255,255,0.1);' onerror=\"this.style.display='none'; this.nextElementSibling.style.display='inline';\"/><span style='display:none; font-size: {width}px;'>{fallback_emoji}</span>"
     else:
         return f"<span style='font-size: {width}px;'>{fallback_emoji}</span>"
 
@@ -234,7 +215,7 @@ if st.sidebar.button("🔄 Sincronizar Caché & Telemetría", use_container_widt
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_f1_supreme_v11")
+        geolocator = Nominatim(user_agent="forza_f1_supreme_v12")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -242,29 +223,6 @@ def obtener_coordenadas(ciudad, pais):
     except:
         pass
     return None, None
-
-@st.cache_data(ttl=600, show_spinner=False)
-def buscar_escuderia_api(nombre_busqueda):
-    if not nombre_busqueda or len(nombre_busqueda) < 2: return []
-    try:
-        response = requests.get(f"https://v1.formula-1.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS)
-        if response.status_code == 200: return response.json().get("response", [])
-    except: pass
-    return []
-
-@st.cache_data(ttl=300, show_spinner=False)
-def obtener_calendario_escuderia_2024(id_escuderia):
-    races = []
-    try:
-        response = requests.get(f"https://v1.formula-1.api-sports.io/races?team={id_escuderia}&season=2024", headers=HEADERS)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("response"):
-                races = data.get("response")
-        return races, "api_directa"
-    except:
-        pass
-    return [], "error"
 
 @st.cache_data(ttl=600, show_spinner=False)
 def obtener_pilotos(id_escuderia):
@@ -302,62 +260,35 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
 
 with tab1:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🏎️ Selector Oficial de Escuderías Temporada 2024</div>", unsafe_allow_html=True)
     
-    if "id_seleccionado" not in st.session_state:
-        st.session_state.update({
-            "id_seleccionado": 1, 
-            "nombre_seleccionado": "Scuderia Ferrari", 
-            "pais_seleccionado": "Italy", 
-            "logo_seleccionado": "https://media.api-sports.io/formula-1/teams/1.png",
-            "ciudad_seleccionada": "Maranello",
-            "estadio_seleccionado": "Pista de Fiorano"
-        })
-        
-    col_busqueda, col_vacia = st.columns([1, 2])
-    with col_busqueda:
-        busqueda_usuario = st.text_input("🔍 Buscar escudería (Ej. Ferrari, Mercedes, Red Bull):", value="", placeholder="Escribe al menos 2 letras...", key="input_busq_escuderia")
-        
-        if len(busqueda_usuario) >= 2:
-            resultados = buscar_escuderia_api(busqueda_usuario)
-            if resultados:
-                opciones = {f"{i['name']} ({i.get('country', 'N/A')})": i for i in resultados}
-                sel = st.selectbox("Seleccione escudería activa:", list(opciones.keys()), key="select_escuderia_activa")
-                if sel:
-                    data_seleccion = opciones[sel]
-                    st.session_state["id_seleccionado"] = data_seleccion['id']
-                    st.session_state["nombre_seleccionado"] = data_seleccion['name']
-                    st.session_state["pais_seleccionado"] = data_seleccion.get('country', 'N/A')
-                    st.session_state["logo_seleccionado"] = data_seleccion.get('logo', '')
-                    st.session_state["ciudad_seleccionada"] = data_seleccion.get('base', data_seleccion.get('country', 'N/A'))
-                    st.session_state["estadio_seleccionado"] = data_seleccion.get('name', 'Base Técnica')
+    # Selector directo, 100% estable y sin fallos de renderizado condicional
+    col_sel1, col_sel2 = st.columns([1, 2])
+    with col_sel1:
+        equipo_seleccionado_nombre = st.selectbox(
+            "Selecciona la Escudería F1:",
+            list(TEAMS_DICT_2024.keys()),
+            key="selectbox_escuderia_principal"
+        )
     st.markdown("</div>", unsafe_allow_html=True)
 
-    id_activo = st.session_state["id_seleccionado"]
-    nombre_activo = st.session_state["nombre_seleccionado"]
-    pais_activo = st.session_state["pais_seleccionado"]
-    logo_activo = st.session_state.get("logo_seleccionado", "")
-    ciudad_activa = st.session_state.get("ciudad_seleccionada", "")
-    estadio_activo = st.session_state.get("estadio_seleccionado", "")
-    
-    # Asignación robusta garantizada con estadísticas 2024
-    stats_equipo = STATS_2024_FALLBACK.get("Scuderia Ferrari")
-    for k_name, v_data in STATS_2024_FALLBACK.items():
-        if k_name.lower() in nombre_activo.lower() or nombre_activo.lower() in k_name.lower():
-            stats_equipo = v_data
-            pais_activo = v_data["pais"]
-            ciudad_activa = v_data["base"]
-            estadio_activo = v_data["estadio"]
-            break
+    # Extraer datos de la escudería elegida
+    datos_equipo = TEAMS_DICT_2024[equipo_seleccionado_nombre]
+    id_activo = datos_equipo["id"]
+    nombre_activo = equipo_seleccionado_nombre
+    pais_activo = datos_equipo["country"]
+    logo_activo = datos_equipo["logo"]
+    ciudad_activa = datos_equipo["base"]
+    estadio_activo = datos_equipo["estadio"]
+    puntos_totales = datos_equipo["puntos"]
+    podios = datos_equipo["podios"]
+    efectividad = datos_equipo["efectividad"]
+    promedio_puntos = datos_equipo["promedio"]
 
-    puntos_totales = stats_equipo["puntos"]
-    podios = stats_equipo["podios"]
-    efectividad = stats_equipo["efectividad"]
-    promedio_puntos = stats_equipo["promedio"]
-
-    # Tarjetas KPI con datos actualizados y Logos
+    # Tarjetas KPI con datos actualizados al instante
     k1, k2, k3, k4 = st.columns(4)
     with k1:
-        logo_html_str = render_logo_html(logo_activo, width=48, fallback_emoji="🏎️", team_id=id_activo)
+        logo_html_str = render_logo_html(logo_activo, width=48, fallback_emoji="🏎️")
         st.markdown(f"""
             <div class='telemetry-card' style='display:flex; align-items:center; gap:16px; border-left: 5px solid #FF1801; padding: 22px;'>
                 {logo_html_str}
@@ -522,7 +453,6 @@ with tab3:
     st.markdown("<div class='section-header'>🔴 Registro Completo de las 24 Carreras de la Temporada 2024</div>", unsafe_allow_html=True)
     st.write("Listado histórico oficial de todas las Grandes Premios corridos en la temporada 2024 con sus respectivos ganadores y circuitos.")
 
-    # Las 24 carreras oficiales de la Temporada 2024
     carreras_2024_completas = [
         {"gp": "Gran Premio de Baréin 2024", "circuito": "Bahrain International Circuit", "ciudad": "Sakhir", "ganador": "Max Verstappen", "fecha": "2024-03-02"},
         {"gp": "Gran Premio de Arabia Saudita 2024", "circuito": "Jeddah Corniche Circuit", "ciudad": "Yeda", "ganador": "Max Verstappen", "fecha": "2024-03-09"},
@@ -826,7 +756,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V18.0 (State Sync & Full 2024 Races)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V19.0 (Bulletproof Team Selector)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
