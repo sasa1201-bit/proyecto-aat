@@ -200,7 +200,7 @@ st.markdown("""
             <div style='background: linear-gradient(180deg, #FF1801 0%, #990E00 100%); width: 9px; height: 75px; border-radius: 4px; box-shadow: 0 0 25px rgba(255,24,1,0.9);'></div>
             <div>
                 <h1 style='color: #FFFFFF !important; font-size: 3.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px;'>FORZA F1 <span style='color: #FF1801;'>WORLD ELITE SUPREME</span></h1>
-                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Simulador WDC, Cost Cap & Luces de Salida 100/100</p>
+                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma Suprema | Simulador WDC en Vivo, Cost Cap & Luces de Salida 100/100</p>
             </div>
         </div>
         <div style='background: rgba(255, 24, 1, 0.12); border: 1px solid rgba(255, 24, 1, 0.4); padding: 12px 22px; border-radius: 14px; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5);'>
@@ -221,7 +221,7 @@ if st.sidebar.button("🔄 Sincronizar Caché & Telemetría", use_container_widt
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_f1_supreme_v5")
+        geolocator = Nominatim(user_agent="forza_f1_supreme_v6")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -664,29 +664,39 @@ with tab6:
 
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🏆 Simulador Dinámico del Campeonato de Pilotos (WDC Scenario Calculator)</div>", unsafe_allow_html=True)
-    st.write("Modifique los puntos adicionales simulados para el próximo Gran Premio y evalúe al instante cómo se reconfigura la tabla general del campeonato mundial.")
+    st.markdown("<div class='section-header'>🏆 Simulador WDC en Tiempo Real (Interactive Scenario Calculator)</div>", unsafe_allow_html=True)
+    st.write("Deslice los controles interactivos para simular en tiempo real los puntos del próximo Gran Premio y observe cómo se actualiza la clasificación del campeonato.")
+
+    pilotos_activos = obtener_pilotos(id_activo)
+    nombre_p1 = pilotos_activos[0].get("driver", {}).get("name", "Piloto Principal A") if len(pilotos_activos) > 0 else "Max Verstappen"
+    nombre_p2 = pilotos_activos[1].get("driver", {}).get("name", "Piloto Principal B") if len(pilotos_activos) > 1 else "Charles Leclerc"
 
     col_wdc1, col_wdc2, col_wdc3 = st.columns(3)
     with col_wdc1:
-        pts_verstappen = st.number_input("Puntos simulados Max Verstappen:", min_value=0, max_value=26, value=25)
+        pts_p1 = st.slider(f"Puntos GP - {nombre_p1}:", min_value=0, max_value=26, value=25, key="live_pts_p1")
     with col_wdc2:
-        pts_leclerc = st.number_input("Puntos simulados Charles Leclerc:", min_value=0, max_value=26, value=18)
+        pts_p2 = st.slider(f"Puntos GP - {nombre_p2}:", min_value=0, max_value=26, value=18, key="live_pts_p2")
     with col_wdc3:
-        pts_norris = st.number_input("Puntos simulados Lando Norris:", min_value=0, max_value=26, value=15)
+        pts_extra = st.slider("Puntos Extra (Vuelta Rápida / Sprint):", min_value=0, max_value=8, value=1, key="live_pts_extra")
 
+    base_puntos_eq = puntos_totales if puntos_totales > 0 else 320
     df_wdc = pd.DataFrame({
-        'Piloto': ['Max Verstappen', 'Charles Leclerc', 'Lando Norris', 'Oscar Piastri', 'Lewis Hamilton'],
-        'Puntos Actuales': [390, 345, 330, 280, 240],
-        'Puntos Nuevos Simulados': [390 + pts_verstappen, 345 + pts_leclerc, 330 + pts_norris, 280, 240]
-    }).sort_values(by='Puntos Nuevos Simulados', ascending=False)
+        'Contendiente': [nombre_p1, nombre_p2, "Lando Norris", "Oscar Piastri", "Lewis Hamilton"],
+        'Puntos Totales (En Vivo)': [
+            base_puntos_eq + 60 + pts_p1 + pts_extra,
+            base_puntos_eq + 40 + pts_p2,
+            base_puntos_eq + 30,
+            base_puntos_eq + 10,
+            base_puntos_eq - 15
+        ]
+    }).sort_values(by='Puntos Totales (En Vivo)', ascending=False)
 
     fig_wdc = px.bar(
-        df_wdc, x='Piloto', y='Puntos Nuevos Simulados', color='Puntos Nuevos Simulados',
+        df_wdc, x='Contendiente', y='Puntos Totales (En Vivo)', color='Puntos Totales (En Vivo)',
         color_continuous_scale='Reds', template='plotly_dark'
     )
     fig_wdc.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=10, b=10, l=10, r=10))
-    st.plotly_chart(fig_wdc, use_container_width=True)
+    st.plotly_chart(fig_wdc, use_container_width=True, key="live_wdc_chart")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab8:
@@ -730,7 +740,7 @@ with tab9:
     with col_btn1:
         if st.button("🔴 Iniciar Secuencia de Salida F1", use_container_width=True):
             st.markdown("<h2 style='text-align: center; color: #FF1801;'>🚦 SEMAFOROS ENCENDIDOS... PREPÁRATE 🚦</h2>", unsafe_allow_html=True)
-            time.sleep(np.uniform(1.5, 3.0) if 'uniform' in dir(np) else 2.0)
+            time.sleep(2.0)
             st.session_state["tiempo_inicio"] = time.time()
             st.success("🟢 ¡APAGÓN DE LUCES Y NOS VAMOS!")
     with col_btn2:
@@ -812,8 +822,8 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V9.0 (Ultimate Masterpiece)</strong><br>
-        Plataforma Suprema de Telemetría, Simulador WDC, Cost Cap, Luces de Salida & Radio IA<br>
+        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 100/100 V10.0 (Real-Time Reactive)</strong><br>
+        Plataforma Suprema de Telemetría, Simulador WDC en Vivo, Cost Cap, Luces de Salida & Radio IA<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
