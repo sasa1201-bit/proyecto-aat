@@ -176,6 +176,7 @@ if st.sidebar.button("🔄 Refrescar Datos de API"):
 def obtener_coordenadas(ciudad, pais):
     try:
         geolocator = Nominatim(user_agent="forza_futbol_app")
+        # Búsqueda específica combinando la ciudad oficial del estadio y su país
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -266,7 +267,6 @@ with tab1:
         if len(busqueda_usuario) >= 3:
             resultados = buscar_equipo_api(busqueda_usuario)
             if resultados:
-                # Ahora guardamos todo el objeto de respuesta para extraer el estadio (venue) y el equipo
                 opciones = {f"{i['team']['name']} ({i['team']['country']})": i for i in resultados}
                 sel = st.selectbox("Resultados:", list(opciones.keys()))
                 if sel:
@@ -274,6 +274,7 @@ with tab1:
                     t = data_seleccion['team']
                     v = data_seleccion.get('venue', {})
                     
+                    # Extraemos con precisión la ciudad y estadio que entrega la API del equipo
                     st.session_state.update({
                         "id_seleccionado": t['id'], 
                         "nombre_seleccionado": t['name'], 
@@ -409,7 +410,7 @@ with tab1:
             st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # NUEVA SECCIÓN: Plantilla y Mapa divididos en 2 columnas
+    # Sección Dividida: Plantilla a la izquierda y Mapa con la ciudad real a la derecha
     col_plantilla, col_mapa = st.columns(2)
     
     with col_plantilla:
@@ -440,7 +441,6 @@ with tab1:
         lat, lon = obtener_coordenadas(ciudad_activa, pais_activo)
         if lat and lon:
             df_mapa = pd.DataFrame({'lat': [lat], 'lon': [lon]})
-            # st.map renderiza automáticamente un mapa oscuro en tema oscuro
             st.map(df_mapa, zoom=12, use_container_width=True)
         else:
             st.info("No se pudieron localizar las coordenadas exactas de la ciudad.")
