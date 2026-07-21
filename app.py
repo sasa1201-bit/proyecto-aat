@@ -18,7 +18,8 @@ st.set_page_config(
 )
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
-st.markdown("""
+st.markdown(
+    """
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -136,9 +137,10 @@ st.markdown("""
             border-radius: 12px !important;
         }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
-# Base de datos completa y garantizada de escuderías oficiales 2024
 TEAMS_DICT_2024 = {
     "Scuderia Ferrari": {"id": 1, "country": "Italy", "logo": "https://media.api-sports.io/formula-1/teams/1.png", "base": "Maranello", "estadio": "Pista de Fiorano", "puntos": 652, "podios": 19, "efectividad": 79.2, "promedio": 27.2},
     "McLaren": {"id": 2, "country": "United Kingdom", "logo": "https://media.api-sports.io/formula-1/teams/2.png", "base": "Woking", "estadio": "McLaren Technology Centre", "puntos": 666, "podios": 18, "efectividad": 75.0, "promedio": 27.8},
@@ -181,28 +183,26 @@ CARRERAS_2024_DATOS = [
 
 def render_logo_html(url, width=38, fallback_emoji="🏎️"):
     if url and isinstance(url, str) and url.startswith("http"):
-        return f"<img src='{url}' width='{width}' style='border-radius: 8px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7)); background: rgba(255,255,255,0.03); padding: 4px; border: 1px solid rgba(255,255,255,0.1);' onerror=\"this.style.display='none'; this.nextElementSibling.style.display='inline';\"/><span style='display:none; font-size: {width}px;'>{fallback_emoji}</span>"
+        err_script = "this.style.display='none'; this.nextElementSibling.style.display='inline';"
+        return f'<img src="{url}" width="{width}" style="border-radius: 8px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7)); background: rgba(255,255,255,0.03); padding: 4px; border: 1px solid rgba(255,255,255,0.1);" onerror="{err_script}"/><span style="display:none; font-size: {width}px;">{fallback_emoji}</span>'
     else:
-        return f"<span style='font-size: {width}px;'>{fallback_emoji}</span>"
+        return f'<span style="font-size: {width}px;">{fallback_emoji}</span>'
 
 def render_calendario_anual_2024():
     race_dates_set = {datetime.strptime(c["fecha"], "%Y-%m-%d").date() for c in CARRERAS_2024_DATOS}
     months_spanish = [
-        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "enero", "febrero", "marzo", "abril", "mayo", "junio", 
         "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
     ]
     calendar.setfirstweekday(calendar.SUNDAY)
-    
     html = "<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-top: 10px;'>"
-    
     for month_idx in range(1, 13):
         month_name = months_spanish[month_idx - 1]
         cal = calendar.monthcalendar(2024, month_idx)
-        
         html += f"""
         <div style='background: #080C16; border-radius: 14px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);'>
             <div style='color: #FF1801; font-weight: 800; font-size: 1.05rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;'>{month_name}</div>
-            <div style='display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;'>
+            <div style='display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; margin-bottom: 8px;'>
                 <div style='color: #64748B; font-size: 0.65rem; font-weight: 800;'>d</div>
                 <div style='color: #64748B; font-size: 0.65rem; font-weight: 800;'>l</div>
                 <div style='color: #64748B; font-size: 0.65rem; font-weight: 800;'>m</div>
@@ -210,8 +210,9 @@ def render_calendario_anual_2024():
                 <div style='color: #64748B; font-size: 0.65rem; font-weight: 800;'>j</div>
                 <div style='color: #64748B; font-size: 0.65rem; font-weight: 800;'>v</div>
                 <div style='color: #64748B; font-size: 0.65rem; font-weight: 800;'>s</div>
+            </div>
+            <div style='display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;'>
         """
-        
         for week in cal:
             for day in week:
                 if day == 0:
@@ -219,9 +220,9 @@ def render_calendario_anual_2024():
                 else:
                     d_obj = datetime(2024, month_idx, day).date()
                     if d_obj in race_dates_set:
-                        html += f"<div><div style='background: #38BDF8; color: #030508; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-weight: 900; font-size: 0.8rem; box-shadow: 0 0 12px rgba(56,189,248,0.8);' title='Gran Premio de F1'>{day}</div></div>"
+                        html += f"<div><div style='background: #38BDF8; color: #030508; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-weight: 900; font-size: 0.75rem; box-shadow: 0 0 10px rgba(56,189,248,0.8);' title='Gran Premio de F1'>{day}</div></div>"
                     else:
-                        html += f"<div style='padding: 5px 0; font-size: 0.85rem; color: #F1F5F9; font-weight: 500;'>{day}</div>"
+                        html += f"<div style='padding: 3px 0; font-size: 0.8rem; color: #F1F5F9; font-weight: 500;'>{day}</div>"
         html += "</div></div>"
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
@@ -266,7 +267,7 @@ def obtener_coordenadas(ciudad, pais):
 @st.cache_data(ttl=600, show_spinner=False)
 def obtener_pilotos(id_escuderia):
     try:
-        response = requests.get(f"https://v1.formula-1.api-sports.io/teams/drivers?team={id_escuderia}", headers=HEADERS)
+        response = requests.get(f"https://v1.formula-1.api-sports.io/teams/drivers?team={id_escuderia}", headers=HEADERS, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if data.get("response"):
@@ -283,6 +284,23 @@ TODOS_OS_PILOTOS_2024 = [
     "Zhou Guanyu", "Kevin Magnussen", "Daniel Ricciardo", "Oliver Bearman"
 ]
 
+# Base de datos de precios y puntos proyectados para el optimizador Fantasy F1
+FANTASY_DB = {
+    "Max Verstappen": {"costo": 30.5, "puntos": 429},
+    "Lando Norris": {"costo": 26.0, "puntos": 374},
+    "Charles Leclerc": {"costo": 25.0, "puntos": 356},
+    "Oscar Piastri": {"costo": 22.0, "puntos": 292},
+    "Carlos Sainz": {"costo": 21.5, "puntos": 290},
+    "George Russell": {"costo": 20.0, "puntos": 245},
+    "Lewis Hamilton": {"costo": 19.0, "puntos": 223},
+    "Sergio Pérez": {"costo": 18.0, "puntos": 152},
+    "Fernando Alonso": {"costo": 15.0, "puntos": 130},
+    "Nico Hülkenberg": {"costo": 9.0, "puntos": 75},
+    "Yuki Tsunoda": {"costo": 8.5, "puntos": 70},
+    "Alex Albon": {"costo": 8.0, "puntos": 65},
+    "Lance Stroll": {"costo": 10.0, "puntos": 60}
+}
+
 # Navegación con 10 pestañas maestras
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🏠 Panel 2024", 
@@ -293,8 +311,8 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "💰 Cost Cap", 
     "🚦 Luces Salida", 
     "🛑 Estrategia Gantt", 
-    "💵 Fantasy F1", 
-    "🛠️ Radio IA"
+    "💵 Fantasy Optimizer", 
+    "🛠️ Ing. Radio IA"
 ])
 
 with tab1:
@@ -382,7 +400,6 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Sección de Calendario Completo 2024 con Días de Carrera en Azul
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (Carreras en Azul)</div>", unsafe_allow_html=True)
     st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en color azul.")
@@ -427,7 +444,7 @@ with tab1:
 
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown(f"<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
     st.write("Comparativa directa de rendimiento seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
     
     col_p1, col_vs, col_p2 = st.columns([5, 1, 5])
@@ -466,11 +483,8 @@ with tab3:
     st.markdown("<div class='section-header'>🔴 Registro Completo y Mapa Geolocalizado de los 24 Grandes Premios de 2024</div>", unsafe_allow_html=True)
     st.write("Selecciona cualquier Gran Premio de la temporada 2024 para consultar sus detalles y visualizar la ubicación exacta del circuito en el mapa interactivo.")
 
-    # Selector de Gran Premio para ver su mapa interactivo
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
     gp_seleccionado_mapa = st.selectbox("Selecciona un Gran Premio para ver su ubicación en el Mapa:", nombres_gps, key="selector_gp_mapa_envivo")
-
-    # Encontrar datos del GP seleccionado
     datos_gp_activo = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado_mapa)
 
     col_info_gp, col_mapa_gp = st.columns([1, 1.2])
@@ -640,7 +654,17 @@ with tab7:
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
-    st.write("Visualice de forma gráfica los stints de neumáticos (Soft, Medium, Hard) de la parrilla principal a lo largo de las vueltas de carrera.")
+    st.write("Visualice de forma gráfica los stints de neumáticos (Soft, Medium, Hard) y simule la ventana táctica de *Undercut / Overcut*.")
+
+    # Simulador Undercut / Overcut interactivo
+    col_uc1, col_uc2 = st.columns(2)
+    with col_uc1:
+        delta_pit = st.slider("Pérdida neta en Pit-Lane (s):", min_value=18.0, max_value=28.0, value=21.8, step=0.1)
+    with col_uc2:
+        delta_goma_fresca = st.slider("Ganancia por vuelta con neumático fresco (s):", min_value=0.5, max_value=2.5, value=1.4, step=0.1)
+
+    ventas_vueltas_efectivo = round(delta_pit / delta_goma_fresca, 1)
+    st.info(f"💡 **Ventana de Undercut Óptima:** Para recuperar la posición en pista, tu monoplaza necesita rodar al menos **{ventas_vueltas_efectivo} vueltas** con aire limpio tras la parada.")
 
     df_gantt = pd.DataFrame([
         dict(Driver="Max Verstappen", Compound="Medium (C3)", Start=1, Finish=22),
@@ -674,81 +698,62 @@ with tab8:
 
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>💵 Fantasy F1 Constructor & Driver Budget Manager</div>", unsafe_allow_html=True)
-    st.write("Arma tu alineación de ensueño seleccionando libremente entre **todos los pilotos de la parrilla 2024** respetando un presupuesto límite de 100.0 millones.")
+    st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
+    st.write("El optimizador calcula automáticamente la combinación de 2 pilotos que maximiza los puntos proyectados dentro del presupuesto límite de $100.0M.")
 
-    col_f1, col_f2, col_f3 = st.columns(3)
-    with col_f1:
-        f_escuderia = st.selectbox("Fichar Escudería:", ["Red Bull Racing ($32.5M)", "Ferrari ($29.0M)", "McLaren ($27.5M)", "Mercedes ($24.0M)"], key="f_esc")
-    with col_f2:
-        f_piloto1 = st.selectbox("Fichar Piloto 1 (Estelar):", TODOS_OS_PILOTOS_2024, index=0, key="f_p1")
-    with col_f3:
-        f_piloto2 = st.selectbox("Fichar Piloto 2 (Escudero):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="f_p2")
+    presupuesto_max = st.slider("Presupuesto Disponible para Pilotos ($M):", min_value=40.0, max_value=60.0, value=52.0, step=0.5)
 
-    costos = {
-        "Red Bull Racing ($32.5M)": 32.5, "Ferrari ($29.0M)": 29.0, "McLaren ($27.5M)": 27.5, "Mercedes ($24.0M)": 24.0
-    }
+    if st.button("🚀 Ejecutar Algoritmo de Optimización", use_container_width=True):
+        mejor_puntaje = -1
+        mejor_par = None
+        mejor_costo = 0
 
-    gasto_escuderia = costos.get(f_escuderia, 25.0)
-    gasto_pilotos = 25.0
-    gasto_fantasy = gasto_escuderia + (gasto_pilotos * 2)
-    presupuesto_fantasy = 100.0
-    remanente_fantasy = round(presupuesto_fantasy - gasto_fantasy, 1)
-    valido_fantasy = "✅ ALINEACIÓN VÁLIDA PARA EL GP" if remanente_fantasy >= 0 else "❌ EXCEDE EL LÍMITE DE 100M"
+        pilotos_keys = list(FANTASY_DB.keys())
+        for i in range(len(pilotos_keys)):
+            for j in range(i + 1, len(pilotos_keys)):
+                p1 = pilotos_keys[i]
+                p2 = pilotos_keys[j]
+                costo_par = FANTASY_DB[p1]["costo"] + FANTASY_DB[p2]["costo"]
+                puntos_par = FANTASY_DB[p1]["puntos"] + FANTASY_DB[p2]["puntos"]
+                if costo_par <= presupuesto_max and puntos_par > mejor_puntaje:
+                    mejor_puntaje = puntos_par
+                    mejor_par = (p1, p2)
+                    mejor_costo = costo_par
 
-    st.markdown(f"""
-        <div style='background: #080C16; padding: 22px; border-radius: 14px; border: 1px solid rgba(16,185,129,0.4); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);'>
-            <h3 style='color: #10B981; margin-top:0;'>📊 Resumen Financiero Fantasy F1</h3>
-            <p><strong>Piloto 1 Seleccionado:</strong> {f_piloto1} | <strong>Piloto 2 Seleccionado:</strong> {f_piloto2}</p>
-            <p><strong>Costo Total de Alineación:</strong> ${gasto_fantasy}M / ${presupuesto_fantasy}M</p>
-            <p><strong>Presupuesto Restante:</strong> ${remanente_fantasy}M</p>
-            <div style='background: rgba(16, 185, 129, 0.15); padding: 14px; border-radius: 10px; border-left: 5px solid #10B981; margin-top: 15px;'>
-                <span style='color: #10B981; font-weight: 900;'>ESTADO DE LA PLANTILLA:</span> {valido_fantasy}
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+        if mejor_par:
+            st.success(f"🏆 **¡Alineación Óptima Encontrada!**")
+            col_opt1, col_opt2 = st.columns(2)
+            with col_opt1:
+                st.markdown(f"""
+                    <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
+                        <h4 style='color: #10B981; margin:0;'>🥇 {mejor_par[0]}</h4>
+                        <p>Costo: ${FANTASY_DB[mejor_par[0]]['costo']}M | Puntos: {FANTASY_DB[mejor_par[0]]['puntos']} pts</p>
+                    </div>
+                """, unsafe_allow_html=True)
+            with col_opt2:
+                st.markdown(f"""
+                    <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
+                        <h4 style='color: #10B981; margin:0;'>🥈 {mejor_par[1]}</h4>
+                        <p>Costo: ${FANTASY_DB[mejor_par[1]]['costo']}M | Puntos: {FANTASY_DB[mejor_par[1]]['puntos']} pts</p>
+                    </div>
+                """, unsafe_allow_html=True)
+            st.metric("Costo Total de Alineación", f"${mejor_costo}M", f"Restante: ${round(presupuesto_max - mejor_costo, 1)}M")
+            st.metric("Puntuación Proyectada Total", f"{mejor_puntaje} pts")
+        else:
+            st.warning("No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🛠️ Simulador Táctico Pit-Stop & Radio IA</div>", unsafe_allow_html=True)
-    
-    col_s1, col_s2, col_s3 = st.columns(3)
-    with col_s1:
-        compound = st.selectbox("Compound de Neumático:", ["Blando (Soft - C5)", "Medio (Medium - C3)", "Duro (Hard - C1)"], key="pit_comp")
-    with col_s2:
-        vueltas_stint = st.slider("Duración del Stint (Vueltas):", min_value=10, max_value=50, value=28, key="pit_vueltas")
-    with col_s3:
-        safety_car = st.selectbox("Probabilidad de Safety Car:", ["Baja", "Media", "Alta (Estratégico)"], key="pit_sc")
-
-    degradacion_base = 0.075 if "Blando" in compound else (0.045 if "Medio" in compound else 0.025)
-    tiempo_perdido_pit = 21.8
-    ritmo_estimado = round(81.9 + (vueltas_stint * degradacion_base), 3)
-
-    st.markdown(f"""
-        <div style='background: #080C16; padding: 22px; border-radius: 14px; border: 1px solid rgba(255,24,1,0.4); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);'>
-            <h3 style='color: #FF1801; margin-top:0;'>📊 Resultados de la Simulación Táctica Estratégica</h3>
-            <p><strong>Compuesto Seleccionado:</strong> {compound}</p>
-            <p><strong>Degradación Calculada por Vuelta:</strong> +{degradacion_base * 100:.1f}%</p>
-            <p><strong>Ritmo Promedio Estimado por Vuelta:</strong> {ritmo_estimado} segundos</p>
-            <p><strong>Tiempo Estimado en Pit-Lane:</strong> {tiempo_perdido_pit} segundos</p>
-            <div style='background: rgba(16, 185, 129, 0.15); padding: 14px; border-radius: 10px; border-left: 5px solid #10B981; margin-top: 15px;'>
-                <span style='color: #10B981; font-weight: 900;'>VEREDICTO DEL ALGORITMO ELITE:</span> Estrategia óptima de 1 parada detectada entre la vuelta {vueltas_stint - 4} y {vueltas_stint + 3}. Ventaja proyectada frente al perseguidor: +4.1 segundos.
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("<div class='telemetry-card' style='margin-top: 30px;'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🎙️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🛠️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
     
     st.markdown("""
         <div style='background: #04060B; padding: 15px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); text-align: center; margin-bottom: 20px;'>
-            <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 8px;'>📡 CANAL DE RADIO ACTIVO - MURO DE BOXES FIA</span>
+            <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 8px;'>📡 CANAL DE RADIO ACTIVO - INGENIERO DE PISTA FIA</span>
             <div style='font-size: 1.5rem; letter-spacing: 4px; color: #FF1801; font-weight: 900;'>
                 📶 ▂▃▅▆▇█▇▆▅▃▂ 📡 ▂▃▅▆▇█▇▆▅▃▂ 📶
             </div>
-            <small style='color: #94A3B8; font-style: italic;'>Transmisión de voz cifrada en tiempo real con el ingeniero jefe</small>
+            <small style='color: #94A3B8; font-style: italic;'>Agente conversacional inteligente listo para resolver dudas de estrategia y rendimiento</small>
         </div>
     """, unsafe_allow_html=True)
 
@@ -758,12 +763,14 @@ with tab10:
             st.write(pregunta_usuario)
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
-            if any(x in p for x in ["puntos", "promedio", "rendimiento"]):
-                respuesta = f"[RADIO 📡] Entendido box, telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio en 2024."
+            if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
+                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {delta_pit}s en pit-lane y {ventas_vueltas_efectivo} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta 24."
+            elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
+                respuesta = f"[RADIO 📡] Telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio en 2024."
             elif any(x in p for x in ["podio", "podios", "victorias"]):
-                respuesta = f"[RADIO 📡] Copiado, análisis histórico en pista 2024: El equipo acumula {podios} podios oficiales ({efectividad}% de conversión)."
+                respuesta = f"[RADIO 📡] Análisis histórico de temporada: El equipo acumula {podios} podios oficiales ({efectividad}% de conversión)."
             elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
-                respuesta = f"[RADIO 📡] Reporte de gomas recibido. Con el Grip Index actual de {indice_agarre}, mantendremos la estrategia en pista."
+                respuesta = f"[RADIO 📡] Reporte de gomas recibido. El Grip Index actual es de {indice_agarre}. Mantendremos la ventana de temperatura óptima."
             else:
                 respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {nombre_activo}. El monoplaza opera al {efectividad}% de efectividad óptima."
             st.write(respuesta)
@@ -772,8 +779,8 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V21.0 (Full 12-Month Calendar & Blue Race Highlights Added)</strong><br>
-        Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & Live Data Editor<br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.1 (Auto-Optimizer & AI Radio Integrated)</strong><br>
+        Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy Optimizer, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
