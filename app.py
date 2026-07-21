@@ -367,59 +367,6 @@ with tab1:
     efectividad = datos_equipo["efectividad"]
     promedio_puntos = datos_equipo["promedio"]
 
-    # Base de datos con los pilotos oficiales de cada escudería en 2024
-    PILOTOS_EQUIPOS_2024 = {
-        "Red Bull Racing": [
-            {"Piloto": "Max Verstappen", "País": "Netherlands", "Número": 1, "Puntos": 429},
-            {"Piloto": "Sergio Pérez", "País": "Mexico", "Número": 11, "Puntos": 152}
-        ],
-        "Ferrari": [
-            {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16, "Puntos": 341},
-            {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55, "Puntos": 290}
-        ],
-        "McLaren": [
-            {"Piloto": "Lando Norris", "País": "United Kingdom", "Número": 4, "Puntos": 349},
-            {"Piloto": "Oscar Piastri", "País": "Australia", "Número": 81, "Puntos": 292}
-        ],
-        "Mercedes": [
-            {"Piloto": "Lewis Hamilton", "País": "United Kingdom", "Número": 44, "Puntos": 223},
-            {"Piloto": "George Russell", "País": "United Kingdom", "Número": 63, "Puntos": 219}
-        ],
-        "Aston Martin": [
-            {"Piloto": "Fernando Alonso", "País": "Spain", "Número": 14, "Puntos": 70},
-            {"Piloto": "Lance Stroll", "País": "Canada", "Número": 18, "Puntos": 24}
-        ],
-        "RB": [
-            {"Piloto": "Yuki Tsunoda", "País": "Japan", "Número": 22, "Puntos": 30},
-            {"Piloto": "Daniel Ricciardo", "País": "Australia", "Número": 3, "Puntos": 12}
-        ],
-        "Haas": [
-            {"Piloto": "Nico Hulkenberg", "País": "Germany", "Número": 27, "Puntos": 31},
-            {"Piloto": "Kevin Magnussen", "País": "Denmark", "Número": 20, "Puntos": 16}
-        ],
-        "Alpine": [
-            {"Piloto": "Pierre Gasly", "País": "France", "Número": 10, "Puntos": 26},
-            {"Piloto": "Esteban Ocon", "País": "France", "Número": 31, "Puntos": 23}
-        ],
-        "Williams": [
-            {"Piloto": "Alexander Albon", "País": "Thailand", "Número": 23, "Puntos": 12},
-            {"Piloto": "Logan Sargeant", "País": "United States", "Número": 2, "Puntos": 0}
-        ],
-        "Kick Sauber": [
-            {"Piloto": "Valtteri Bottas", "País": "Finland", "Número": 77, "Puntos": 0},
-            {"Piloto": "Zhou Guanyu", "País": "China", "Número": 24, "Puntos": 0}
-        ]
-    }
-
-    # Sincronizar automáticamente el editor de puntos cuando cambias de equipo en el selectbox
-    if "equipo_actual_sel" not in st.session_state or st.session_state["equipo_actual_sel"] != equipo_seleccionado_nombre:
-        st.session_state["equipo_actual_sel"] = equipo_seleccionado_nombre
-        pilotos_equipo = PILOTOS_EQUIPOS_2024.get(equipo_seleccionado_nombre, [
-            {"Piloto": "Piloto 1", "Puntos": 100},
-            {"Piloto": "Piloto 2", "Puntos": 50}
-        ])
-        st.session_state["df_puntos_state"] = pd.DataFrame([{"Piloto": p["Piloto"], "Puntos": p["Puntos"]} for p in pilotos_equipo])
-
     # Panel de métricas clave (KPIs estilizados con altura uniforme)
     k1, k2, k3, k4 = st.columns(4)
     with k1:
@@ -441,27 +388,37 @@ with tab1:
         st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.8rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown(f"<div class='section-header'>📊 Rendimiento y Puntos de los Pilotos de {equipo_seleccionado_nombre} (2024)</div>", unsafe_allow_html=True)
-    st.info(f"Modifica los puntos de la dupla de **{equipo_seleccionado_nombre}** y la gráfica de rendimiento se actualizará al instante.")
+    st.markdown("<div class='section-header'>📊 Clasificación y Gráfica Dinámica de Puntos 2024</div>", unsafe_allow_html=True)
+    st.info("Modifica los valores numéricos de los puntos en la tabla interactiva y la gráfica se actualizará al instante en tiempo real.")
+
+    # Inicialización de respaldo para el estado del editor de puntos general
+    if "df_puntos_state" not in st.session_state:
+        st.session_state["df_puntos_state"] = pd.DataFrame([
+            {"Piloto": "Max Verstappen", "Puntos": 429},
+            {"Piloto": "Lando Norris", "Puntos": 349},
+            {"Piloto": "Charles Leclerc", "Puntos": 341},
+            {"Piloto": "Oscar Piastri", "Puntos": 292},
+            {"Piloto": "Carlos Sainz", "Puntos": 290}
+        ])
 
     col_tabla, col_grafica = st.columns([1, 1.2])
     with col_tabla:
-        st.write("✏️ **Edita los puntos de los pilotos:**")
+        st.write("✏️ **Edita los puntos directamente aquí:**")
         st.session_state["df_puntos_state"] = st.data_editor(
             st.session_state["df_puntos_state"], 
-            num_rows="fixed", 
+            num_rows="dynamic", 
             key="editor_puntos_2024", 
             use_container_width=True
         )
 
     with col_grafica:
-        st.write("📈 **Gráfica Comparativa del Equipo:**")
+        st.write("📈 **Gráfica de Columnas Dinámica:**")
         df_actual = st.session_state["df_puntos_state"]
         if not df_actual.empty and "Piloto" in df_actual.columns and "Puntos" in df_actual.columns:
             fig_dinamica = px.bar(
                 df_actual, x="Piloto", y="Puntos", color="Puntos",
                 color_continuous_scale="Reds", template="plotly_dark",
-                title=f"Aportación de Pilotos - {equipo_seleccionado_nombre}"
+                title="Clasificación de Pilotos F1 2024 (Actualización en Vivo)"
             )
             fig_dinamica.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
@@ -482,18 +439,25 @@ with tab1:
 
     col_plantilla, col_mapa = st.columns(2)
     with col_plantilla:
-        st.markdown(f"<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos - {equipo_seleccionado_nombre}</div>", unsafe_allow_html=True)
-        
-        # Cargar los pilotos correspondientes al equipo seleccionado
-        pilotos_equipo_info = PILOTOS_EQUIPOS_2024.get(equipo_seleccionado_nombre, [])
-        if pilotos_equipo_info:
-            df_final = pd.DataFrame([
-                {"Piloto": p["Piloto"], "País": p["País"], "Número": p["Número"]}
-                for p in pilotos_equipo_info
-            ])
+        st.markdown("<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos 2024</div>", unsafe_allow_html=True)
+        pilotos = obtener_pilotos(id_activo)
+        if pilotos:
+            datos_formateados = []
+            for p in pilotos:
+                driver_info = p.get("driver", {})
+                datos_formateados.append({
+                    "Piloto": driver_info.get("name", "N/A"),
+                    "País": driver_info.get("country", "-"),
+                    "Número": driver_info.get("number", "-")
+                })
+            df_final = pd.DataFrame(datos_formateados)
             st.dataframe(df_final, hide_index=True, use_container_width=True)
         else:
-            st.info("No hay información de alineación disponible para esta escudería.")
+            df_default_pilotos = pd.DataFrame([
+                {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16},
+                {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55}
+            ])
+            st.dataframe(df_default_pilotos, hide_index=True, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_mapa:
