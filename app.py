@@ -153,30 +153,30 @@ TEAMS_DICT_2024 = {
 }
 
 CARRERAS_2024_DATOS = [
-    {"gp": "Gran Premio de Baréin 2024", "circuito": "Bahrain International Circuit", "ciudad": "Sakhir", "ganador": "Max Verstappen", "fecha": "2024-03-02", "lat": 26.0325, "lon": 50.5106},
-    {"gp": "Gran Premio de Arabia Saudita 2024", "circuito": "Jeddah Corniche Circuit", "ciudad": "Yeda", "ganador": "Max Verstappen", "fecha": "2024-03-09", "lat": 21.6319, "lon": 39.1044},
-    {"gp": "Gran Premio de Australia 2024", "circuito": "Albert Park Circuit", "ciudad": "Melbourne", "ganador": "Carlos Sainz", "fecha": "2024-03-24", "lat": -37.8497, "lon": 144.968},
-    {"gp": "Gran Premio de Japón 2024", "circuito": "Suzuka International Racing Course", "ciudad": "Suzuka", "ganador": "Max Verstappen", "fecha": "2024-04-07", "lat": 34.8431, "lon": 136.541},
-    {"gp": "Gran Premio de China 2024", "circuito": "Shanghai International Circuit", "ciudad": "Shanghái", "ganador": "Max Verstappen", "fecha": "2024-04-21", "lat": 31.3389, "lon": 121.22},
-    {"gp": "Gran Premio de Miami 2024", "circuito": "Miami International Autodrome", "ciudad": "Miami", "ganador": "Lando Norris", "fecha": "2024-05-05", "lat": 25.9581, "lon": -80.2389},
-    {"gp": "Gran Premio de Emilia-Romaña 2024", "circuito": "Autodromo Internazionale Enzo e Dino Ferrari", "ciudad": "Imola", "ganador": "Max Verstappen", "fecha": "2024-05-19", "lat": 44.3439, "lon": 11.7167},
-    {"gp": "Gran Premio de Mónaco 2024", "circuito": "Circuit de Monaco", "ciudad": "Mónaco", "ganador": "Charles Leclerc", "fecha": "2024-05-26", "lat": 43.7347, "lon": 7.4206},
-    {"gp": "Gran Premio de Canadá 2024", "circuito": "Circuit Gilles Villeneuve", "ciudad": "Montreal", "ganador": "Max Verstappen", "fecha": "2024-06-09", "lat": 45.5, "lon": -73.5228},
-    {"gp": "Gran Premio de España 2024", "circuito": "Circuit de Barcelona-Catalunya", "ciudad": "Barcelona", "ganador": "Max Verstappen", "fecha": "2024-06-23", "lat": 41.57, "lon": 2.2611},
-    {"gp": "Gran Premio de Austria 2024", "circuito": "Red Bull Ring", "ciudad": "Spielberg", "ganador": "George Russell", "fecha": "2024-06-30", "lat": 47.2197, "lon": 14.7647},
-    {"gp": "Gran Premio del Reino Unido 2024", "circuito": "Silverstone Circuit", "ciudad": "Silverstone", "ganador": "Lewis Hamilton", "fecha": "2024-07-07", "lat": 52.0786, "lon": -1.0169},
-    {"gp": "Gran Premio de Hungría 2024", "circuito": "Hungaroring", "ciudad": "Budapest", "ganador": "Oscar Piastri", "fecha": "2024-07-21", "lat": 47.5839, "lon": 19.2486},
-    {"gp": "Gran Premio de Bélgica 2024", "circuito": "Circuit de Spa-Francorchamps", "ciudad": "Spa", "ganador": "Lewis Hamilton", "fecha": "2024-07-28", "lat": 50.4372, "lon": 5.9714},
-    {"gp": "Gran Premio de los Países Bajos 2024", "circuito": "Circuit Zandvoort", "ciudad": "Zandvoort", "ganador": "Lando Norris", "fecha": "2024-08-25", "lat": 52.3888, "lon": 4.5409},
-    {"gp": "Gran Premio de Italia 2024", "circuito": "Autodromo Nazionale di Monza", "ciudad": "Monza", "ganador": "Charles Leclerc", "fecha": "2024-09-01", "lat": 45.6156, "lon": 9.2811},
-    {"gp": "Gran Premio de Azerbaiyán 2024", "circuito": "Baku City Circuit", "ciudad": "Bakú", "ganador": "Oscar Piastri", "fecha": "2024-09-15", "lat": 40.3725, "lon": 49.8533},
-    {"gp": "Gran Premio de Singapur 2024", "circuito": "Marina Bay Street Circuit", "ciudad": "Singapur", "ganador": "Lando Norris", "fecha": "2024-09-22", "lat": 1.2914, "lon": 103.864},
-    {"gp": "Gran Premio de Estados Unidos 2024", "circuito": "Circuit of the Americas", "ciudad": "Austin", "ganador": "Charles Leclerc", "fecha": "2024-10-20", "lat": 30.1328, "lon": -97.6411},
-    {"gp": "Gran Premio de Ciudad de México 2024", "circuito": "Autódromo Hermanos Rodríguez", "ciudad": "Ciudad de México", "ganador": "Carlos Sainz", "fecha": "2024-10-27", "lat": 19.4042, "lon": -99.0907},
-    {"gp": "Gran Premio de São Paulo 2024", "circuito": "Autódromo de Interlagos", "ciudad": "São Paulo", "ganador": "Max Verstappen", "fecha": "2024-11-03", "lat": -23.7036, "lon": -46.6997},
-    {"gp": "Gran Premio de Las Vegas 2024", "circuito": "Las Vegas Strip Circuit", "ciudad": "Las Vegas", "ganador": "George Russell", "fecha": "2024-11-23", "lat": 36.1147, "lon": -115.1728},
-    {"gp": "Gran Premio de Catar 2024", "circuito": "Losail International Circuit", "ciudad": "Lusail", "ganador": "Max Verstappen", "fecha": "2024-12-01", "lat": 25.4889, "lon": 51.4542},
-    {"gp": "Gran Premio de Abu Dhabi 2024", "circuito": "Yas Marina Circuit", "ciudad": "Abu Dabi", "ganador": "Lando Norris", "fecha": "2024-12-08", "lat": 24.4672, "lon": 54.6031}
+    {"gp": "Gran Premio de Baréin 2024", "circuito": "Bahrain International Circuit", "ciudad": "Sakhir", "ganador": "Max Verstappen", "fecha": "2024-03-02", "mes": "marzo", "lat": 26.0325, "lon": 50.5106},
+    {"gp": "Gran Premio de Arabia Saudita 2024", "circuito": "Jeddah Corniche Circuit", "ciudad": "Yeda", "ganador": "Max Verstappen", "fecha": "2024-03-09", "mes": "marzo", "lat": 21.6319, "lon": 39.1044},
+    {"gp": "Gran Premio de Australia 2024", "circuito": "Albert Park Circuit", "ciudad": "Melbourne", "ganador": "Carlos Sainz", "fecha": "2024-03-24", "mes": "marzo", "lat": -37.8497, "lon": 144.968},
+    {"gp": "Gran Premio de Japón 2024", "circuito": "Suzuka International Racing Course", "ciudad": "Suzuka", "ganador": "Max Verstappen", "fecha": "2024-04-07", "mes": "abril", "lat": 34.8431, "lon": 136.541},
+    {"gp": "Gran Premio de China 2024", "circuito": "Shanghai International Circuit", "ciudad": "Shanghái", "ganador": "Max Verstappen", "fecha": "2024-04-21", "mes": "abril", "lat": 31.3389, "lon": 121.22},
+    {"gp": "Gran Premio de Miami 2024", "circuito": "Miami International Autodrome", "ciudad": "Miami", "ganador": "Lando Norris", "fecha": "2024-05-05", "mes": "mayo", "lat": 25.9581, "lon": -80.2389},
+    {"gp": "Gran Premio de Emilia-Romaña 2024", "circuito": "Autodromo Internazionale Enzo e Dino Ferrari", "ciudad": "Imola", "ganador": "Max Verstappen", "fecha": "2024-05-19", "mes": "mayo", "lat": 44.3439, "lon": 11.7167},
+    {"gp": "Gran Premio de Mónaco 2024", "circuito": "Circuit de Monaco", "ciudad": "Mónaco", "ganador": "Charles Leclerc", "fecha": "2024-05-26", "mes": "mayo", "lat": 43.7347, "lon": 7.4206},
+    {"gp": "Gran Premio de Canadá 2024", "circuito": "Circuit Gilles Villeneuve", "ciudad": "Montreal", "ganador": "Max Verstappen", "fecha": "2024-06-09", "mes": "junio", "lat": 45.5, "lon": -73.5228},
+    {"gp": "Gran Premio de España 2024", "circuito": "Circuit de Barcelona-Catalunya", "ciudad": "Barcelona", "ganador": "Max Verstappen", "fecha": "2024-06-23", "mes": "junio", "lat": 41.57, "lon": 2.2611},
+    {"gp": "Gran Premio de Austria 2024", "circuito": "Red Bull Ring", "ciudad": "Spielberg", "ganador": "George Russell", "fecha": "2024-06-30", "mes": "junio", "lat": 47.2197, "lon": 14.7647},
+    {"gp": "Gran Premio del Reino Unido 2024", "circuito": "Silverstone Circuit", "ciudad": "Silverstone", "ganador": "Lewis Hamilton", "fecha": "2024-07-07", "mes": "julio", "lat": 52.0786, "lon": -1.0169},
+    {"gp": "Gran Premio de Hungría 2024", "circuito": "Hungaroring", "ciudad": "Budapest", "ganador": "Oscar Piastri", "fecha": "2024-07-21", "mes": "julio", "lat": 47.5839, "lon": 19.2486},
+    {"gp": "Gran Premio de Bélgica 2024", "circuito": "Circuit de Spa-Francorchamps", "ciudad": "Spa", "ganador": "Lewis Hamilton", "fecha": "2024-07-28", "mes": "julio", "lat": 50.4372, "lon": 5.9714},
+    {"gp": "Gran Premio de los Países Bajos 2024", "circuito": "Circuit Zandvoort", "ciudad": "Zandvoort", "ganador": "Lando Norris", "fecha": "2024-08-25", "mes": "agosto", "lat": 52.3888, "lon": 4.5409},
+    {"gp": "Gran Premio de Italia 2024", "circuito": "Autodromo Nazionale di Monza", "ciudad": "Monza", "ganador": "Charles Leclerc", "fecha": "2024-09-01", "mes": "septiembre", "lat": 45.6156, "lon": 9.2811},
+    {"gp": "Gran Premio de Azerbaiyán 2024", "circuito": "Baku City Circuit", "ciudad": "Bakú", "ganador": "Oscar Piastri", "fecha": "2024-09-15", "mes": "septiembre", "lat": 40.3725, "lon": 49.8533},
+    {"gp": "Gran Premio de Singapur 2024", "circuito": "Marina Bay Street Circuit", "ciudad": "Singapur", "ganador": "Lando Norris", "fecha": "2024-09-22", "mes": "septiembre", "lat": 1.2914, "lon": 103.864},
+    {"gp": "Gran Premio de Estados Unidos 2024", "circuito": "Circuit of the Americas", "ciudad": "Austin", "ganador": "Charles Leclerc", "fecha": "2024-10-20", "mes": "octubre", "lat": 30.1328, "lon": -97.6411},
+    {"gp": "Gran Premio de Ciudad de México 2024", "circuito": "Autódromo Hermanos Rodríguez", "ciudad": "Ciudad de México", "ganador": "Carlos Sainz", "fecha": "2024-10-27", "mes": "octubre", "lat": 19.4042, "lon": -99.0907},
+    {"gp": "Gran Premio de São Paulo 2024", "circuito": "Autódromo de Interlagos", "ciudad": "São Paulo", "ganador": "Max Verstappen", "fecha": "2024-11-03", "mes": "noviembre", "lat": -23.7036, "lon": -46.6997},
+    {"gp": "Gran Premio de Las Vegas 2024", "circuito": "Las Vegas Strip Circuit", "ciudad": "Las Vegas", "ganador": "George Russell", "fecha": "2024-11-23", "mes": "noviembre", "lat": 36.1147, "lon": -115.1728},
+    {"gp": "Gran Premio de Catar 2024", "circuito": "Losail International Circuit", "ciudad": "Lusail", "ganador": "Max Verstappen", "fecha": "2024-12-01", "mes": "diciembre", "lat": 25.4889, "lon": 51.4542},
+    {"gp": "Gran Premio de Abu Dhabi 2024", "circuito": "Yas Marina Circuit", "ciudad": "Abu Dabi", "ganador": "Lando Norris", "fecha": "2024-12-08", "mes": "diciembre", "lat": 24.4672, "lon": 54.6031}
 ]
 
 def render_logo_html(url, width=38, fallback_emoji="🏎️"):
@@ -193,7 +193,8 @@ def render_calendario_anual_2024():
     ]
     calendar.setfirstweekday(calendar.SUNDAY)
     
-    html = "<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-top: 10px;'>"
+    # Renderizado visual del año completo 2024 con días de carrera en azul
+    html = "<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-top: 10px; margin-bottom: 20px;'>"
     
     for month_idx in range(1, 13):
         month_name = months_spanish[month_idx - 1]
@@ -225,6 +226,35 @@ def render_calendario_anual_2024():
         html += "</div></div>"
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
+
+    # NUEVO: Expander interactivo por mes con especificación completa de cada GP
+    st.markdown("<h4 style='color: #FFFFFF; font-weight: 800; margin-top: 25px; margin-bottom: 15px;'>📂 Desglose por Mes: Haz clic para abrir la especificación de cada GP</h4>", unsafe_allow_html=True)
+    
+    mapping_meses = {
+        "enero": "Enero", "febrero": "Febrero", "marzo": "Marzo", "abril": "Abril", 
+        "mayo": "Mayo", "junio": "Junio", "julio": "Julio", "agosto": "Agosto", 
+        "septiembre": "Septiembre", "octubre": "Octubre", "noviembre": "Noviembre", "diciembre": "Diciembre"
+    }
+
+    for m_key, m_nombre in mapping_meses.items():
+        carreras_mes = [c for c in CARRERAS_2024_DATOS if c["mes"] == m_key]
+        if carreras_mes:
+            with st.expander(f"📅 Mes de {m_nombre} ({len(carreras_mes)} Grandes Premios Oficiales)"):
+                for gp in carreras_mes:
+                    st.markdown(f"""
+                        <div style='background: #04060B; padding: 16px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid #38BDF8; border: 1px solid rgba(255,255,255,0.06);'>
+                            <div style='display:flex; justify-content:space-between; align-items:center;'>
+                                <div style='font-size: 1.05rem; font-weight: 800; color: #FFFFFF;'>🏁 {gp['gp']}</div>
+                                <div style='font-size: 0.85rem; font-weight: 700; color: #F59E0B;'>🏆 Ganador: {gp['ganador']}</div>
+                            </div>
+                            <div style='margin-top: 8px; font-size: 0.85rem; color: #94A3B8;'>
+                                📍 <strong>Circuito:</strong> {gp['circuito']} ({gp['ciudad']}) | 📅 <strong>Fecha:</strong> {gp['fecha']} | 🌐 <strong>Coordenadas:</strong> Lat {gp['lat']}, Lon {gp['lon']}
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+        else:
+            with st.expander(f"📅 Mes de {m_nombre} (Sin Grandes Premios de F1)"):
+                st.markdown("<p style='color: #94A3B8; font-style: italic;'>No hay carreras programadas en este mes durante la temporada 2024.</p>", unsafe_allow_html=True)
 
 # Encabezado Espectacular de Presentación (Temporada 2024)
 st.markdown("""
@@ -382,10 +412,10 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Sección de Calendario Completo 2024 con Días de Carrera en Azul
+    # Sección de Calendario Anual Completo 2024 con Meses Desplegables Interactivos
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (Carreras en Azul)</div>", unsafe_allow_html=True)
-    st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en color azul.")
+    st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 & Desglose por Meses</div>", unsafe_allow_html=True)
+    st.write("Visualiza el año completo con los días de carrera resaltados en azul y haz clic en cualquier mes para desplegar sus especificaciones detalladas.")
     render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -772,7 +802,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V21.0 (Full 12-Month Calendar & Blue Race Highlights Added)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V22.0 (Interactive Month Expanders & Calendar Integrated)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
