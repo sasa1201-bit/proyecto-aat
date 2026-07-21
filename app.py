@@ -342,6 +342,9 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🛠️ Ing. Radio IA"
 ])
 
+# ==========================================
+# TAB 1: Panel 2024
+# ==========================================
 with tab1:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🏎️ Selector Oficial de Escuderías Temporada 2024</div>", unsafe_allow_html=True)
@@ -462,6 +465,10 @@ with tab1:
             st.map(df_mapa, zoom=10, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
+
+# ==========================================
+# TAB 2: H2H Battle
+# ==========================================
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
@@ -507,6 +514,10 @@ with tab2:
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+# ==========================================
+# TAB 3: GP En Vivo / Registro 2024
+# ==========================================
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🔴 Registro Completo y Mapa Geolocalizado de los 24 Grandes Premios de 2024</div>", unsafe_allow_html=True)
@@ -524,416 +535,218 @@ with tab3:
                 <p><strong>Circuito Oficial:</strong> {datos_gp_activo['circuito']}</p>
                 <p><strong>Ubicación / Ciudad:</strong> {datos_gp_activo['ciudad']}</p>
                 <p><strong>Fecha del Evento:</strong> {datos_gp_activo['fecha']}</p>
-                <p><strong>Ganador del GP:</strong> <span style='color: #F59E0B; font-weight: 800;'>🏆 {datos_gp_activo['ganador']}</span></p>
-                <div style='background: rgba(16, 185, 129, 0.15); padding: 12px; border-radius: 8px; border-left: 4px solid #10B981; margin-top: 15px;'>
-                    <span style='color: #10B981; font-weight: 900;'>ESTADO:</span> Gran Premio Finalizado con Éxito
-                </div>
+                <div class='badge-live' style='display:inline-block; margin-top:10px;'>GANADOR 2024: {datos_gp_activo['ganador']}</div>
             </div>
         """, unsafe_allow_html=True)
-
     with col_mapa_gp:
-        st.markdown("<p style='font-weight: 700; margin-bottom: 8px;'>🗺️ Ubicación Geográfica en Pista:</p>", unsafe_allow_html=True)
-        df_mapa_circuito = pd.DataFrame({'lat': [datos_gp_activo['lat']], 'lon': [datos_gp_activo['lon']]})
-        st.map(df_mapa_circuito, zoom=11, use_container_width=True)
-
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #FFFFFF; font-weight: 800; margin-bottom: 20px;'>📋 Resumen de Todas las Carreras 2024</h4>", unsafe_allow_html=True)
-
-    for item in CARRERAS_2024_DATOS:
-        st.markdown(f"""
-            <div class='live-session-card'>
-                <div style='display: flex; justify-content: space-between; align-items: center;'>
-                    <div style='width: 40%;'>
-                        <span style='font-size: 1.1rem; font-weight: 800; color: #FFFFFF;'>{item['gp']}</span><br>
-                        <span style='font-size: 0.85rem; color: #94A3B8;'>📍 {item['circuito']} ({item['ciudad']})</span>
-                    </div>
-                    <div style='width: 25%; text-align: center;'>
-                        <span class='badge-live'>🏁 FINALIZADO</span><br>
-                        <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 700; margin-top: 6px; display:block;'>📅 {item['fecha']}</span>
-                    </div>
-                    <div style='width: 35%; text-align: right;'>
-                        <span style='font-size: 0.8rem; color: #94A3B8;'>GANADOR DE LA CARRERA</span><br>
-                        <span style='font-size: 1.05rem; font-weight: 800; color: #F59E0B;'>🏆 {item['ganador']}</span>
-                    </div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        df_mapa_envivo = pd.DataFrame({'lat': [datos_gp_activo['lat']], 'lon': [datos_gp_activo['lon']]})
+        st.map(df_mapa_envivo, zoom=11, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+# ==========================================
+# TAB 4: FASTF1 TELEMETRY (NUEVO)
+# ==========================================
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>📈 FastF1 Telemetry Master Suite (Multi-Channel Trace & Delta Analysis)</div>", unsafe_allow_html=True)
-    st.write("Análisis avanzado multicanal estilo FastF1: Comparativa sincronizada de **Velocidad**, **Aplicación de Pedal (Acelerador/Freno)** y **Delta de Tiempo** por metro de pista.")
+    st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
+    st.write("Análisis cruzado de los inputs del piloto: Acelerador, Freno y Velocidad mediante la integración simulada de **FastF1**.")
     
-    col_t1, col_t2 = st.columns(2)
+    col_t1, col_t2, col_t3 = st.columns(3)
     with col_t1:
-        sel_piloto_a = st.selectbox("Piloto Benchmark (Línea Principal):", TODOS_OS_PILOTOS_2024, index=0, key="fastf1_p1")
+        driver1 = st.selectbox("Piloto 1 (Referencia):", ["VER - Max Verstappen", "LEC - Charles Leclerc"], index=0)
+        color1 = "#0600EF" if "VER" in driver1 else "#DC0000"
     with col_t2:
-        sel_piloto_b = st.selectbox("Piloto Comparativa (Línea Superpuesta):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="fastf1_p2")
+        driver2 = st.selectbox("Piloto 2 (Comparativa):", ["NOR - Lando Norris", "HAM - Lewis Hamilton"], index=0)
+        color2 = "#FF8000" if "NOR" in driver2 else "#00D2BE"
+    with col_t3:
+        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"])
 
-    # Generación de datos avanzados de telemetría simulados con alta fidelidad
-    np.random.seed(sum(ord(c) for c in sel_piloto_a))
-    offset_a = np.random.uniform(-5, 5)
-    np.random.seed(sum(ord(c) for c in sel_piloto_b))
-    offset_b = np.random.uniform(-5, 5)
-
-    distancia_pista = np.linspace(0, 5000, 200)
+    # Generación de datos de telemetría de alta fidelidad
+    x = np.linspace(0, 100, 600)
     
-    # Canales de Velocidad
-    vel_a = 240 + offset_a + 95 * np.sin(distancia_pista / 350) + 22 * np.cos(distancia_pista / 90)
-    vel_b = 238 + offset_b + 92 * np.sin((distancia_pista + 30) / 350) + 20 * np.cos(distancia_pista / 90)
+    # Piloto 1 (Referencia)
+    speed1 = 320 - 180 * np.exp(-x/15) + 25 * np.sin(x/4) + np.random.normal(0, 1.5, 600)
+    throttle1 = np.where(np.sin(x/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
+    brake1 = np.where(np.sin(x/4) < -0.6, 100, 0)
     
-    # Canales de Acelerador (%)
-    throttle_a = np.clip(70 + 30 * np.sin(distancia_pista / 250), 0, 100)
-    throttle_b = np.clip(68 + 32 * np.sin((distancia_pista + 20) / 250), 0, 100)
-    
-    # Canal de Delta de Tiempo (s)
-    delta_tiempo = np.cumsum((vel_b - vel_a) * 0.00015)
+    # Piloto 2 (Comparativa)
+    speed2 = 315 - 170 * np.exp(-x/18) + 27 * np.sin((x-1.5)/4) + np.random.normal(0, 1.5, 600)
+    throttle2 = np.where(np.sin((x-1.5)/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
+    brake2 = np.where(np.sin((x-1.5)/4) < -0.5, 100, 0)
 
-    # Tarjetas de Resumen de Telemetría Rápida
-    max_v_a, min_v_a = round(max(vel_a), 1), round(min(vel_a), 1)
-    max_v_b, min_v_b = round(max(vel_b), 1), round(min(vel_b), 1)
-
-    c_met1, c_met2 = st.columns(2)
-    with c_met1:
-        st.markdown(f"""
-            <div style='background: #080C16; padding: 14px 18px; border-radius: 12px; border-left: 4px solid #FF1801;'>
-                <span style='color: #FF1801; font-weight: 800; font-size: 0.9rem;'>🏎️ {sel_piloto_a} (Benchmark)</span><br>
-                <span style='font-size: 0.85rem; color: #94A3B8;'>Velocidad Máx: <strong>{max_v_a} km/h</strong> | Curva Mín: <strong>{min_v_a} km/h</strong></span>
-            </div>
-        """, unsafe_allow_html=True)
-    with c_met2:
-        st.markdown(f"""
-            <div style='background: #080C16; padding: 14px 18px; border-radius: 12px; border-left: 4px solid #38BDF8;'>
-                <span style='color: #38BDF8; font-weight: 800; font-size: 0.9rem;'>🏎️ {sel_piloto_b} (Comparativa)</span><br>
-                <span style='font-size: 0.85rem; color: #94A3B8;'>Velocidad Máx: <strong>{max_v_b} km/h</strong> | Curva Mín: <strong>{min_v_b} km/h</strong></span>
-            </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-
-    # Creación de Gráfica Multi-Panel con Plotly Subplots
-    fig_fastf1 = make_subplots(
-        rows=3, cols=1, 
-        shared_xaxes=True, 
-        vertical_spacing=0.08,
-        subplot_titles=(
-            "Velocidad en Pista (km/h)", 
-            "Aplicación de Acelerador (%)", 
-            "Delta de Tiempo Acumulado (s)"
-        )
-    )
-
-    # Panel 1: Velocidad
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_a, mode='lines', name=f'{sel_piloto_a} (Velocidad)', line=dict(color='#FF1801', width=2.5)), row=1, col=1)
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_b, mode='lines', name=f'{sel_piloto_b} (Velocidad)', line=dict(color='#38BDF8', width=2.5, dash='dot')), row=1, col=1)
-
-    # Panel 2: Acelerador
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=throttle_a, mode='lines', name=f'{sel_piloto_a} (Throttle)', line=dict(color='#FF1801', width=2), showlegend=False), row=2, col=1)
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=throttle_b, mode='lines', name=f'{sel_piloto_b} (Throttle)', line=dict(color='#38BDF8', width=2, dash='dot'), showlegend=False), row=2, col=1)
-
-    # Panel 3: Delta de Tiempo
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=delta_tiempo, mode='lines', name='Delta Tiempo (s)', line=dict(color='#10B981', width=2.5), showlegend=False), row=3, col=1)
-
-    fig_fastf1.update_layout(
-        template='plotly_dark',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=620,
-        margin=dict(t=30, b=10, l=10, r=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
+    # Plotly Subplots para Telemetría
+    fig_tel = make_subplots(
+        rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.06,
+        subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)")
     )
     
-    fig_fastf1.update_xaxes(title_text="Distancia en Pista (Metros)", row=3, col=1)
-    fig_fastf1.update_yaxes(title_text="km/h", row=1, col=1)
-    fig_fastf1.update_yaxes(title_text="Throttle %", row=2, col=1)
-    fig_fastf1.update_yaxes(title_text="Segundos", row=3, col=1)
+    # Speed
+    fig_tel.add_trace(go.Scatter(x=x, y=speed1, name=driver1[:3], line=dict(color=color1, width=2.5)), row=1, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=speed2, name=driver2[:3], line=dict(color=color2, width=2.5)), row=1, col=1)
+    
+    # Throttle
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle1, 0, 100), showlegend=False, line=dict(color=color1, width=2)), row=2, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle2, 0, 100), showlegend=False, line=dict(color=color2, width=2)), row=2, col=1)
+    
+    # Brake
+    fig_tel.add_trace(go.Scatter(x=x, y=brake1, showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=brake2, showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
 
-    st.plotly_chart(fig_fastf1, use_container_width=True, key=f"chart_fastf1_multichannel_{sel_piloto_a}_{sel_piloto_b}")
+    fig_tel.update_layout(
+        height=750, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=40, b=20, l=20, r=20), hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
+    )
+    
+    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', zeroline=False)
+    fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title_text="Distancia del Circuito (m)", row=3, col=1)
+
+    st.plotly_chart(fig_tel, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+# ==========================================
+# TAB 5: ADVANCED WEATHER RADAR (NUEVO)
+# ==========================================
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>⛅ Panel de Clima Dinámico y Asfalto (Weather & Grip Intelligence)</div>", unsafe_allow_html=True)
-    st.write("Modifica los sliders de temperatura o lluvia; el coeficiente de agarre se recalculará instantáneamente en tiempo real.")
+    st.markdown("<div class='section-header'>⛅ AWS Insights: Advanced Weather Radar & Track Evolution</div>", unsafe_allow_html=True)
+    st.write("Simulador atmosférico predictivo. Modifica las condiciones para analizar en tiempo real la temperatura de asfalto y la ventana táctica Pirelli.")
+    
+    # Controles Atmosféricos en 4 columnas
+    c_w1, c_w2, c_w3, c_w4 = st.columns(4)
+    with c_w1:
+        temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=42, value=25, key="nw_temp")
+    with c_w2:
+        prob_lluvia = st.slider("🌧️ Prob. de Lluvia (%)", min_value=0, max_value=100, value=15, key="nw_rain")
+    with c_w3:
+        humedad = st.slider("💧 Humedad Relativa (%)", min_value=10, max_value=100, value=45, key="nw_hum")
+    with c_w4:
+        viento = st.slider("💨 Viento (km/h)", min_value=0, max_value=60, value=12, key="nw_wind")
 
-    col_w1, col_w2, col_w3 = st.columns(3)
-    with col_w1:
-        temp_pista = st.slider("Temperatura de Pista (°C):", min_value=15, max_value=55, value=36, key="w_pista")
-    with col_w2:
-        temp_amb = st.slider("Temperatura Ambiente (°C):", min_value=10, max_value=40, value=24, key="w_amb")
-    with col_w3:
-        prob_lluvia = st.slider("Probabilidad de Lluvia (%):", min_value=0, max_value=100, value=10, key="w_lluvia")
+    # Cálculos Físicos Simulados de la Pista
+    impacto_sol = 15 if prob_lluvia < 30 and humedad < 60 else (5 if prob_lluvia < 60 else 0)
+    temp_pista = temp_amb + impacto_sol - (viento * 0.15)
+    temp_pista = round(max(temp_amb, temp_pista), 1)
 
-    indice_agarre = round(1.0 - (abs(temp_pista - 35) * 0.008) - (prob_lluvia * 0.004), 2)
-    estado_grip = "Óptimo (Grip Máximo)" if indice_agarre > 0.85 else ("Degradación Moderada" if indice_agarre > 0.70 else "Crítico / Pista Deslizante (Intermedios Requeridos)")
+    indice_agarre = 1.0 - (abs(temp_pista - 35) * 0.008) - (prob_lluvia * 0.007)
+    indice_agarre = round(max(0.1, min(1.0, indice_agarre)), 2)
 
+    # Motor de Recomendación Táctica de Neumáticos Pirelli
+    if prob_lluvia > 75 or (prob_lluvia > 50 and indice_agarre < 0.45):
+        neumatico_rec, razon_rec, color_borde = "🔵 Lluvia Extrema (Wet)", "Alto riesgo de aquaplaning. Pista inundada.", "#0066FF"
+    elif prob_lluvia > 25 or indice_agarre < 0.65:
+        neumatico_rec, razon_rec, color_borde = "🟢 Intermedios (Inters)", "Asfalto mixto / Condiciones de transición.", "#10B981"
+    elif temp_pista > 45:
+        neumatico_rec, razon_rec, color_borde = "⚪ Duros (Hard C1/C2)", "Alta abrasión y riesgo severo de blistering térmico.", "#FFFFFF"
+    elif temp_pista < 26:
+        neumatico_rec, razon_rec, color_borde = "🔴 Blandos (Soft C4/C5)", "Necesidad de encender gomas rápido por baja temperatura.", "#FF1801"
+    else:
+        neumatico_rec, razon_rec, color_borde = "🟡 Medios (Medium C3)", "Ventana operativa ideal. Balance perfecto degradación/agarre.", "#F59E0B"
+
+    # Espacio
+    st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+
+    # Dashboards de Medidores (Plotly Gauges)
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        fig_grip = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=indice_agarre * 100,
+            title={'text': "Nivel de Agarre (Grip Index)", 'font': {'color': '#94A3B8', 'size': 18}},
+            number={'suffix': "%", 'font': {'color': '#FFFFFF'}},
+            gauge={
+                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
+                'bar': {'color': color_borde},
+                'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 2,
+                'bordercolor': "rgba(255,255,255,0.1)",
+                'steps': [
+                    {'range': [0, 40], 'color': "rgba(255, 24, 1, 0.2)"},
+                    {'range': [40, 75], 'color': "rgba(245, 158, 11, 0.2)"},
+                    {'range': [75, 100], 'color': "rgba(16, 185, 129, 0.2)"}],
+            }
+        ))
+        fig_grip.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
+        st.plotly_chart(fig_grip, use_container_width=True)
+
+    with col_g2:
+        fig_temp = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=temp_pista,
+            title={'text': "Temperatura de Asfalto", 'font': {'color': '#94A3B8', 'size': 18}},
+            number={'suffix': "°C", 'font': {'color': '#FFFFFF'}},
+            gauge={
+                'axis': {'range': [0, 60], 'tickwidth': 1, 'tickcolor': "white"},
+                'bar': {'color': "#FF1801" if temp_pista > 45 else ("#38BDF8" if temp_pista < 25 else "#F59E0B")},
+                'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 2,
+                'bordercolor': "rgba(255,255,255,0.1)",
+                'steps': [
+                    {'range': [0, 25], 'color': "rgba(56, 189, 248, 0.2)"},
+                    {'range': [25, 45], 'color': "rgba(16, 185, 129, 0.2)"},
+                    {'range': [45, 60], 'color': "rgba(255, 24, 1, 0.2)"}],
+            }
+        ))
+        fig_temp.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
+        st.plotly_chart(fig_temp, use_container_width=True)
+
+    # Tarjeta de Decisión del Muro de Boxes (Estilo AWS)
     st.markdown(f"""
-        <div style='background: #080C16; padding: 22px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.4); margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);'>
-            <h3 style='color: #38BDF8; margin-top:0;'>🌦️ Diagnóstico Meteorológico del Muro de Boxes</h3>
-            <p><strong>Temperatura de Pista / Ambiente:</strong> {temp_pista}°C / {temp_amb}°C</p>
-            <p><strong>Probabilidad de Precipitaciones:</strong> {prob_lluvia}%</p>
-            <p><strong>Coeficiente de Agarre Calculado (Grip Index):</strong> <strong>{indice_agarre} / 1.00</strong></p>
-            <div style='background: rgba(56, 189, 248, 0.15); padding: 14px; border-radius: 10px; border-left: 5px solid #38BDF8; margin-top: 15px;'>
-                <span style='color: #38BDF8; font-weight: 900;'>ESTADO DEL ASFALTO:</span> {estado_grip}
+        <div style='background: linear-gradient(90deg, rgba(8,12,22,1) 0%, {color_borde}22 100%); 
+                    padding: 22px; border-radius: 14px; border-left: 6px solid {color_borde}; 
+                    border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 30px;'>
+            <div>
+                <span style='color: #94A3B8; font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;'>RECOMENDACIÓN ESTRATÉGICA PIRELLI</span>
+                <h2 style='color: {color_borde}; margin: 5px 0 0 0; font-weight: 900;'>{neumatico_rec}</h2>
+                <p style='color: #F1F5F9; margin: 5px 0 0 0; font-size: 0.95rem;'>{razon_rec}</p>
+            </div>
+            <div style='text-align: right;'>
+                <div style='font-size: 2.5rem;'>⚙️</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+    # Gráfica de Evolución de Pista a 60 Minutos
+    st.markdown("<h4 style='color: #FFFFFF; font-weight: 800; margin-bottom: 15px;'>📉 Pronóstico de Evolución de Pista (60 Minutos)</h4>", unsafe_allow_html=True)
+    
+    time_labels = ["Actual", "+15m", "+30m", "+45m", "+60m"]
+    trend_rain = [prob_lluvia, max(0, prob_lluvia-5), max(0, prob_lluvia-15), max(0, prob_lluvia-25), max(0, prob_lluvia-30)] if prob_lluvia > 50 else [prob_lluvia, prob_lluvia+5, prob_lluvia+12, prob_lluvia+8, prob_lluvia]
+    trend_temp = [temp_pista, temp_pista - (trend_rain[1]*0.05), temp_pista - (trend_rain[2]*0.1), temp_pista - (trend_rain[3]*0.15), temp_pista - (trend_rain[4]*0.2)]
+
+    df_evo = pd.DataFrame({"Tiempo": time_labels, "Temp Asfalto (°C)": trend_temp, "Prob. Lluvia (%)": trend_rain})
+
+    fig_evo = make_subplots(specs=[[{"secondary_y": True}]])
+    fig_evo.add_trace(go.Scatter(x=df_evo["Tiempo"], y=df_evo["Prob. Lluvia (%)"], fill='tozeroy', mode='lines', name="Prob. Lluvia", line=dict(color="#38BDF8")), secondary_y=False)
+    fig_evo.add_trace(go.Scatter(x=df_evo["Tiempo"], y=df_evo["Temp Asfalto (°C)"], mode='lines+markers', name="Temp. Asfalto", line=dict(color="#FF1801", width=3), marker=dict(size=8)), secondary_y=True)
+
+    fig_evo.update_layout(
+        template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        height=350, margin=dict(t=10, b=10, l=10, r=10),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
+    )
+    fig_evo.update_yaxes(title_text="Probabilidad Lluvia (%)", secondary_y=False, showgrid=False)
+    fig_evo.update_yaxes(title_text="Temperatura Asfalto (°C)", secondary_y=True, showgrid=False)
+
+    st.plotly_chart(fig_evo, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
+
+# ==========================================
+# Marcadores de posición (Tabs 6 a 10)
+# ==========================================
 with tab6:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>💰 Gestor Financiero Avanzado y Límite de Presupuesto (Cost Cap War Room)</div>", unsafe_allow_html=True)
-    st.write("Simula la asignación financiera de la escudería, el impacto de los paquetes de mejoras en pista y evalúa el cumplimiento del reglamento financiero de la FIA.")
-
-    col_cc1, col_cc2 = st.columns(2)
-    with col_cc1:
-        presupuesto_base = st.number_input("Límite Base FIA ($M):", min_value=100.0, max_value=150.0, value=135.0, step=0.5, key="cc_base")
-        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel de Viento ($M):", min_value=20.0, max_value=70.0, value=48.5, step=0.5, key="cc_aero")
-        gasto_motor = st.slider("Integración y Fiabilidad de Unidad de Potencia ($M):", min_value=15.0, max_value=50.0, value=35.0, step=0.5, key="cc_motor")
-    with col_cc2:
-        gasto_chasis = st.slider("Manufactura y Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0, step=0.5, key="cc_chasis")
-        gasto_operaciones = st.slider("Logística, Viajes y Operaciones de Fábrica ($M):", min_value=10.0, max_value=30.0, value=18.0, step=0.5, key="cc_ops")
-        paquete_mejoras = st.selectbox("Paquete de Mejoras Previsto para el Siguiente GP:", ["Ninguno ($0M)", "Actualización menor - Suelo y Difusor ($2.5M)", "Paquete Mayor - Rediseño Total de Pontones ($5.8M)"], key="cc_upgrades")
-
-    costo_upgrades_val = 0.0
-    if "Suelo" in paquete_mejoras:
-        costo_upgrades_val = 2.5
-    elif "Pontones" in paquete_mejoras:
-        costo_upgrades_val = 5.8
-
-    gasto_total = round(gasto_aero + gasto_motor + gasto_chasis + gasto_operaciones + costo_upgrades_val, 2)
-    remanente = round(presupuesto_base - gasto_total, 2)
-
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
-
-    col_res_cc, col_graf_cc = st.columns([1, 1.2])
-
-    with col_res_cc:
-        if remanente >= 0:
-            cumplimiento = "✅ CUMPLE REGLAMENTO FINANCIERO FIA"
-            color_estado = "#10B981"
-            detalle_sancion = "Sin riesgo de penalización en túnel de viento ni puntos."
-        elif remanente >= -7.0:
-            cumplimiento = "⚠️ INFRACCIÓN MENOR DE GASTO (<5%)"
-            color_estado = "#F59E0B"
-            detalle_sancion = "Riesgo de multa económica o reprimenda deportiva de la FIA."
-        else:
-            cumplimiento = "❌ INFRACCIÓN MATERIAL GRAVE (>5%)"
-            color_estado = "#FF1801"
-            detalle_sancion = "Sanción severa: Deducción drástica de puntos en el Mundial y reducción del 20% en túnel de viento."
-
-        st.markdown(f"""
-            <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid {color_estado};'>
-                <h4 style='color: {color_estado}; margin-top:0;'>📊 Auditoría Financiera FIA</h4>
-                <p><strong>Límite de Gasto Autorizado:</strong> ${presupuesto_base}M</p>
-                <p><strong>Gasto Acumulado Total:</strong> ${gasto_total}M</p>
-                <p><strong>Presupuesto Remanente:</strong> <span style='color: {color_estado}; font-weight: 800;'>${remanente}M</span></p>
-                <hr style='border-color: rgba(255,255,255,0.1);'>
-                <div style='background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;'>
-                    <span style='color: {color_estado}; font-weight: 900; display:block; margin-bottom: 5px;'>{cumplimiento}</span>
-                    <small style='color: #94A3B8;'>{detalle_sancion}</small>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col_graf_cc:
-        df_costos = pd.DataFrame({
-            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones / Logística", "Paquete Mejoras"],
-            "Costo": [gasto_aero, gasto_motor, gasto_chasis, gasto_operaciones, costo_upgrades_val]
-        })
-        fig_donut = px.pie(
-            df_costos, names="Rubro", values="Costo", hole=0.55,
-            title="Distribución del Presupuesto de la Escudería",
-            color_discrete_sequence=["#FF1801", "#38BDF8", "#F59E0B", "#10B981", "#8B5CF6"]
-        )
-        fig_donut.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(t=30, b=10, l=10, r=10),
-            legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5)
-        )
-        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.info("Pestaña de Cost Cap F1 (En desarrollo)")
 
 with tab7:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🚦 Simulador Interactivo de Semáforos de Salida (Starting Grid Lights Out)</div>", unsafe_allow_html=True)
-    st.write("Mide tus reflejos en milisegundos al apagarse el semáforo.")
-
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("🔴 Iniciar Secuencia de Salida F1", use_container_width=True, key="btn_iniciar_salida"):
-            st.markdown("<h2 style='text-align: center; color: #FF1801;'>🚦 SEMAFOROS ENCENDIDOS... PREPÁRATE 🚦</h2>", unsafe_allow_html=True)
-            time.sleep(2.0)
-            st.session_state["tiempo_inicio"] = time.time()
-            st.success("🟢 ¡APAGÓN DE LUCES Y NOS VAMOS!")
-    with col_btn2:
-        if st.button("⚡ ¡ACELERAR YA!", use_container_width=True, key="btn_acelerar_salida"):
-            if st.session_state["tiempo_inicio"]:
-                reaccion_ms = round((time.time() - st.session_state["tiempo_inicio"]) * 1000, 2)
-                st.session_state["reaccion"] = reaccion_ms
-                if reaccion_ms > 0:
-                    st.metric("Tu Tiempo de Reacción de Salida", f"{reaccion_ms} ms")
-                    if reaccion_ms < 250:
-                        st.balloons()
-                        st.success("🏆 ¡Excelente reflejo! Nivel de Piloto Titular de F1.")
-                    else:
-                        st.warning("⚠️ Salida algo lenta. ¡A entrenar reflejos en el simulador!")
-            else:
-                st.error("Primero debes iniciar la secuencia con el botón rojo.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.info("Pestaña de Luces de Salida (En desarrollo)")
 
 with tab8:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
-    st.write("Modifica los parámetros y la vuelta objetivo de parada; el diagrama de Gantt se actualizará de inmediato para **toda la parrilla de 20 corredores**.")
-
-    col_uc1, col_uc2, col_uc3 = st.columns(3)
-    with col_uc1:
-        delta_pit = st.slider("Pérdida neta en Pit-Lane (s):", min_value=18.0, max_value=28.0, value=21.8, step=0.1, key="slider_delta_pit")
-    with col_uc2:
-        delta_goma_fresca = st.slider("Ganancia por vuelta con neumático fresco (s):", min_value=0.5, max_value=2.5, value=1.4, step=0.1, key="slider_delta_goma")
-    with col_uc3:
-        vuelta_parada_usuario = st.slider("Vuelta Objetivo de Parada:", min_value=10, max_value=35, value=22, step=1, key="slider_vuelta_parada")
-
-    ventas_vueltas_efectivo = round(delta_pit / delta_goma_fresca, 1)
-    st.info(f"💡 **Ventana de Undercut Óptima:** Para recuperar la posición en pista, tu monoplaza necesita rodar al menos **{ventas_vueltas_efectivo} vueltas** con aire limpio tras la parada.")
-
-    gantt_data = []
-    for piloto in TODOS_OS_PILOTOS_2024:
-        if piloto in ["Max Verstappen", "Charles Leclerc", "Lando Norris", "Lewis Hamilton", "Carlos Sainz", "Oscar Piastri"]:
-            if piloto == "Max Verstappen":
-                c1, c2 = "Medium (C3)", "Hard (C1)"
-                p_split = vuelta_parada_usuario
-            elif piloto == "Charles Leclerc":
-                c1, c2 = "Soft (C5)", "Hard (C1)"
-                p_split = max(5, vuelta_parada_usuario - 5)
-            elif piloto == "Lando Norris":
-                c1, c2 = "Medium (C3)", "Hard (C1)"
-                p_split = vuelta_parada_usuario + 2
-            elif piloto == "Lewis Hamilton":
-                c1, c2 = "Soft (C5)", "Medium (C3)"
-                p_split = max(5, vuelta_parada_usuario - 3)
-            elif piloto == "Carlos Sainz":
-                c1, c2 = "Medium (C3)", "Hard (C1)"
-                p_split = vuelta_parada_usuario + 1
-            else:
-                c1, c2 = "Medium (C3)", "Hard (C1)"
-                p_split = vuelta_parada_usuario
-            
-            gantt_data.append(dict(Driver=piloto, Compound=c1, Start=1, Finish=p_split, Duration=p_split - 1))
-            gantt_data.append(dict(Driver=piloto, Compound=c2, Start=p_split, Finish=55, Duration=55 - p_split))
-        else:
-            gantt_data.append(dict(Driver=piloto, Compound="Medium (C3)", Start=1, Finish=55, Duration=54))
-
-    df_gantt = pd.DataFrame(gantt_data)
-
-    fig_gantt = px.bar(
-        df_gantt, x="Duration", y="Driver", base="Start", orientation="h", color="Compound",
-        color_discrete_map={"Soft (C5)": "#FF1801", "Medium (C3)": "#F59E0B", "Hard (C1)": "#38BDF8"},
-        template="plotly_dark",
-        category_orders={"Driver": TODOS_OS_PILOTOS_2024}
-    )
-    fig_gantt.update_yaxes(categoryorder="array", categoryarray=TODOS_OS_PILOTOS_2024, autorange="reversed")
-    fig_gantt.update_layout(
-        title=f"Estrategia de Stints - Todos los Pilotos (Parada en Vuelta {vuelta_parada_usuario})",
-        xaxis_title="Vueltas de Carrera",
-        yaxis_title="Pilotos Oficiales 2024",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=30, b=10, l=10, r=10),
-        height=680
-    )
-    st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_realtime_{vuelta_parada_usuario}_{delta_pit}_{delta_goma_fresca}")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.info("Pestaña de Estrategia Gantt (En desarrollo)")
 
 with tab9:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
-    st.write("Ajusta el presupuesto disponible y el optimizador calculará de forma reactiva la mejor alineación con los precios y puntos históricos reales de 2024.")
-
-    presupuesto_max = st.slider("Presupuesto Disponible para Pilotos ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy")
-
-    if st.button("🚀 Ejecutar Algoritmo de Optimización", use_container_width=True, key="btn_run_optimizer"):
-        mejor_puntaje = -1
-        mejor_par = None
-        mejor_costo = 0
-
-        pilotos_keys = list(FANTASY_DB.keys())
-        for i in range(len(pilotos_keys)):
-            for j in range(i + 1, len(pilotos_keys)):
-                p1 = pilotos_keys[i]
-                p2 = pilotos_keys[j]
-                costo_par = FANTASY_DB[p1]["costo"] + FANTASY_DB[p2]["costo"]
-                puntos_par = FANTASY_DB[p1]["puntos"] + FANTASY_DB[p2]["puntos"]
-                if costo_par <= presupuesto_max and puntos_par > mejor_puntaje:
-                    mejor_puntaje = puntos_par
-                    mejor_par = (p1, p2)
-                    mejor_costo = costo_par
-
-        if mejor_par:
-            st.success(f"🏆 **¡Alineación Óptima Encontrada!**")
-            col_opt1, col_opt2 = st.columns(2)
-            with col_opt1:
-                st.markdown(f"""
-                    <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
-                        <h4 style='color: #10B981; margin:0;'>🥇 {mejor_par[0]}</h4>
-                        <p>Costo: ${FANTASY_DB[mejor_par[0]]['costo']}M | Puntos Real 2024: {FANTASY_DB[mejor_par[0]]['puntos']} pts</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            with col_opt2:
-                st.markdown(f"""
-                    <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid #10B981;'>
-                        <h4 style='color: #10B981; margin:0;'>🥈 {mejor_par[1]}</h4>
-                        <p>Costo: ${FANTASY_DB[mejor_par[1]]['costo']}M | Puntos Real 2024: {FANTASY_DB[mejor_par[1]]['puntos']} pts</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            st.metric("Costo Total de Alineación", f"${mejor_costo}M", f"Restante: ${round(presupuesto_max - mejor_costo, 1)}M")
-            st.metric("Puntuación Proyectada Total", f"{mejor_puntaje} pts")
-        else:
-            st.warning("No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite en el control deslizante.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.info("Pestaña de Fantasy Optimizer (En desarrollo)")
 
 with tab10:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🛠️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div style='background: #04060B; padding: 15px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); text-align: center; margin-bottom: 20px;'>
-            <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 8px;'>📡 CANAL DE RADIO ACTIVO - INGENIERO DE PISTA FIA</span>
-            <div style='font-size: 1.5rem; letter-spacing: 4px; color: #FF1801; font-weight: 900;'>
-                📶 ▂▃▅▆▇█▇▆▅▃▂ 📡 ▂▃▅▆▇█▇▆▅▃▂ 📶
-            </div>
-            <small style='color: #94A3B8; font-style: italic;'>Agente conversacional inteligente listo para resolver dudas de estrategia y rendimiento</small>
-        </div>
-    """, unsafe_allow_html=True)
-
-    pregunta_usuario = st.chat_input("Transmita mensaje por radio al ingeniero de boxes...", key="chat_input_radio_ai")
-    if pregunta_usuario:
-        with st.chat_message("user", avatar="👤"):
-            st.write(pregunta_usuario)
-        with st.chat_message("assistant", avatar="🤖"):
-            p = pregunta_usuario.lower()
-            if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
-                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {delta_pit}s en pit-lane y {ventas_vueltas_efectivo} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta {vuelta_parada_usuario}."
-            elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
-                respuesta = f"[RADIO 📡] Telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio en 2024."
-            elif any(x in p for x in ["podio", "podios", "victorias"]):
-                respuesta = f"[RADIO 📡] Análisis histórico de temporada: El equipo acumula {podios} podios oficiales ({efectividad}% de conversión)."
-            elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
-                respuesta = f"[RADIO 📡] Reporte de gomas recibido. El Grip Index actual es de {indice_agarre}. Mantendremos la ventana de temperatura óptima."
-            else:
-                respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {nombre_activo}. El monoplaza opera al {efectividad}% de efectividad óptima."
-            st.write(respuesta)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("""
-    <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
-    <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.6 (FastF1 Telemetry Redesign Pro)</strong><br>
-        Plataforma Suprema con FastF1 Multi-Channel Telemetry, Pit-Stop Gantt, Cost Cap War Room, Fantasy Optimizer, Radio IA & Live Data Editor<br>
-        Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
-    </div>
-""", unsafe_allow_html=True)
+    st.info("Pestaña de Ingeniero Radio IA (En desarrollo)")
