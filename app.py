@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 from datetime import datetime
 import calendar
+from geopy.geocoders import Nominatim
 
 st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
 
@@ -171,6 +172,18 @@ st.sidebar.markdown("### ⚙️ Centro de Control")
 if st.sidebar.button("🔄 Refrescar Datos de API"):
     st.cache_data.clear()
 
+@st.cache_data(ttl=86400, show_spinner=False)
+def obtener_coordenadas(ciudad, pais):
+    try:
+        geolocator = Nominatim(user_agent="forza_futbol_app")
+        busqueda = f"{ciudad}, {pais}" if ciudad else pais
+        location = geolocator.geocode(busqueda)
+        if location:
+            return location.latitude, location.longitude
+    except:
+        pass
+    return None, None
+
 @st.cache_data(ttl=30, show_spinner=False)
 def obtener_partidos_en_vivo(key_api):
     try:
@@ -237,7 +250,14 @@ with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     
     if "id_seleccionado" not in st.session_state:
-        st.session_state.update({"id_seleccionado": 541, "nombre_seleccionado": "Real Madrid", "pais_seleccionado": "Spain", "logo_seleccionado": "https://media.api-sports.io/football/teams/541.png"})
+        st.session_state.update({
+            "id_seleccionado": 541, 
+            "nombre_seleccionado": "Real Madrid", 
+            "pais_seleccionado": "Spain", 
+            "logo_seleccionado": "https://media.api-sports.io/football/teams/541.png",
+            "ciudad_seleccionada": "Madrid",
+            "estadio_seleccionado": "Santiago Bernabéu"
+        })
         
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
@@ -246,17 +266,30 @@ with tab1:
         if len(busqueda_usuario) >= 3:
             resultados = buscar_equipo_api(busqueda_usuario)
             if resultados:
-                opciones = {f"{i['team']['name']} ({i['team']['country']})": i['team'] for i in resultados}
+                # Ahora guardamos todo el objeto de respuesta para extraer el estadio (venue) y el equipo
+                opciones = {f"{i['team']['name']} ({i['team']['country']})": i for i in resultados}
                 sel = st.selectbox("Resultados:", list(opciones.keys()))
                 if sel:
-                    t = opciones[sel]
-                    st.session_state.update({"id_seleccionado": t['id'], "nombre_seleccionado": t['name'], "pais_seleccionado": t['country'], "logo_seleccionado": t['logo']})
+                    data_seleccion = opciones[sel]
+                    t = data_seleccion['team']
+                    v = data_seleccion.get('venue', {})
+                    
+                    st.session_state.update({
+                        "id_seleccionado": t['id'], 
+                        "nombre_seleccionado": t['name'], 
+                        "pais_seleccionado": t['country'], 
+                        "logo_seleccionado": t['logo'],
+                        "ciudad_seleccionada": v.get('city', t['country']),
+                        "estadio_seleccionado": v.get('name', 'Estadio Desconocido')
+                    })
     st.markdown("</div>", unsafe_allow_html=True)
 
     id_activo = st.session_state["id_seleccionado"]
     nombre_activo = st.session_state["nombre_seleccionado"]
     pais_activo = st.session_state["pais_seleccionado"]
     logo_activo = st.session_state.get("logo_seleccionado", "")
+    ciudad_activa = st.session_state.get("ciudad_seleccionada", "")
+    estadio_activo = st.session_state.get("estadio_seleccionado", "")
     
     historial_raw, origen = obtener_calendario_equipo(id_activo)
     records_historial = []
@@ -376,33 +409,43 @@ with tab1:
             st.info("No hay próximos partidos.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
+    # NUEVA SECCIÓN: Plantilla y Mapa divididos en 2 columnas
+    col_plantilla, col_mapa = st.columns(2)
     
-    st.subheader(f"Jugadores de: {nombre_activo}")
-    
-    plantilla = obtener_plantilla(id_activo)
-    
-    if plantilla:
-        datos_formateados = []
-        for p in plantilla:
-            datos_formateados.append({
-                "Número": p.get("number") if p.get("number") is not None else "-",
-                "Nombre": p.get("name", "N/A"),
-                "Edad": p.get("age", "-"),
-                "Posición": p.get("position", "-")
-            })
-            
-        df_final = pd.DataFrame(datos_formateados)
+    with col_plantilla:
+        st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
         
-        st.dataframe(
-            df_final,
-            hide_index=True,
-            use_container_width=True
-        )
-    else:
-        st.warning(f"No se encontró información de la plantilla para {nombre_activo}. Es posible que no esté disponible en la versión gratuita de la API.")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+        plantilla = obtener_plantilla(id_activo)
+        if plantilla:
+            datos_formateados = []
+            for p in plantilla:
+                datos_formateados.append({
+                    "Número": p.get("number") if p.get("number") is not None else "-",
+                    "Nombre": p.get("name", "N/A"),
+                    "Edad": p.get("age", "-"),
+                    "Posición": p.get("position", "-")
+                })
+                
+            df_final = pd.DataFrame(datos_formateados)
+            st.dataframe(df_final, hide_index=True, use_container_width=True)
+        else:
+            st.warning(f"No se encontró información de la plantilla para {nombre_activo}.")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+    with col_mapa:
+        st.markdown("<div class='premium-card'><div class='section-title'>🗺️ Ubicación Geográfica</div>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: #94A3B8 !important; margin-bottom: 15px;'><strong>📍 Estadio:</strong> {estadio_activo} <br> <strong>🏙️ Ciudad:</strong> {ciudad_activa}, {pais_activo}</p>", unsafe_allow_html=True)
+        
+        lat, lon = obtener_coordenadas(ciudad_activa, pais_activo)
+        if lat and lon:
+            df_mapa = pd.DataFrame({'lat': [lat], 'lon': [lon]})
+            # st.map renderiza automáticamente un mapa oscuro en tema oscuro
+            st.map(df_mapa, zoom=12, use_container_width=True)
+        else:
+            st.info("No se pudieron localizar las coordenadas exactas de la ciudad.")
+            
+        st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
