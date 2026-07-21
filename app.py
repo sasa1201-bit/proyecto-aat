@@ -160,17 +160,17 @@ TEAM_LOGO_FALLBACKS = {
     18: "https://media.api-sports.io/formula-1/teams/18.png"
 }
 
-# Estadísticas oficiales de respaldo 2024 para garantizar que NUNCA aparezcan ceros
+# Estadísticas oficiales de respaldo 2024 para cada escudería
 STATS_2024_FALLBACK = {
-    "Scuderia Ferrari": {"puntos": 652, "podios": 19, "carreras": 24, "efectividad": 79.2, "promedio": 27.2},
-    "McLaren": {"puntos": 666, "podios": 18, "carreras": 24, "efectividad": 75.0, "promedio": 27.8},
-    "Red Bull Racing": {"puntos": 589, "podios": 14, "carreras": 24, "efectividad": 58.3, "promedio": 24.5},
-    "Mercedes": {"puntos": 468, "podios": 9, "carreras": 24, "efectividad": 37.5, "promedio": 19.5},
-    "Aston Martin": {"puntos": 86, "podios": 1, "carreras": 24, "efectividad": 4.2, "promedio": 3.6},
-    "Alpine": {"puntos": 49, "podios": 1, "carreras": 24, "efectividad": 4.2, "promedio": 2.0},
-    "Haas": {"puntos": 58, "podios": 0, "carreras": 24, "efectividad": 25.0, "promedio": 2.4},
-    "RB": {"puntos": 46, "podios": 0, "carreras": 24, "efectividad": 20.0, "promedio": 1.9},
-    "Williams": {"puntos": 17, "podios": 0, "carreras": 24, "efectividad": 10.0, "promedio": 0.7}
+    "Scuderia Ferrari": {"puntos": 652, "podios": 19, "carreras": 24, "efectividad": 79.2, "promedio": 27.2, "base": "Maranello", "estadio": "Pista de Fiorano", "pais": "Italy"},
+    "McLaren": {"puntos": 666, "podios": 18, "carreras": 24, "efectividad": 75.0, "promedio": 27.8, "base": "Woking", "estadio": "McLaren Technology Centre", "pais": "United Kingdom"},
+    "Red Bull Racing": {"puntos": 589, "podios": 14, "carreras": 24, "efectividad": 58.3, "promedio": 24.5, "base": "Milton Keynes", "estadio": "Red Bull Technology Campus", "pais": "Austria"},
+    "Mercedes": {"puntos": 468, "podios": 9, "carreras": 24, "efectividad": 37.5, "promedio": 19.5, "base": "Brackley", "estadio": "Mercedes-AMG High Performance Powertrains", "pais": "Germany"},
+    "Aston Martin": {"puntos": 86, "podios": 1, "carreras": 24, "efectividad": 4.2, "promedio": 3.6, "base": "Silverstone", "estadio": "Aston Martin Aramco Technology Campus", "pais": "United Kingdom"},
+    "Alpine": {"puntos": 49, "podios": 1, "carreras": 24, "efectividad": 4.2, "promedio": 2.0, "base": "Enstone", "estadio": "Enstone Technical Centre", "pais": "France"},
+    "Haas": {"puntos": 58, "podios": 0, "carreras": 24, "efectividad": 25.0, "promedio": 2.4, "base": "Kannapolis", "estadio": "Haas F1 Factory", "pais": "United States"},
+    "RB": {"puntos": 46, "podios": 0, "carreras": 24, "efectividad": 20.0, "promedio": 1.9, "base": "Faenza", "estadio": "Faenza Factory", "pais": "Italy"},
+    "Williams": {"puntos": 17, "podios": 0, "carreras": 24, "efectividad": 10.0, "promedio": 0.7, "base": "Grove", "estadio": "Williams Conference Centre", "pais": "United Kingdom"}
 }
 
 def obtener_url_logo_segura(team_id, url_api):
@@ -234,7 +234,7 @@ if st.sidebar.button("🔄 Sincronizar Caché & Telemetría", use_container_widt
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_f1_supreme_v10")
+        geolocator = Nominatim(user_agent="forza_f1_supreme_v11")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -242,14 +242,6 @@ def obtener_coordenadas(ciudad, pais):
     except:
         pass
     return None, None
-
-@st.cache_data(ttl=30, show_spinner=False)
-def obtener_carreras_en_vivo():
-    try:
-        response = requests.get("https://v1.formula-1.api-sports.io/races?type=live", headers=HEADERS)
-        if response.status_code == 200: return response.json().get("response", [])
-    except: pass
-    return []
 
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_escuderia_api(nombre_busqueda):
@@ -294,24 +286,11 @@ TODOS_OS_PILOTOS_2024 = [
     "Zhou Guanyu", "Kevin Magnussen", "Daniel Ricciardo", "Oliver Bearman"
 ]
 
-live_races = obtener_carreras_en_vivo()
-records_live = []
-if live_races:
-    for match in live_races:
-        records_live.append({
-            "GranPremio": match.get('competition', {}).get('name', 'Gran Premio F1'),
-            "Logo_GP": match.get('competition', {}).get('logo', ''),
-            "Circuito": match.get('circuit', {}).get('name', 'Circuito Oficial'),
-            "Ciudad": match.get('circuit', {}).get('city', 'Pista Global'),
-            "Estado": match.get('status', 'En Vivo')
-        })
-df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
-
 # Navegación con 10 pestañas maestras
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🏠 Panel 2024", 
     "⚔️ H2H", 
-    "🔴 En Vivo", 
+    "🔴 En Vivo / 2024", 
     "📈 FastF1 Telemetry", 
     "⛅ Clima", 
     "💰 Cost Cap", 
@@ -336,23 +315,21 @@ with tab1:
         
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
-        busqueda_usuario = st.text_input("🔍 Buscar escudería (Ej. Ferrari, Mercedes, Red Bull):", value="", placeholder="Escribe al menos 2 letras...")
+        busqueda_usuario = st.text_input("🔍 Buscar escudería (Ej. Ferrari, Mercedes, Red Bull):", value="", placeholder="Escribe al menos 2 letras...", key="input_busq_escuderia")
         
         if len(busqueda_usuario) >= 2:
             resultados = buscar_escuderia_api(busqueda_usuario)
             if resultados:
                 opciones = {f"{i['name']} ({i.get('country', 'N/A')})": i for i in resultados}
-                sel = st.selectbox("Seleccione escudería activa:", list(opciones.keys()))
+                sel = st.selectbox("Seleccione escudería activa:", list(opciones.keys()), key="select_escuderia_activa")
                 if sel:
                     data_seleccion = opciones[sel]
-                    st.session_state.update({
-                        "id_seleccionado": data_seleccion['id'], 
-                        "nombre_seleccionado": data_seleccion['name'], 
-                        "pais_seleccionado": data_seleccion.get('country', 'N/A'), 
-                        "logo_seleccionado": data_seleccion.get('logo', ''),
-                        "ciudad_seleccionada": data_seleccion.get('base', data_seleccion.get('country', 'N/A')),
-                        "estadio_seleccionado": data_seleccion.get('name', 'Base Técnica')
-                    })
+                    st.session_state["id_seleccionado"] = data_seleccion['id']
+                    st.session_state["nombre_seleccionado"] = data_seleccion['name']
+                    st.session_state["pais_seleccionado"] = data_seleccion.get('country', 'N/A')
+                    st.session_state["logo_seleccionado"] = data_seleccion.get('logo', '')
+                    st.session_state["ciudad_seleccionada"] = data_seleccion.get('base', data_seleccion.get('country', 'N/A'))
+                    st.session_state["estadio_seleccionado"] = data_seleccion.get('name', 'Base Técnica')
     st.markdown("</div>", unsafe_allow_html=True)
 
     id_activo = st.session_state["id_seleccionado"]
@@ -362,32 +339,14 @@ with tab1:
     ciudad_activa = st.session_state.get("ciudad_seleccionada", "")
     estadio_activo = st.session_state.get("estadio_seleccionado", "")
     
-    historial_raw, origen = obtener_calendario_escuderia_2024(id_activo)
-    records_historial = []
-    
-    for f in historial_raw:
-        if 'date' in f:
-            records_historial.append({
-                "Fecha": pd.to_datetime(f['date']),
-                "Fecha_Str": pd.to_datetime(f['date']).strftime('%Y-%m-%d %H:%M'),
-                "Competencia": f.get('competition', {}).get('name', 'Gran Premio'),
-                "Circuito": f.get('circuit', {}).get('name', 'Circuito'),
-                "Ciudad": f.get('circuit', {}).get('city', ''),
-                "Logo_GP": f.get('competition', {}).get('logo', ''),
-                "Estado": f.get('status', 'Completed')
-            })
-            
-    cols = ["Fecha", "Fecha_Str", "Competencia", "Circuito", "Ciudad", "Logo_GP", "Estado"]
-    if records_historial:
-        df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False)
-    else:
-        df_historial = pd.DataFrame(columns=cols)
-    
-    # Asignación robusta garantizada con estadísticas 2024 (Sin ceros)
+    # Asignación robusta garantizada con estadísticas 2024
     stats_equipo = STATS_2024_FALLBACK.get("Scuderia Ferrari")
     for k_name, v_data in STATS_2024_FALLBACK.items():
         if k_name.lower() in nombre_activo.lower() or nombre_activo.lower() in k_name.lower():
             stats_equipo = v_data
+            pais_activo = v_data["pais"]
+            ciudad_activa = v_data["base"]
+            estadio_activo = v_data["estadio"]
             break
 
     puntos_totales = stats_equipo["puntos"]
@@ -395,7 +354,7 @@ with tab1:
     efectividad = stats_equipo["efectividad"]
     promedio_puntos = stats_equipo["promedio"]
 
-    # Tarjetas KPI con datos garantizados y Logos
+    # Tarjetas KPI con datos actualizados y Logos
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         logo_html_str = render_logo_html(logo_activo, width=48, fallback_emoji="🏎️", team_id=id_activo)
@@ -461,13 +420,12 @@ with tab1:
     with col_izq:
         st.markdown("<div class='telemetry-card'><div class='section-header'>⏮️ Últimos Grandes Premios 2024</div>", unsafe_allow_html=True)
         
-        # Lista de Grandes Premios 2024 con datos garantizados
         gps_2024_demo = [
-            {"Competencia": "Gran Premio de Abu Dhabi 2024", "Circuito": "Yas Marina Circuit", "Fecha": "2024-12-08 13:00"},
-            {"Competencia": "Gran Premio de Catar 2024", "Circuito": "Losail International Circuit", "Fecha": "2024-12-01 17:00"},
-            {"Competencia": "Gran Premio de Las Vegas 2024", "Circuito": "Las Vegas Strip Circuit", "Fecha": "2024-11-23 22:00"},
-            {"Competencia": "Gran Premio de São Paulo 2024", "Circuito": "Autódromo de Interlagos", "Fecha": "2024-11-03 17:00"},
-            {"Competencia": "Gran Premio de Ciudad de México 2024", "Circuito": "Autódromo Hermanos Rodríguez", "Fecha": "2024-10-27 20:00"}
+            {"Competencia": "Gran Premio de Abu Dhabi 2024", "Circuito": "Yas Marina Circuit", "Fecha": "2024-12-08"},
+            {"Competencia": "Gran Premio de Catar 2024", "Circuito": "Losail International Circuit", "Fecha": "2024-12-01"},
+            {"Competencia": "Gran Premio de Las Vegas 2024", "Circuito": "Las Vegas Strip Circuit", "Fecha": "2024-11-23"},
+            {"Competencia": "Gran Premio de São Paulo 2024", "Circuito": "Autódromo de Interlagos", "Fecha": "2024-11-03"},
+            {"Competencia": "Gran Premio de Ciudad de México 2024", "Circuito": "Autódromo Hermanos Rodríguez", "Fecha": "2024-10-27"}
         ]
         
         for gp in gps_2024_demo:
@@ -561,27 +519,52 @@ with tab2:
 
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🔴 Centro de Control & Telemetría en Vivo</div>", unsafe_allow_html=True)
-    
-    mock_live = pd.DataFrame([
-        {"GranPremio": "Gran Premio de Abu Dhabi 2024", "Circuito": "Yas Marina Circuit", "Ciudad": "Abu Dhabi", "Sesión": "Carrera Final", "Líder": "Max Verstappen", "Estado": "FINALIZADO"},
-        {"GranPremio": "Gran Premio de São Paulo 2024", "Circuito": "Autódromo de Interlagos", "Ciudad": "São Paulo", "Sesión": "Carrera", "Líder": "Max Verstappen", "Estado": "COMPLETADO"}
-    ])
-    for _, row in mock_live.iterrows():
+    st.markdown("<div class='section-header'>🔴 Registro Completo de las 24 Carreras de la Temporada 2024</div>", unsafe_allow_html=True)
+    st.write("Listado histórico oficial de todas las Grandes Premios corridos en la temporada 2024 con sus respectivos ganadores y circuitos.")
+
+    # Las 24 carreras oficiales de la Temporada 2024
+    carreras_2024_completas = [
+        {"gp": "Gran Premio de Baréin 2024", "circuito": "Bahrain International Circuit", "ciudad": "Sakhir", "ganador": "Max Verstappen", "fecha": "2024-03-02"},
+        {"gp": "Gran Premio de Arabia Saudita 2024", "circuito": "Jeddah Corniche Circuit", "ciudad": "Yeda", "ganador": "Max Verstappen", "fecha": "2024-03-09"},
+        {"gp": "Gran Premio de Australia 2024", "circuito": "Albert Park Circuit", "ciudad": "Melbourne", "ganador": "Carlos Sainz", "fecha": "2024-03-24"},
+        {"gp": "Gran Premio de Japón 2024", "circuito": "Suzuka International Racing Course", "ciudad": "Suzuka", "ganador": "Max Verstappen", "fecha": "2024-04-07"},
+        {"gp": "Gran Premio de China 2024", "circuito": "Shanghai International Circuit", "ciudad": "Shanghái", "ganador": "Max Verstappen", "fecha": "2024-04-21"},
+        {"gp": "Gran Premio de Miami 2024", "circuito": "Miami International Autodrome", "ciudad": "Miami", "ganador": "Lando Norris", "fecha": "2024-05-05"},
+        {"gp": "Gran Premio de Emilia-Romaña 2024", "circuito": "Autodromo Internazionale Enzo e Dino Ferrari", "ciudad": "Imola", "ganador": "Max Verstappen", "fecha": "2024-05-19"},
+        {"gp": "Gran Premio de Mónaco 2024", "circuito": "Circuit de Monaco", "ciudad": "Mónaco", "ganador": "Charles Leclerc", "fecha": "2024-05-26"},
+        {"gp": "Gran Premio de Canadá 2024", "circuito": "Circuit Gilles Villeneuve", "ciudad": "Montreal", "ganador": "Max Verstappen", "fecha": "2024-06-09"},
+        {"gp": "Gran Premio de España 2024", "circuito": "Circuit de Barcelona-Catalunya", "ciudad": "Barcelona", "ganador": "Max Verstappen", "fecha": "2024-06-23"},
+        {"gp": "Gran Premio de Austria 2024", "circuito": "Red Bull Ring", "ciudad": "Spielberg", "ganador": "George Russell", "fecha": "2024-06-30"},
+        {"gp": "Gran Premio del Reino Unido 2024", "circuito": "Silverstone Circuit", "ciudad": "Silverstone", "ganador": "Lewis Hamilton", "fecha": "2024-07-07"},
+        {"gp": "Gran Premio de Hungría 2024", "circuito": "Hungaroring", "ciudad": "Budapest", "ganador": "Oscar Piastri", "fecha": "2024-07-21"},
+        {"gp": "Gran Premio de Bélgica 2024", "circuito": "Circuit de Spa-Francorchamps", "ciudad": "Spa", "ganador": "Lewis Hamilton", "fecha": "2024-07-28"},
+        {"gp": "Gran Premio de los Países Bajos 2024", "circuito": "Circuit Zandvoort", "ciudad": "Zandvoort", "ganador": "Lando Norris", "fecha": "2024-08-25"},
+        {"gp": "Gran Premio de Italia 2024", "circuito": "Autodromo Nazionale di Monza", "ciudad": "Monza", "ganador": "Charles Leclerc", "fecha": "2024-09-01"},
+        {"gp": "Gran Premio de Azerbaiyán 2024", "circuito": "Baku City Circuit", "ciudad": "Bakú", "ganador": "Oscar Piastri", "fecha": "2024-09-15"},
+        {"gp": "Gran Premio de Singapur 2024", "circuito": "Marina Bay Street Circuit", "ciudad": "Singapur", "ganador": "Lando Norris", "fecha": "2024-09-22"},
+        {"gp": "Gran Premio de Estados Unidos 2024", "circuito": "Circuit of the Americas", "ciudad": "Austin", "ganador": "Charles Leclerc", "fecha": "2024-10-20"},
+        {"gp": "Gran Premio de Ciudad de México 2024", "circuito": "Autódromo Hermanos Rodríguez", "ciudad": "Ciudad de México", "ganador": "Carlos Sainz", "fecha": "2024-10-27"},
+        {"gp": "Gran Premio de São Paulo 2024", "circuito": "Autódromo de Interlagos", "ciudad": "São Paulo", "ganador": "Max Verstappen", "fecha": "2024-11-03"},
+        {"gp": "Gran Premio de Las Vegas 2024", "circuito": "Las Vegas Strip Circuit", "ciudad": "Las Vegas", "ganador": "George Russell", "fecha": "2024-11-23"},
+        {"gp": "Gran Premio de Catar 2024", "circuito": "Losail International Circuit", "ciudad": "Lusail", "ganador": "Max Verstappen", "fecha": "2024-12-01"},
+        {"gp": "Gran Premio de Abu Dhabi 2024", "circuito": "Yas Marina Circuit", "ciudad": "Abu Dabi", "ganador": "Lando Norris", "fecha": "2024-12-08"}
+    ]
+
+    for item in carreras_2024_completas:
         st.markdown(f"""
             <div class='live-session-card'>
                 <div style='display: flex; justify-content: space-between; align-items: center;'>
                     <div style='width: 40%;'>
-                        <span style='font-size: 1.15rem; font-weight: 800; color: #FFFFFF;'>{row['GranPremio']}</span><br>
-                        <span style='font-size: 0.85rem; color: #94A3B8;'>🏁 {row['Circuito']} ({row['Ciudad']})</span>
+                        <span style='font-size: 1.1rem; font-weight: 800; color: #FFFFFF;'>{item['gp']}</span><br>
+                        <span style='font-size: 0.85rem; color: #94A3B8;'>🏁 {item['circuito']} ({item['ciudad']})</span>
                     </div>
                     <div style='width: 25%; text-align: center;'>
-                        <span class='badge-live'>🏁 {row['Estado']}</span><br>
-                        <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 700; margin-top: 6px; display:block;'>{row['Sesión']}</span>
+                        <span class='badge-live'>🏁 FINALIZADO</span><br>
+                        <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 700; margin-top: 6px; display:block;'>📅 {item['fecha']}</span>
                     </div>
                     <div style='width: 35%; text-align: right;'>
-                        <span style='font-size: 0.8rem; color: #94A3B8;'>GANADOR / LÍDER</span><br>
-                        <span style='font-size: 1.05rem; font-weight: 800; color: #F59E0B;'>🏎️ {row['Líder']}</span>
+                        <span style='font-size: 0.8rem; color: #94A3B8;'>GANADOR DE LA CARRERA</span><br>
+                        <span style='font-size: 1.05rem; font-weight: 800; color: #F59E0B;'>🏆 {item['ganador']}</span>
                     </div>
                 </div>
             </div>
@@ -843,7 +826,7 @@ with tab10:
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V17.0 (Robust Data Guarantee)</strong><br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V18.0 (State Sync & Full 2024 Races)</strong><br>
         Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
