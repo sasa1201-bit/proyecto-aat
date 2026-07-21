@@ -563,24 +563,41 @@ with tab3:
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
-    st.write("Análisis cruzado de los inputs del piloto: Acelerador, Freno y Velocidad mediante la integración simulada de **FastF1**.")
+    st.write("Análisis cruzado de los inputs del piloto: Acelerador, Freno y Velocidad mediante la integración simulada de **FastF1** con toda la parrilla 2024.")
     
+    DRIVER_COLORS = {
+        "Max Verstappen": "#0600EF", "Sergio Pérez": "#1E41FF",
+        "Lewis Hamilton": "#00D2BE", "George Russell": "#00D2BE",
+        "Charles Leclerc": "#DC0000", "Carlos Sainz": "#DC0000",
+        "Lando Norris": "#FF8000", "Oscar Piastri": "#FF8000",
+        "Fernando Alonso": "#006F62", "Lance Stroll": "#006F62",
+        "Pierre Gasly": "#0090FF", "Esteban Ocon": "#0090FF",
+        "Alex Albon": "#005AFF", "Yuki Tsunoda": "#2B4562",
+        "Nico Hülkenberg": "#B6BABD", "Kevin Magnussen": "#B6BABD",
+        "Valtteri Bottas": "#52E252", "Zhou Guanyu": "#52E252",
+        "Daniel Ricciardo": "#2B4562", "Oliver Bearman": "#DC0000"
+    }
+
     col_t1, col_t2, col_t3 = st.columns(3)
     with col_t1:
-        driver1 = st.selectbox("Piloto 1 (Referencia):", ["VER - Max Verstappen", "LEC - Charles Leclerc"], index=0)
-        color1 = "#0600EF" if "VER" in driver1 else "#DC0000"
+        driver1 = st.selectbox("Piloto 1 (Referencia):", TODOS_OS_PILOTOS_2024, index=0, key="tel_driver_1")
+        color1 = DRIVER_COLORS.get(driver1, "#FF1801")
     with col_t2:
-        driver2 = st.selectbox("Piloto 2 (Comparativa):", ["NOR - Lando Norris", "HAM - Lewis Hamilton"], index=0)
-        color2 = "#FF8000" if "NOR" in driver2 else "#00D2BE"
+        driver2 = st.selectbox("Piloto 2 (Comparativa):", TODOS_OS_PILOTOS_2024, index=6, key="tel_driver_2")
+        color2 = DRIVER_COLORS.get(driver2, "#38BDF8")
     with col_t3:
-        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"])
+        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
 
     x = np.linspace(0, 100, 600)
-    speed1 = 320 - 180 * np.exp(-x/15) + 25 * np.sin(x/4) + np.random.normal(0, 1.5, 600)
+    
+    seed1 = sum(ord(c) for c in driver1)
+    seed2 = sum(ord(c) for c in driver2)
+    
+    speed1 = 320 - (seed1 % 20) - 180 * np.exp(-x/15) + 25 * np.sin(x/4) + np.random.normal(0, 1.5, 600)
     throttle1 = np.where(np.sin(x/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
     brake1 = np.where(np.sin(x/4) < -0.6, 100, 0)
     
-    speed2 = 315 - 170 * np.exp(-x/18) + 27 * np.sin((x-1.5)/4) + np.random.normal(0, 1.5, 600)
+    speed2 = 315 - (seed2 % 20) - 170 * np.exp(-x/18) + 27 * np.sin((x-1.5)/4) + np.random.normal(0, 1.5, 600)
     throttle2 = np.where(np.sin((x-1.5)/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
     brake2 = np.where(np.sin((x-1.5)/4) < -0.5, 100, 0)
 
@@ -589,8 +606,8 @@ with tab4:
         subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)")
     )
     
-    fig_tel.add_trace(go.Scatter(x=x, y=speed1, name=driver1[:3], line=dict(color=color1, width=2.5)), row=1, col=1)
-    fig_tel.add_trace(go.Scatter(x=x, y=speed2, name=driver2[:3], line=dict(color=color2, width=2.5)), row=1, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=speed1, name=driver1, line=dict(color=color1, width=2.5)), row=1, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=speed2, name=driver2, line=dict(color=color2, width=2.5)), row=1, col=1)
     
     fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle1, 0, 100), showlegend=False, line=dict(color=color1, width=2)), row=2, col=1)
     fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle2, 0, 100), showlegend=False, line=dict(color=color2, width=2)), row=2, col=1)
@@ -607,7 +624,7 @@ with tab4:
     fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title_text="Distancia del Circuito (m)", row=3, col=1)
 
     st.plotly_chart(fig_tel, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True) 
 
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
