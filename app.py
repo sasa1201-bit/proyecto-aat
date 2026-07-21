@@ -109,7 +109,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-API_KEY = "acb867b68f5987d9c226e48c12c090e3"
+API_KEY = "2540a6ade056a06d82e67727b70a5f00"
 HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
 
 # PROCESAMIENTO DE CONEXIÓN E INFRAESTRUCTURA DE RESPALDO
