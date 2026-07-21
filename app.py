@@ -465,15 +465,18 @@ with tab1:
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
-    st.write("Comparativa dinámica de rendimiento seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
+    st.write("Comparativa dinámica de rendimiento y telemetría cruzada seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
     
     col_p1, col_vs, col_p2 = st.columns([5, 1, 5])
     with col_p1:
-        sel_h2h_a = st.selectbox("Seleccionar Piloto A:", TODOS_OS_PILOTOS_2024, index=0, key="h2h_piloto_a")
+        sel_h2h_a = st.selectbox("Seleccionar Piloto A (Referencia):", TODOS_OS_PILOTOS_2024, index=0, key="h2h_piloto_a")
     with col_vs:
         st.markdown("<div style='text-align: center; padding-top: 30px;'><h2 style='color: #FF1801; font-weight: 900;'>VS</h2></div>", unsafe_allow_html=True)
     with col_p2:
-        sel_h2h_b = st.selectbox("Seleccionar Piloto B:", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="h2h_piloto_b")
+        sel_h2h_b = st.selectbox("Seleccionar Piloto B (Rival):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="h2h_piloto_b")
+
+    if sel_h2h_a == sel_h2h_b:
+        st.warning("⚠️ Has seleccionado al mismo piloto en ambos lados. Selecciona pilotos diferentes para una comparativa H2H real.")
 
     seed_a = sum(ord(c) for c in sel_h2h_a)
     seed_b = sum(ord(c) for c in sel_h2h_b)
@@ -487,26 +490,47 @@ with tab2:
     col_res1, col_res2 = st.columns(2)
     with col_res1:
         st.markdown(f"""
-            <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid rgba(255,24,1,0.3); text-align: center;'>
-                <h3 style='color: #FFFFFF; margin-bottom: 5px;'>🏎️ {sel_h2h_a}</h3>
-                <hr style='border-color: rgba(255,255,255,0.1);'>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>{vel_a_val} km/h</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.{seed_a % 90}</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>{pts_a_val} pts</strong></p>
+            <div style='background: rgba(255,24,1,0.03); padding: 22px; border-radius: 14px; border: 1px solid rgba(255,24,1,0.3);'>
+                <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ {sel_h2h_a}</h3>
+                <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>⚡ Velocidad Punta: <b style='color: #38BDF8;'>{vel_a_val} km/h</b></p>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>⏱️ Ritmo Q3: <b style='color: #F59E0B;'>1:19.{seed_a % 90}</b></p>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>🏆 Puntos Temporada: <b style='color: #10B981;'>{pts_a_val} pts</b></p>
             </div>
         """, unsafe_allow_html=True)
     with col_res2:
         st.markdown(f"""
-            <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.3); text-align: center;'>
-                <h3 style='color: #FFFFFF; margin-bottom: 5px;'>🏎️ {sel_h2h_b}</h3>
-                <hr style='border-color: rgba(255,255,255,0.1);'>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>{vel_b_val} km/h</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.{seed_b % 90}</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>{pts_b_val} pts</strong></p>
+            <div style='background: rgba(59,130,246,0.03); padding: 22px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.3);'>
+                <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ {sel_h2h_b}</h3>
+                <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>⚡ Velocidad Punta: <b style='color: #38BDF8;'>{vel_b_val} km/h</b></p>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>⏱️ Ritmo Q3: <b style='color: #F59E0B;'>1:19.{seed_b % 90}</b></p>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>🏆 Puntos Temporada: <b style='color: #10B981;'>{pts_b_val} pts</b></p>
             </div>
         """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Gráfica comparativa visual Plotly
+    df_h2h = pd.DataFrame({
+        "Métrica": ["Puntos 2024", "Velocidad Punta (km/h)", "Índice Q3"],
+        sel_h2h_a: [pts_a_val, vel_a_val, (seed_a % 40) + 60],
+        sel_h2h_b: [pts_b_val, vel_b_val, (seed_b % 40) + 60]
+    })
+    
+    fig_h2h = px.bar(
+        df_h2h, x="Métrica", y=[sel_h2h_a, sel_h2h_b], barmode="group",
+        template="plotly_dark", title="Comparativa Gráfica Directa H2H",
+        color_discrete_map={sel_h2h_a: "#FF1801", sel_h2h_b: "#38BDF8"}
+    )
+    fig_h2h.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=40, b=20, l=20, r=20), height=320,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    st.plotly_chart(fig_h2h, use_container_width=True, key=f"chart_h2h_{sel_h2h_a}_{sel_h2h_b}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🔴 Registro Completo y Mapa Geolocalizado de los 24 Grandes Premios de 2024</div>", unsafe_allow_html=True)
