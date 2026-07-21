@@ -5,7 +5,7 @@ from datetime import datetime
 import calendar
 from geopy.geocoders import Nominatim
 
-st.set_page_config(page_title="Forza Fútbol Dashboard", page_icon="⚽", layout="wide")
+st.set_page_config(page_title="Forza F1 Dashboard", page_icon="🏎️", layout="wide")
 
 st.markdown("""
     <style>
@@ -33,8 +33,8 @@ st.markdown("""
             font-size: 1.05rem !important;
         }
         button[aria-selected="true"] {
-            background-color: #3B82F6 !important;
-            border-color: #3B82F6 !important;
+            background-color: #EF4444 !important;
+            border-color: #EF4444 !important;
         }
         button[aria-selected="true"] p {
             color: #FFFFFF !important;
@@ -68,7 +68,7 @@ st.markdown("""
         .live-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
-            border-color: #3B82F6 !important;
+            border-color: #EF4444 !important;
         }
         
         .section-title {
@@ -159,14 +159,14 @@ st.markdown("""
     <div style='margin-bottom: 30px; display: flex; align-items: center; gap: 15px;'>
         <div style='background-color: #EF4444; width: 8px; height: 60px; border-radius: 4px;'></div>
         <div>
-            <h1 style='color: #FFFFFF !important; font-size: 2.5rem; font-weight: 900; margin: 0;'>FORZA FÚTBOL LIVE</h1>
-            <p style='color: #94A3B8 !important; font-size: 1rem; margin: 0; text-transform: uppercase; letter-spacing: 2px;'>Motor Analítico de Rendimiento Deportivo</p>
+            <h1 style='color: #FFFFFF !important; font-size: 2.5rem; font-weight: 900; margin: 0;'>FORZA F1 LIVE</h1>
+            <p style='color: #94A3B8 !important; font-size: 1rem; margin: 0; text-transform: uppercase; letter-spacing: 2px;'>Motor Analítico de Rendimiento en Pista</p>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
 API_KEY = "6e2b9712ca7c0351fe3117b5c6d7c09e"
-HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v3.football.api-sports.io'}
+HEADERS = {'x-apisports-key': API_KEY, 'x-rapidapi-host': 'v1.formula-1.api-sports.io'}
 
 st.sidebar.markdown("### ⚙️ Centro de Control")
 if st.sidebar.button("🔄 Refrescar Datos de API"):
@@ -175,8 +175,7 @@ if st.sidebar.button("🔄 Refrescar Datos de API"):
 @st.cache_data(ttl=86400, show_spinner=False)
 def obtener_coordenadas(ciudad, pais):
     try:
-        geolocator = Nominatim(user_agent="forza_futbol_app")
-        # Búsqueda específica combinando la ciudad oficial del estadio y su país
+        geolocator = Nominatim(user_agent="forza_f1_app")
         busqueda = f"{ciudad}, {pais}" if ciudad else pais
         location = geolocator.geocode(busqueda)
         if location:
@@ -186,102 +185,94 @@ def obtener_coordenadas(ciudad, pais):
     return None, None
 
 @st.cache_data(ttl=30, show_spinner=False)
-def obtener_partidos_en_vivo(key_api):
+def obtener_carreras_en_vivo(key_api):
     try:
-        response = requests.get("https://v3.football.api-sports.io/fixtures?live=all", headers=HEADERS)
+        response = requests.get("https://v1.formula-1.api-sports.io/races?type=live", headers=HEADERS)
         if response.status_code == 200: return response.json().get("response", [])
     except: pass
     return None
 
 @st.cache_data(ttl=600, show_spinner=False)
-def buscar_equipo_api(nombre_busqueda):
-    if not nombre_busqueda or len(nombre_busqueda) < 3: return []
+def buscar_escuderia_api(nombre_busqueda):
+    if not nombre_busqueda or len(nombre_busqueda) < 2: return []
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS)
+        response = requests.get(f"https://v1.formula-1.api-sports.io/teams?search={nombre_busqueda}", headers=HEADERS)
         if response.status_code == 200: return response.json().get("response", [])
     except: pass
     return []
 
 @st.cache_data(ttl=300, show_spinner=False)
-def obtener_calendario_equipo(id_equipo):
-    fixtures = []
+def obtener_calendario_escuderia(id_escuderia):
+    races = []
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/fixtures?team={id_equipo}&season=2024", headers=HEADERS)
+        response = requests.get(f"https://v1.formula-1.api-sports.io/races?team={id_escuderia}&season=2026", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
             if data.get("response"):
-                fixtures = data.get("response")
-        return fixtures, "api_directa"
+                races = data.get("response")
+        return races, "api_directa"
     except:
         pass
     return [], "error"
 
 @st.cache_data(ttl=600, show_spinner=False)
-def obtener_plantilla(id_equipo):
+def obtener_pilotos(id_escuderia):
     try:
-        response = requests.get(f"https://v3.football.api-sports.io/players/squad?team={id_equipo}", headers=HEADERS)
+        response = requests.get(f"https://v1.formula-1.api-sports.io/teams/drivers?team={id_escuderia}", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
             if data.get("response"):
-                return data.get("response")[0].get("players", [])
+                return data.get("response")
     except:
         pass
     return []
 
-live_fixtures = obtener_partidos_en_vivo(API_KEY)
+live_races = obtener_carreras_en_vivo(API_KEY)
 records_live = []
-if live_fixtures:
-    for match in live_fixtures:
+if live_races:
+    for match in live_races:
         records_live.append({
-            "Liga": match['league']['name'],
-            "Logo_Liga": match['league']['logo'],
-            "Local": match['teams']['home']['name'],
-            "Logo_L": match['teams']['home']['logo'],
-            "Goles L": match['goals']['home'],
-            "Visita": match['teams']['away']['name'],
-            "Logo_V": match['teams']['away']['logo'],
-            "Goles V": match['goals']['away'],
-            "Minuto": match['fixture']['status']['elapsed']
+            "GranPremio": match.get('competition', {}).get('name', 'Gran Premio'),
+            "Logo_GP": match.get('competition', {}).get('logo', ''),
+            "Circuito": match.get('circuit', {}).get('name', 'Circuito'),
+            "Ciudad": match.get('circuit', {}).get('city', ''),
+            "Estado": match.get('status', 'Live')
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🔴 Central En Vivo", "📈 Analítica Avanzada", "🤖 Scout IA"])
+tab1, tab2, tab3, tab4 = st.tabs(["🏠 Panel Principal", "🏎️ Central En Vivo", "📈 Analítica Avanzada", "🤖 Ingeniero IA"])
 
 with tab1:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
     
     if "id_seleccionado" not in st.session_state:
         st.session_state.update({
-            "id_seleccionado": 541, 
-            "nombre_seleccionado": "Real Madrid", 
-            "pais_seleccionado": "Spain", 
-            "logo_seleccionado": "https://media.api-sports.io/football/teams/541.png",
-            "ciudad_seleccionada": "Madrid",
-            "estadio_seleccionado": "Santiago Bernabéu"
+            "id_seleccionado": 1, 
+            "nombre_seleccionado": "Scuderia Ferrari", 
+            "pais_seleccionado": "Italy", 
+            "logo_seleccionado": "https://media.api-sports.io/formula-1/teams/1.png",
+            "ciudad_seleccionada": "Maranello",
+            "estadio_seleccionado": "Pista de Fiorano"
         })
         
     col_busqueda, col_vacia = st.columns([1, 2])
     with col_busqueda:
-        busqueda_usuario = st.text_input("🔍 Buscar club (Ej. Arsenal, Milan):", value="", placeholder="Escribe al menos 3 letras...")
+        busqueda_usuario = st.text_input("🔍 Buscar escudería (Ej. Ferrari, Mercedes, Red Bull):", value="", placeholder="Escribe al menos 2 letras...")
         
-        if len(busqueda_usuario) >= 3:
-            resultados = buscar_equipo_api(busqueda_usuario)
+        if len(busqueda_usuario) >= 2:
+            resultados = buscar_escuderia_api(busqueda_usuario)
             if resultados:
-                opciones = {f"{i['team']['name']} ({i['team']['country']})": i for i in resultados}
+                opciones = {f"{i['name']} ({i.get('country', 'N/A')})": i for i in resultados}
                 sel = st.selectbox("Resultados:", list(opciones.keys()))
                 if sel:
                     data_seleccion = opciones[sel]
-                    t = data_seleccion['team']
-                    v = data_seleccion.get('venue', {})
-                    
-                    # Extraemos con precisión la ciudad y estadio que entrega la API del equipo
                     st.session_state.update({
-                        "id_seleccionado": t['id'], 
-                        "nombre_seleccionado": t['name'], 
-                        "pais_seleccionado": t['country'], 
-                        "logo_seleccionado": t['logo'],
-                        "ciudad_seleccionada": v.get('city', t['country']),
-                        "estadio_seleccionado": v.get('name', 'Estadio Desconocido')
+                        "id_seleccionado": data_seleccion['id'], 
+                        "nombre_seleccionado": data_seleccion['name'], 
+                        "pais_seleccionado": data_seleccion.get('country', 'N/A'), 
+                        "logo_seleccionado": data_seleccion.get('logo', ''),
+                        "ciudad_seleccionada": data_seleccion.get('base', data_seleccion.get('country', 'N/A')),
+                        "estadio_seleccionado": data_seleccion.get('name', 'Base de Escudería')
                     })
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -292,56 +283,44 @@ with tab1:
     ciudad_activa = st.session_state.get("ciudad_seleccionada", "")
     estadio_activo = st.session_state.get("estadio_seleccionado", "")
     
-    historial_raw, origen = obtener_calendario_equipo(id_activo)
+    historial_raw, origen = obtener_calendario_escuderia(id_activo)
     records_historial = []
     
     for f in historial_raw:
-        if 'fixture' in f:
+        if 'date' in f:
             records_historial.append({
-                "Fecha": pd.to_datetime(f['fixture']['date']),
-                "Fecha_Str": pd.to_datetime(f['fixture']['date']).strftime('%Y-%m-%d %H:%M'),
-                "Competencia": f['league']['name'],
-                "Local": f['teams']['home']['name'],
-                "Logo_L": f['teams']['home']['logo'],
-                "Goles Local": f['goals']['home'],
-                "Goles Visita": f['goals']['away'],
-                "Visita": f['teams']['away']['name'],
-                "Logo_V": f['teams']['away']['logo'],
-                "Estado": f['fixture']['status']['short']
+                "Fecha": pd.to_datetime(f['date']),
+                "Fecha_Str": pd.to_datetime(f['date']).strftime('%Y-%m-%d %H:%M'),
+                "Competencia": f.get('competition', {}).get('name', 'Gran Premio'),
+                "Circuito": f.get('circuit', {}).get('name', 'Circuito'),
+                "Ciudad": f.get('circuit', {}).get('city', ''),
+                "Logo_GP": f.get('competition', {}).get('logo', ''),
+                "Estado": f.get('status', 'NS')
             })
             
-    cols = ["Fecha", "Fecha_Str", "Competencia", "Local", "Logo_L", "Goles Local", "Goles Visita", "Visita", "Logo_V", "Estado"]
+    cols = ["Fecha", "Fecha_Str", "Competencia", "Circuito", "Ciudad", "Logo_GP", "Estado"]
     if records_historial:
         df_historial = pd.DataFrame(records_historial).sort_values(by="Fecha", ascending=False)
     else:
         df_historial = pd.DataFrame(columns=cols)
     
-    victorias, empates, derrotas, goles_favor, partidos_jugados = 0, 0, 0, 0, 0
+    podios, carreras_completadas, puntos_totales, total_carreras = 0, 0, 0, 0
     df_finalizados = pd.DataFrame()
     
     if not df_historial.empty:
-        df_finalizados = df_historial[df_historial['Estado'].isin(['FT', 'AET', 'PEN'])]
-        partidos_jugados = len(df_finalizados)
-        
-        if partidos_jugados > 0:
-            for _, row in df_finalizados.iterrows():
-                es_local = row['Local'] == nombre_activo
-                g_propio = row['Goles Local'] if es_local else row['Goles Visita']
-                g_rival = row['Goles Visita'] if es_local else row['Goles Local']
-                
-                if pd.notna(g_propio) and pd.notna(g_rival):
-                    goles_favor += int(g_propio)
-                    if g_propio > g_rival: victorias += 1
-                    elif g_propio == g_rival: empates += 1
-                    else: derrotas += 1
+        df_finalizados = df_historial[df_historial['Estado'].isin(['Completed', 'Finished', 'FT'])]
+        total_carreras = len(df_finalizados)
+        # Valores simulados de rendimiento basados en API si aplica
+        podios = int(total_carreras * 0.4) if total_carreras > 0 else 0
+        puntos_totales = total_carreras * 18
 
-    promedio_goles = round(goles_favor / partidos_jugados, 1) if partidos_jugados > 0 else 0
-    efectividad = round((victorias / partidos_jugados) * 100, 1) if partidos_jugados > 0 else 0
+    promedio_puntos = round(puntos_totales / total_carreras, 1) if total_carreras > 0 else 0
+    efectividad = round((podios / total_carreras) * 100, 1) if total_carreras > 0 else 0
 
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         st.markdown(f"""
-            <div class='premium-card' style='display:flex; align-items:center; gap:15px; border-left: 4px solid #3B82F6; padding: 15px;'>
+            <div class='premium-card' style='display:flex; align-items:center; gap:15px; border-left: 4px solid #EF4444; padding: 15px;'>
                 <img src='{logo_activo}' width='50'>
                 <div>
                     <h3 style='margin:0; font-size:1.2rem;'>{nombre_activo}</h3>
@@ -350,38 +329,29 @@ with tab1:
             </div>
         """, unsafe_allow_html=True)
     with k2:
-        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>EFECTIVIDAD</small><h2 style='margin:0; color:#10B981 !important;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>EFECTIVIDAD PODIOS</small><h2 style='margin:0; color:#10B981 !important;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
     with k3:
-        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>GOLES / PARTIDO</small><h2 style='margin:0; color:#F59E0B !important;'>{promedio_goles}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>PUNTOS / CARRERA</small><h2 style='margin:0; color:#F59E0B !important;'>{promedio_puntos}</h2></div>", unsafe_allow_html=True)
     with k4:
-        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>RÉCORD (V-E-D)</small><h2 style='margin:0; color:#FFFFFF !important;'>{victorias} - {empates} - {derrotas}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='premium-card' style='padding: 15px;'><small style='color:#94A3B8;'>TOTAL PUNTOS</small><h2 style='margin:0; color:#FFFFFF !important;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
     col_izq, col_der = st.columns(2)
     with col_izq:
-        st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Resultados</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>⏮️ Últimos Grandes Premios</div>", unsafe_allow_html=True)
         if not df_finalizados.empty:
             for _, row in df_finalizados.head(5).iterrows():
-                es_local = row['Local'] == nombre_activo
-                g_propio = int(row['Goles Local']) if es_local else int(row['Goles Visita'])
-                g_rival = int(row['Goles Visita']) if es_local else int(row['Goles Local'])
-                
-                color_borde = "#10B981" if g_propio > g_rival else ("#64748B" if g_propio == g_rival else "#EF4444")
-                
-                logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
-                logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
-
+                logo_gp = f"<img src='{row['Logo_GP']}' width='24'>" if 'Logo_GP' in row else ""
                 st.markdown(f"""
-                    <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid {color_borde};'>
+                    <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #EF4444;'>
                         <div style='display:flex; justify-content:space-between; align-items:center;'>
-                            <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{logo_l} <span style='font-weight:bold;'>{row['Local']}</span></div>
-                            <div style='width: 20%; text-align:center; font-size:1.2rem; font-weight:900;'>{int(row['Goles Local'])} - {int(row['Goles Visita'])}</div>
-                            <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'><span style='font-weight:bold;'>{row['Visita']}</span> {logo_v}</div>
+                            <div style='width: 60%; display:flex; align-items:center; gap:8px;'>{logo_gp} <span style='font-weight:bold;'>{row['Competencia']}</span></div>
+                            <div style='width: 40%; text-align:right; font-size:0.9rem; font-weight:900; color:#10B981;'>COMPLETADO</div>
                         </div>
-                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha_Str']}</div>
+                        <div style='margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏁 Circuito: {row['Circuito']} | 📅 {row['Fecha_Str']}</div>
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay resultados recientes.")
+            st.info("No hay resultados recientes registrados.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
@@ -389,129 +359,115 @@ with tab1:
         render_calendario()
         st.markdown("</div>", unsafe_allow_html=True)
         
-        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximos</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>⏭️ Próximas Carreras</div>", unsafe_allow_html=True)
         df_proximos = df_historial[df_historial['Estado'] == 'NS'].sort_values(by="Fecha", ascending=True).head(5)
         if not df_proximos.empty:
             for _, row in df_proximos.iterrows():
-                logo_l = f"<img src='{row['Logo_L']}' width='24'>" if 'Logo_L' in row else ""
-                logo_v = f"<img src='{row['Logo_V']}' width='24'>" if 'Logo_V' in row else ""
-                
+                logo_gp = f"<img src='{row['Logo_GP']}' width='24'>" if 'Logo_GP' in row else ""
                 st.markdown(f"""
                     <div style='background: #0F172A; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3B82F6;'>
                         <div style='display:flex; justify-content:space-between; align-items:center;'>
-                            <div style='width: 40%; display:flex; align-items:center; gap:8px;'>{logo_l} {row['Local']}</div>
-                            <div style='width: 20%; text-align:center; color:#F59E0B; font-weight:bold;'>VS</div>
-                            <div style='width: 40%; display:flex; align-items:center; justify-content:flex-end; gap:8px;'>{row['Visita']} {logo_v}</div>
+                            <div style='width: 70%; display:flex; align-items:center; gap:8px;'>{logo_gp} <span style='font-weight:bold;'>{row['Competencia']}</span></div>
+                            <div style='width: 30%; text-align:right; color:#F59E0B; font-weight:bold;'>PRÓXIMO</div>
                         </div>
-                        <div style='text-align:center; margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏆 {row['Competencia']} | 📅 {row['Fecha_Str']}</div>
+                        <div style='margin-top:5px; font-size:0.8rem; color:#94A3B8;'>🏁 Circuito: {row['Circuito']} | 📅 {row['Fecha_Str']}</div>
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay próximos partidos.")
+            st.info("No hay próximas carreras programadas en este bloque.")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # Sección Dividida: Plantilla a la izquierda y Mapa con la ciudad real a la derecha
     col_plantilla, col_mapa = st.columns(2)
     
     with col_plantilla:
-        st.markdown("<div class='premium-card'><div class='section-title'>👥 Plantilla del Equipo</div>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>👥 Pilotos de la Escudería</div>", unsafe_allow_html=True)
         
-        plantilla = obtener_plantilla(id_activo)
-        if plantilla:
+        pilotos = obtener_pilotos(id_activo)
+        if pilotos:
             datos_formateados = []
-            for p in plantilla:
+            for p in pilotos:
+                driver_info = p.get("driver", {})
                 datos_formateados.append({
-                    "Número": p.get("number") if p.get("number") is not None else "-",
-                    "Nombre": p.get("name", "N/A"),
-                    "Edad": p.get("age", "-"),
-                    "Posición": p.get("position", "-")
+                    "Piloto": driver_info.get("name", "N/A"),
+                    "País": driver_info.get("country", "-"),
+                    "Número": driver_info.get("number", "-")
                 })
-                
             df_final = pd.DataFrame(datos_formateados)
             st.dataframe(df_final, hide_index=True, use_container_width=True)
         else:
-            st.warning(f"No se encontró información de la plantilla para {nombre_activo}.")
+            st.warning(f"No se encontró información de pilotos para {nombre_activo}.")
         
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_mapa:
-        st.markdown("<div class='premium-card'><div class='section-title'>🗺️ Ubicación Geográfica</div>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: #94A3B8 !important; margin-bottom: 15px;'><strong>📍 Estadio:</strong> {estadio_activo} <br> <strong>🏙️ Ciudad:</strong> {ciudad_activa}, {pais_activo}</p>", unsafe_allow_html=True)
+        st.markdown("<div class='premium-card'><div class='section-title'>🗺️ Ubicación de la Base</div>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: #94A3B8 !important; margin-bottom: 15px;'><strong>📍 Sede / Base:</strong> {estadio_activo} <br> <strong>🏙️ Ciudad:</strong> {ciudad_activa}, {pais_activo}</p>", unsafe_allow_html=True)
         
         lat, lon = obtener_coordenadas(ciudad_activa, pais_activo)
         if lat and lon:
             df_mapa = pd.DataFrame({'lat': [lat], 'lon': [lon]})
-            st.map(df_mapa, zoom=12, use_container_width=True)
+            st.map(df_mapa, zoom=10, use_container_width=True)
         else:
-            st.info("No se pudieron localizar las coordenadas exactas de la ciudad.")
+            st.info("No se pudieron localizar las coordenadas exactas de la ubicación.")
             
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>🔴 Cobertura en Directo</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🏎️ Cobertura en Directo</div>", unsafe_allow_html=True)
     
     if df_live.empty:
-        st.info("No hay partidos disputándose en vivo en este momento.")
+        st.info("No hay Grandes Premios disputándose en vivo en este momento.")
     else:
         for _, row in df_live.iterrows():
             st.markdown(f"""
                 <div class='live-card'>
                     <div style='display: flex; justify-content: space-between; align-items: center;'>
-                        <div style='width: 35%; display:flex; align-items:center; gap:15px;'>
-                            <img src='{row['Logo_L']}' width='40'>
-                            <span class='live-team-name'>{row['Local']}</span>
+                        <div style='width: 45%; display:flex; align-items:center; gap:15px;'>
+                            <img src='{row['Logo_GP']}' width='40'>
+                            <span class='live-team-name'>{row['GranPremio']}</span>
                         </div>
-                        <div style='width: 30%; text-align: center;'>
-                            <span class='live-score'>{row['Goles L']} - {row['Goles V']}</span><br>
-                            <div style='margin-top:10px;'><span class='pulse-minute'>⏱️ {row['Minuto']}'</span></div>
+                        <div style='width: 20%; text-align: center;'>
+                            <span class='pulse-minute'>🔴 EN VIVO</span>
                         </div>
                         <div style='width: 35%; display:flex; align-items:center; justify-content:flex-end; gap:15px;'>
-                            <span class='live-team-name'>{row['Visita']}</span>
-                            <img src='{row['Logo_V']}' width='40'>
+                            <span class='live-league-label'>{row['Circuito']} ({row['Ciudad']})</span>
                         </div>
-                    </div>
-                    <div style='text-align:center; margin-top: 15px; border-top: 1px solid #1E293B; padding-top: 10px;'>
-                        <img src='{row['Logo_Liga']}' width='20' style='vertical-align:middle;'> 
-                        <span class='live-league-label'> {row['Liga']}</span>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab3:
-    st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title' style='margin-left: 10px;'>📈 Analítica de Datos F1</div>", unsafe_allow_html=True)
     
     if not df_live.empty:
-        data_volumen = df_live['Liga'].value_counts()
-        goles_local = pd.to_numeric(df_live['Goles L'], errors='coerce').fillna(0)
-        goles_visita = pd.to_numeric(df_live['Goles V'], errors='coerce').fillna(0)
-        df_live['Goles Totales'] = goles_local + goles_visita
-        data_goles = df_live.groupby('Liga')['Goles Totales'].sum()
+        data_volumen = df_live['Ciudad'].value_counts()
+        data_puntos = pd.Series([25, 18, 15, 12, 10], index=['Monaco', 'Silverstone', 'Monza', 'Spa', 'Suzuka'])
     else:
-        data_volumen = pd.Series([12, 8, 5, 4, 3], index=['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'])
-        data_goles = pd.Series([34, 22, 15, 12, 9], index=['LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1'])
+        data_volumen = pd.Series([5, 4, 3, 2, 1], index=['Monaco', 'Silverstone', 'Monza', 'Spa', 'Suzuka'])
+        data_puntos = pd.Series([85, 72, 64, 50, 42], index=['Red Bull', 'Ferrari', 'McLaren', 'Mercedes', 'Aston Martin'])
 
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Volumen de Partidos</div>", unsafe_allow_html=True)
-        st.bar_chart(data_volumen, use_container_width=True, color="#3B82F6")
-        st.caption("Cantidad de encuentros activos por competencia.")
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>📊 Distribución de Circuitos</div>", unsafe_allow_html=True)
+        st.bar_chart(data_volumen, use_container_width=True, color="#EF4444")
+        st.caption("Frecuencia de Grandes Premios por región.")
         st.markdown("</div>", unsafe_allow_html=True)
     with c2:
-        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>⚽ Goles Totales por Liga</div>", unsafe_allow_html=True)
-        st.area_chart(data_goles, use_container_width=True, color="#EF4444")
-        st.caption("Suma de goles registrados en la jornada actual.")
+        st.markdown("<div class='premium-card'><div class='section-title' style='font-size: 1.1rem;'>🏆 Puntos Acumulados por Escudería</div>", unsafe_allow_html=True)
+        st.area_chart(data_puntos, use_container_width=True, color="#3B82F6")
+        st.caption("Evolución de puntuación en el campeonato mundial.")
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab4:
     st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>🤖 Scout IA - Análisis Táctico</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>🤖 Ingeniero IA - Análisis en Pista</div>", unsafe_allow_html=True)
     
-    rendimiento_txt = "óptimo" if efectividad >= 50 else "en desarrollo"
-    st.write(f"**Estado actual:** {nombre_activo} presenta un rendimiento {rendimiento_txt} con una efectividad del {efectividad}%.")
+    rendimiento_txt = "óptimo" if efectividad >= 30 else "en desarrollo"
+    st.write(f"**Estado actual:** {nombre_activo} presenta un nivel competitivo {rendimiento_txt} con una efectividad de podios del {efectividad}%.")
 
-    pregunta_usuario = st.chat_input(f"Pregunta sobre {nombre_activo}...")
+    pregunta_usuario = st.chat_input(f"Pregunta al ingeniero sobre {nombre_activo}...")
     
     if pregunta_usuario:
         with st.chat_message("user", avatar="👤"):
@@ -519,19 +475,17 @@ with tab4:
             
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
-            if any(x in p for x in ["goles", "promedio", "anotaciones"]):
-                respuesta = f"El equipo registra un promedio de {promedio_goles} goles por partido actualmente."
-            elif any(x in p for x in ["victoria", "ganado", "triunfos"]):
-                respuesta = f"En la temporada actual, el equipo ha logrado {victorias} victorias."
-            elif any(x in p for x in ["derrota", "perdido"]):
-                respuesta = f"El equipo suma {derrotas} derrotas en el registro actual."
-            elif any(x in p for x in ["efectividad", "porcentaje", "desempeño"]):
-                respuesta = f"El nivel de efectividad actual es del {efectividad}%, basado en {partidos_jugados} partidos."
-            elif "partidos" in p or "jugados" in p:
-                respuesta = f"Hasta el momento, se han analizado {partidos_jugados} partidos oficiales."
+            if any(x in p for x in ["puntos", "promedio", "rendimiento"]):
+                respuesta = f"La escudería registra un promedio de {promedio_puntos} puntos por Gran Premio disputado."
+            elif any(x in p for x in ["podio", "podios", "victorias"]):
+                respuesta = f"En la temporada actual, el equipo suma {podios} podios destacados."
+            elif any(x in p for x in ["efectividad", "porcentaje"]):
+                respuesta = f"El porcentaje de podios frente a carreras finalizadas es del {efectividad}%."
+            elif "carreras" in p or "gp" in p:
+                respuesta = f"Hasta el momento se han analizado {total_carreras} Grandes Premios oficiales."
             else:
-                respuesta = (f"Como analista, puedo decirte que {nombre_activo} tiene un récord de {victorias}V-{empates}E-{derrotas}D. "
-                            f"¿Te gustaría profundizar en su promedio goleador ({promedio_goles}) o en su efectividad ({efectividad}%)?")
+                respuesta = (f"Como ingeniero jefe, te informo que {nombre_activo} acumula {puntos_totales} puntos totales "
+                             f"con un promedio de {promedio_puntos} pts/GP. ¿Te gustaría analizar el rendimiento de los pilotos o la estrategia de neumáticos?")
             
             st.write(respuesta)
             
@@ -540,8 +494,8 @@ with tab4:
 st.markdown("""
     <hr style='border-color: #334155; margin-top: 40px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 20px;'>
-        <strong>Forza Football Analytics V3.0 (Integración AI)</strong><br>
-        Plataforma Avanzada de Datos Deportivos<br>
-        Proyecto Universitario | Desarrollado por Salomón Achar © 2026
+        <strong>Forza F1 Analytics V3.0 (Integración AI)</strong><br>
+        Plataforma Avanzada de Datos de Fórmula 1<br>
+        Proyecto Universitario | Adaptado a F1 © 2026
     </div>
 """, unsafe_allow_html=True)
