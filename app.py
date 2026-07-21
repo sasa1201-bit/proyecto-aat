@@ -562,94 +562,51 @@ with tab3:
 
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>📈 FastF1 Telemetry Master Suite (Multi-Channel Trace & Delta Analysis)</div>", unsafe_allow_html=True)
-    st.write("Análisis avanzado multicanal estilo FastF1: Comparativa sincronizada de **Velocidad**, **Aplicación de Pedal (Acelerador/Freno)** y **Delta de Tiempo** por metro de pista.")
+    st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
+    st.write("Análisis cruzado de los inputs del piloto: Acelerador, Freno y Velocidad mediante la integración simulada de **FastF1**.")
     
-    col_t1, col_t2 = st.columns(2)
+    col_t1, col_t2, col_t3 = st.columns(3)
     with col_t1:
-        sel_piloto_a = st.selectbox("Piloto Benchmark (Línea Principal):", TODOS_OS_PILOTOS_2024, index=0, key="fastf1_p1")
+        driver1 = st.selectbox("Piloto 1 (Referencia):", ["VER - Max Verstappen", "LEC - Charles Leclerc"], index=0)
+        color1 = "#0600EF" if "VER" in driver1 else "#DC0000"
     with col_t2:
-        sel_piloto_b = st.selectbox("Piloto Comparativa (Línea Superpuesta):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="fastf1_p2")
+        driver2 = st.selectbox("Piloto 2 (Comparativa):", ["NOR - Lando Norris", "HAM - Lewis Hamilton"], index=0)
+        color2 = "#FF8000" if "NOR" in driver2 else "#00D2BE"
+    with col_t3:
+        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"])
 
-    # Generación de datos avanzados de telemetría simulados con alta fidelidad
-    np.random.seed(sum(ord(c) for c in sel_piloto_a))
-    offset_a = np.random.uniform(-5, 5)
-    np.random.seed(sum(ord(c) for c in sel_piloto_b))
-    offset_b = np.random.uniform(-5, 5)
-
-    distancia_pista = np.linspace(0, 5000, 200)
+    x = np.linspace(0, 100, 600)
+    speed1 = 320 - 180 * np.exp(-x/15) + 25 * np.sin(x/4) + np.random.normal(0, 1.5, 600)
+    throttle1 = np.where(np.sin(x/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
+    brake1 = np.where(np.sin(x/4) < -0.6, 100, 0)
     
-    # Canales de Velocidad
-    vel_a = 240 + offset_a + 95 * np.sin(distancia_pista / 350) + 22 * np.cos(distancia_pista / 90)
-    vel_b = 238 + offset_b + 92 * np.sin((distancia_pista + 30) / 350) + 20 * np.cos(distancia_pista / 90)
-    
-    # Canales de Acelerador (%)
-    throttle_a = np.clip(70 + 30 * np.sin(distancia_pista / 250), 0, 100)
-    throttle_b = np.clip(68 + 32 * np.sin((distancia_pista + 20) / 250), 0, 100)
-    
-    # Canal de Delta de Tiempo (s)
-    delta_tiempo = np.cumsum((vel_b - vel_a) * 0.00015)
+    speed2 = 315 - 170 * np.exp(-x/18) + 27 * np.sin((x-1.5)/4) + np.random.normal(0, 1.5, 600)
+    throttle2 = np.where(np.sin((x-1.5)/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
+    brake2 = np.where(np.sin((x-1.5)/4) < -0.5, 100, 0)
 
-    # Tarjetas de Resumen de Telemetría Rápida
-    max_v_a, min_v_a = round(max(vel_a), 1), round(min(vel_a), 1)
-    max_v_b, min_v_b = round(max(vel_b), 1), round(min(vel_b), 1)
-
-    c_met1, c_met2 = st.columns(2)
-    with c_met1:
-        st.markdown(f"""
-            <div style='background: #080C16; padding: 14px 18px; border-radius: 12px; border-left: 4px solid #FF1801;'>
-                <span style='color: #FF1801; font-weight: 800; font-size: 0.9rem;'>🏎️ {sel_piloto_a} (Benchmark)</span><br>
-                <span style='font-size: 0.85rem; color: #94A3B8;'>Velocidad Máx: <strong>{max_v_a} km/h</strong> | Curva Mín: <strong>{min_v_a} km/h</strong></span>
-            </div>
-        """, unsafe_allow_html=True)
-    with c_met2:
-        st.markdown(f"""
-            <div style='background: #080C16; padding: 14px 18px; border-radius: 12px; border-left: 4px solid #38BDF8;'>
-                <span style='color: #38BDF8; font-weight: 800; font-size: 0.9rem;'>🏎️ {sel_piloto_b} (Comparativa)</span><br>
-                <span style='font-size: 0.85rem; color: #94A3B8;'>Velocidad Máx: <strong>{max_v_b} km/h</strong> | Curva Mín: <strong>{min_v_b} km/h</strong></span>
-            </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-
-    # Creación de Gráfica Multi-Panel con Plotly Subplots
-    fig_fastf1 = make_subplots(
-        rows=3, cols=1, 
-        shared_xaxes=True, 
-        vertical_spacing=0.08,
-        subplot_titles=(
-            "Velocidad en Pista (km/h)", 
-            "Aplicación de Acelerador (%)", 
-            "Delta de Tiempo Acumulado (s)"
-        )
-    )
-
-    # Panel 1: Velocidad
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_a, mode='lines', name=f'{sel_piloto_a} (Velocidad)', line=dict(color='#FF1801', width=2.5)), row=1, col=1)
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_b, mode='lines', name=f'{sel_piloto_b} (Velocidad)', line=dict(color='#38BDF8', width=2.5, dash='dot')), row=1, col=1)
-
-    # Panel 2: Acelerador
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=throttle_a, mode='lines', name=f'{sel_piloto_a} (Throttle)', line=dict(color='#FF1801', width=2), showlegend=False), row=2, col=1)
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=throttle_b, mode='lines', name=f'{sel_piloto_b} (Throttle)', line=dict(color='#38BDF8', width=2, dash='dot'), showlegend=False), row=2, col=1)
-
-    # Panel 3: Delta de Tiempo
-    fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=delta_tiempo, mode='lines', name='Delta Tiempo (s)', line=dict(color='#10B981', width=2.5), showlegend=False), row=3, col=1)
-
-    fig_fastf1.update_layout(
-        template='plotly_dark',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        height=620,
-        margin=dict(t=30, b=10, l=10, r=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
+    fig_tel = make_subplots(
+        rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.06,
+        subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)")
     )
     
-    fig_fastf1.update_xaxes(title_text="Distancia en Pista (Metros)", row=3, col=1)
-    fig_fastf1.update_yaxes(title_text="km/h", row=1, col=1)
-    fig_fastf1.update_yaxes(title_text="Throttle %", row=2, col=1)
-    fig_fastf1.update_yaxes(title_text="Segundos", row=3, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=speed1, name=driver1[:3], line=dict(color=color1, width=2.5)), row=1, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=speed2, name=driver2[:3], line=dict(color=color2, width=2.5)), row=1, col=1)
+    
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle1, 0, 100), showlegend=False, line=dict(color=color1, width=2)), row=2, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle2, 0, 100), showlegend=False, line=dict(color=color2, width=2)), row=2, col=1)
+    
+    fig_tel.add_trace(go.Scatter(x=x, y=brake1, showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=brake2, showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
 
-    st.plotly_chart(fig_fastf1, use_container_width=True, key=f"chart_fastf1_multichannel_{sel_piloto_a}_{sel_piloto_b}")
+    fig_tel.update_layout(
+        height=750, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=40, b=20, l=20, r=20), hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
+    )
+    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', zeroline=False)
+    fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title_text="Distancia del Circuito (m)", row=3, col=1)
+
+    st.plotly_chart(fig_tel, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 with tab5:
