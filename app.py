@@ -557,7 +557,7 @@ with tab3:
 
     # Selector limpio y directo
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v2")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3")
 
     # Extraer datos del GP activo
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
@@ -583,23 +583,30 @@ with tab3:
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
-    # Encabezado del resumen con buscador integrado amigable
-    col_sum_title, col_sum_search = st.columns([1.5, 1])
-    with col_sum_title:
-        st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin: 0;'>📋 Resumen Interactivo de Carreras 2024</h4>", unsafe_allow_html=True)
-    with col_sum_search:
-        busqueda_resumen = st.text_input("🔍 Filtrar GP o Ganador:", "", key="filtro_resumen_carreras", placeholder="Ej. Mónaco, Verstappen...")
+    # Encabezado del resumen con diseño amigable para el filtro de pilotos
+    st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 15px;'>📋 Resumen Interactivo de Carreras 2024</h4>", unsafe_allow_html=True)
+    
+    # Contenedor visual moderno para el selector de corredores
+    with st.container():
+        st.markdown("""
+            <div style='background: rgba(255, 255, 255, 0.02); padding: 14px 18px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 12px;'>
+                <span style='color: #38BDF8; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;'>🎯 Filtrar Victorias por Piloto</span>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Obtener lista única de ganadores de forma ordenada
+        ganadores_disponibles = ["Todos los Pilotos"] + sorted(list(set(item['ganador'] for item in CARRERAS_2024_DATOS)))
+        piloto_filtro = st.selectbox("Selecciona un corredor:", ganadores_disponibles, key="select_filtro_piloto_victorias", label_visibility="collapsed")
 
     # Crear DataFrame base
     df_carreras = pd.DataFrame(CARRERAS_2024_DATOS)[["gp", "circuito", "fecha", "ganador"]]
     df_carreras.columns = ["Gran Premio", "Circuito Oficial", "Fecha", "Ganador del GP"]
     
-    # Filtrar datos de manera dinámica si el usuario escribe en el buscador
-    if busqueda_resumen:
-        mask = df_carreras.apply(lambda row: row.astype(str).str.contains(busqueda_resumen, case=False).any(), axis=1)
-        df_carreras = df_carreras[mask]
+    # Filtrar dinámicamente si se selecciona un piloto específico
+    if piloto_filtro != "Todos los Pilotos":
+        df_carreras = df_carreras[df_carreras["Ganador del GP"] == piloto_filtro]
 
-    # Tabla interactiva moderna, ordenada y muy visual
+    # Tabla interactiva moderna
     st.dataframe(
         df_carreras, 
         use_container_width=True, 
