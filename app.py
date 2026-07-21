@@ -1118,32 +1118,69 @@ with tab10:
     st.markdown("<div class='section-header'>🛠️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
     
     st.markdown("""
-        <div style='background: #04060B; padding: 15px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); text-align: center; margin-bottom: 20px;'>
-            <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 8px;'>📡 CANAL DE RADIO ACTIVO - INGENIERO DE PISTA FIA</span>
-            <div style='font-size: 1.5rem; letter-spacing: 4px; color: #FF1801; font-weight: 900;'>
+        <div style='background: rgba(8, 12, 22, 0.8); padding: 18px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); text-align: center; margin-bottom: 20px;'>
+            <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 6px;'>📡 CANAL DE RADIO ACTIVO - INGENIERO DE PISTA FIA</span>
+            <div style='font-size: 1.3rem; letter-spacing: 3px; color: #FF1801; font-weight: 900;'>
                 📶 ▂▃▅▆▇█▇▆▅▃▂ 📡 ▂▃▅▆▇█▇▆▅▃▂ 📶
             </div>
-            <small style='color: #94A3B8; font-style: italic;'>Agente conversacional inteligente listo para resolver dudas de estrategia y rendimiento</small>
+            <small style='color: #94A3B8; font-style: italic;'>Agente conversacional inteligente listo para resolver dudas de estrategia, clima y telemetría</small>
         </div>
     """, unsafe_allow_html=True)
 
+    # Variables de respaldo seguras en caso de ejecución independiente
+    d_pit = locals().get('delta_pit', 21.8)
+    v_ventaja = locals().get('vueltas_ventaja_necesarias', 15.5)
+    v_parada = locals().get('vuelta_parada_usuario', 22)
+    n_activo = locals().get('nombre_activo', 'Escudería F1')
+    p_puntos = locals().get('promedio_puntos', 25.0)
+    pods = locals().get('podios', 12)
+    efec = locals().get('efectividad', 75.0)
+    grip = locals().get('indice_agarre', 0.85)
+
+    # Botones de acceso rápido para transmisiones de radio comunes
+    st.markdown("<p style='font-size: 0.85rem; color: #94A3B8; margin-bottom: 8px;'>💬 <b>Transmisiones rápidas sugeridas:</b></p>", unsafe_allow_html=True)
+    q_col1, q_col2, q_col3, q_col4 = st.columns(4)
+    
+    if "radio_msg" not in st.session_state:
+        st.session_state["radio_msg"] = ""
+
+    with q_col1:
+        if st.button("🏁 Ventana Undercut", use_container_width=True, key="r_btn_1"):
+            st.session_state["radio_msg"] = "Dime la estrategia de undercut y paradas"
+    with q_col2:
+        if st.button("📈 Rendimiento / Puntos", use_container_width=True, key="r_btn_2"):
+            st.session_state["radio_msg"] = "Cuál es el rendimiento y puntos del equipo"
+    with q_col3:
+        if st.button("🏆 Análisis de Podios", use_container_width=True, key="r_btn_3"):
+            st.session_state["radio_msg"] = "Cuantos podios tenemos esta temporada"
+    with q_col4:
+        if st.button("⛅ Estado de Gomas", use_container_width=True, key="r_btn_4"):
+            st.session_state["radio_msg"] = "Cómo está el desgaste de gomas y el clima"
+
     pregunta_usuario = st.chat_input("Transmita mensaje por radio al ingeniero de boxes...", key="chat_input_radio_ai")
+    
+    # Evaluar si se presionó un botón de acceso rápido
+    if st.session_state["radio_msg"]:
+        pregunta_usuario = st.session_state["radio_msg"]
+        st.session_state["radio_msg"] = "" # Limpiar estado
+
     if pregunta_usuario:
         with st.chat_message("user", avatar="👤"):
             st.write(pregunta_usuario)
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
             if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
-                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {delta_pit}s en pit-lane y {ventas_vueltas_efectivo} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta {vuelta_parada_usuario}."
+                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {d_pit}s en pit-lane y {v_ventaja} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta {v_parada}."
             elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
-                respuesta = f"[RADIO 📡] Telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio en 2024."
+                respuesta = f"[RADIO 📡] Telemetría confirmada: {n_activo} registra un promedio de {p_puntos} puntos por Gran Premio en 2024."
             elif any(x in p for x in ["podio", "podios", "victorias"]):
-                respuesta = f"[RADIO 📡] Análisis histórico de temporada: El equipo acumula {podios} podios oficiales ({efectividad}% de conversión)."
+                respuesta = f"[RADIO 📡] Análisis histórico de temporada: El equipo acumula {pods} podios oficiales ({efec}% de conversión)."
             elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
-                respuesta = f"[RADIO 📡] Reporte de gomas recibido. El Grip Index actual es de {indice_agarre}. Mantendremos la ventana de temperatura óptima."
+                respuesta = f"[RADIO 📡] Reporte de gomas recibido. El Grip Index actual es de {grip}. Mantendremos la ventana de temperatura óptima."
             else:
-                respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {nombre_activo}. El monoplaza opera al {efectividad}% de efectividad óptima."
+                respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {n_activo}. El monoplaza opera al {efec}% de efectividad óptima."
             st.write(respuesta)
+            
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("""
