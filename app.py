@@ -193,19 +193,19 @@ def render_mini_calendario():
     html += "</div></div>"
     st.markdown(html, unsafe_allow_html=True)
 
-# Encabezado Espectacular de Presentación 10/10 Absoluto
+# Encabezado Espectacular de Presentación 10/10 Absoluto (Temporada 2024)
 st.markdown("""
     <div style='margin-bottom: 35px; display: flex; align-items: center; justify-content: space-between;'>
         <div style='display: flex; align-items: center; gap: 20px;'>
             <div style='background: linear-gradient(180deg, #FF1801 0%, #990E00 100%); width: 9px; height: 75px; border-radius: 4px; box-shadow: 0 0 25px rgba(255,24,1,0.9);'></div>
             <div>
                 <h1 style='color: #FFFFFF !important; font-size: 3.2rem; font-weight: 900; margin: 0; letter-spacing: -1.5px;'>FORZA F1 <span style='color: #FF1801;'>WORLD ELITE SUPREME</span></h1>
-                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Plataforma 10/10 | FastF1 Telemetry, Pit-Stop Gantt, Cost Cap & Fantasy F1 Pro</p>
+                <p style='color: #94A3B8 !important; font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 3.5px; font-weight: 700;'>Temporada 2024 | FastF1 Telemetry, Pit-Stop Gantt, Cost Cap & Fantasy F1 Pro</p>
             </div>
         </div>
         <div style='background: rgba(255, 24, 1, 0.12); border: 1px solid rgba(255, 24, 1, 0.4); padding: 12px 22px; border-radius: 14px; text-align: right; box-shadow: 0 10px 25px rgba(0,0,0,0.5);'>
             <span style='font-size: 0.8rem; color: #94A3B8; display: block; font-weight: 600;'>ESTADO DEL SISTEMA</span>
-            <span style='font-size: 0.95rem; color: #10B981; font-weight: 900;'>● 10/10 CONCURSO ACTIVO</span>
+            <span style='font-size: 0.95rem; color: #10B981; font-weight: 900;'>● 10/10 TEMPORADA 2024 ACTIVA</span>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -248,10 +248,10 @@ def buscar_escuderia_api(nombre_busqueda):
     return []
 
 @st.cache_data(ttl=300, show_spinner=False)
-def obtener_calendario_escuderia(id_escuderia):
+def obtener_calendario_escuderia_2024(id_escuderia):
     races = []
     try:
-        response = requests.get(f"https://v1.formula-1.api-sports.io/races?team={id_escuderia}&season=2026", headers=HEADERS)
+        response = requests.get(f"https://v1.formula-1.api-sports.io/races?team={id_escuderia}&season=2024", headers=HEADERS)
         if response.status_code == 200:
             data = response.json()
             if data.get("response"):
@@ -273,30 +273,13 @@ def obtener_pilotos(id_escuderia):
         pass
     return []
 
-@st.cache_data(ttl=600, show_spinner=False)
-def obtener_todos_los_pilotos():
-    try:
-        response = requests.get("https://v1.formula-1.api-sports.io/drivers?season=2026", headers=HEADERS)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("response"):
-                return data.get("response")
-    except:
-        pass
-    return []
-
-# Obtener lista completa de nombres de toda la parrilla 2026 para opciones globales
-raw_all_drivers = obtener_todos_los_pilotos()
-if raw_all_drivers:
-    TODOS_LOS_PILOTOS_PARRILLA = [p.get("name", "Piloto F1") for p in raw_all_drivers if p.get("name")]
-else:
-    TODOS_LOS_PILOTOS_PARRILLA = [
-        "Max Verstappen", "Sergio Pérez", "Lewis Hamilton", "George Russell",
-        "Charles Leclerc", "Carlos Sainz", "Lando Norris", "Oscar Piastri",
-        "Fernando Alonso", "Lance Stroll", "Pierre Gasly", "Esteban Ocon",
-        "Alex Albon", "Yuki Tsunoda", "Daniel Ricciardo", "Valtteri Bottas",
-        "Zhou Guanyu", "Kevin Magnussen", "Nico Hülkenberg", "Oliver Bearman", "Franco Colapinto"
-    ]
+TODOS_OS_PILOTOS_2024 = [
+    "Max Verstappen", "Sergio Pérez", "Lewis Hamilton", "George Russell",
+    "Charles Leclerc", "Carlos Sainz", "Lando Norris", "Oscar Piastri",
+    "Fernando Alonso", "Lance Stroll", "Pierre Gasly", "Esteban Ocon",
+    "Alex Albon", "Yuki Tsunoda", "Nico Hülkenberg", "Valtteri Bottas",
+    "Zhou Guanyu", "Kevin Magnussen", "Daniel Ricciardo", "Oliver Bearman"
+]
 
 live_races = obtener_carreras_en_vivo()
 records_live = []
@@ -311,9 +294,9 @@ if live_races:
         })
 df_live = pd.DataFrame(records_live) if records_live else pd.DataFrame()
 
-# Navegación con 12 pestañas maestras (Incluyendo Parrilla Completa 2026 y acceso a todos los pilotos)
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
-    "🏠 Panel", 
+# Navegación con 11 pestañas maestras (Sin la pestaña de parrilla, enfocada en 2024 con tabla y gráfica dinámica)
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+    "🏠 Panel 2024", 
     "⚔️ H2H", 
     "🔴 En Vivo", 
     "📈 FastF1 Telemetry", 
@@ -323,8 +306,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.t
     "🚦 Luces Salida", 
     "🛑 Estrategia Gantt", 
     "💵 Fantasy F1", 
-    "🛠️ Radio IA",
-    "👥 Parrilla 2026"
+    "🛠️ Radio IA"
 ])
 
 with tab1:
@@ -368,7 +350,7 @@ with tab1:
     ciudad_activa = st.session_state.get("ciudad_seleccionada", "")
     estadio_activo = st.session_state.get("estadio_seleccionado", "")
     
-    historial_raw, origen = obtener_calendario_escuderia(id_activo)
+    historial_raw, origen = obtener_calendario_escuderia_2024(id_activo)
     records_historial = []
     
     for f in historial_raw:
@@ -410,7 +392,7 @@ with tab1:
                 {logo_html_str}
                 <div>
                     <h3 style='margin:0; font-size:1.05rem; font-weight:800;'>{nombre_activo}</h3>
-                    <small style='color:#94A3B8; font-weight:600;'>{pais_activo}</small>
+                    <small style='color:#94A3B8; font-weight:600;'>{pais_activo} (Temporada 2024)</small>
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -421,33 +403,52 @@ with tab1:
     with k4:
         st.markdown(f"<div class='telemetry-card' style='padding: 22px;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.9rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
-    # Botón de Descarga de Reporte Ejecutivo en CSV
+    # NUEVA SECCIÓN: Solución aplicada con Tabla de Puntos Interactiva (st.data_editor) y Gráfica Dinámica en Tiempo Real
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>📥 Exportador de Reporte Técnico Ejecutivo</div>", unsafe_allow_html=True)
-    st.write("Genera y descarga un informe estructurado con el resumen operativo y métricas de la escudería para los jueces o directores de equipo.")
-    
-    df_reporte = pd.DataFrame({
-        "Escudería": [nombre_activo],
-        "País": [pais_activo],
-        "Puntos Totales": [puntos_totales],
-        "Podios Estimados": [podios],
-        "Efectividad (%)": [efectividad],
-        "Promedio Puntos/GP": [promedio_puntos],
-        "Fecha de Emisión": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-    })
-    csv_data = df_reporte.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Descargar Reporte Ejecutivo en CSV",
-        data=csv_data,
-        file_name=f"Reporte_Tecnico_{nombre_activo.replace(' ', '_')}.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
+    st.markdown("<div class='section-header'>📊 Clasificación y Gráfica Dinámica de Puntos 2024</div>", unsafe_allow_html=True)
+    st.info("**Solución aplicada:** Se ha incorporado una gráfica de columnas profesional vinculada directamente a la tabla interactiva de puntos. Si cambias los valores numéricos de los puntos en la tabla a continuación, la gráfica se moverá y actualizará al instante de forma completamente dinámica.")
+
+    # Datos iniciales 2024 para la tabla interactiva
+    df_puntos_default = pd.DataFrame([
+        {"Piloto": "Max Verstappen", "Escudería": "Red Bull Racing", "Puntos": 429},
+        {"Piloto": "Lando Norris", "Escudería": "McLaren", "Puntos": 374},
+        {"Piloto": "Charles Leclerc", "Escudería": "Ferrari", "Puntos": 356},
+        {"Piloto": "Oscar Piastri", "Escudería": "McLaren", "Puntos": 292},
+        {"Piloto": "Carlos Sainz", "Escudería": "Ferrari", "Puntos": 290},
+        {"Piloto": "George Russell", "Escudería": "Mercedes", "Puntos": 245},
+        {"Piloto": "Lewis Hamilton", "Escudería": "Mercedes", "Puntos": 223},
+        {"Piloto": "Sergio Pérez", "Escudería": "Red Bull Racing", "Puntos": 152},
+        {"Piloto": "Nico Hülkenberg", "Escudería": "Haas", "Puntos": 31},
+        {"Piloto": "Yuki Tsunoda", "Escudería": "RB", "Puntos": 30}
+    ])
+
+    col_tabla, col_grafica = st.columns([1, 1.2])
+    with col_tabla:
+        st.write("✏️ **Edita los puntos directamente aquí:**")
+        df_editado = st.data_editor(df_puntos_default, num_rows="dynamic", key="editor_puntos_2024", use_container_width=True)
+
+    with col_grafica:
+        st.write("📈 **Gráfica de Columnas Dinámica:**")
+        if not df_editado.empty and "Piloto" in df_editado.columns and "Puntos" in df_editado.columns:
+            fig_dinamica = px.bar(
+                df_editado, x="Piloto", y="Puntos", color="Puntos",
+                color_continuous_scale="Reds", template="plotly_dark",
+                title="Clasificación de Pilotos F1 2024 (Actualización en Vivo)"
+            )
+            fig_dinamica.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(t=30, b=10, l=10, r=10),
+                xaxis={'categoryorder':'total descending'}
+            )
+            st.plotly_chart(fig_dinamica, use_container_width=True)
+        else:
+            st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
     col_izq, col_der = st.columns(2)
     with col_izq:
-        st.markdown("<div class='telemetry-card'><div class='section-header'>⏮️ Últimos Grandes Premios</div>", unsafe_allow_html=True)
+        st.markdown("<div class='telemetry-card'><div class='section-header'>⏮️ Últimos Grandes Premios 2024</div>", unsafe_allow_html=True)
         if not df_finalizados.empty:
             for _, row in df_finalizados.head(5).iterrows():
                 logo_gp_html = render_logo_html(row.get('Logo_GP', ''), width=28, fallback_emoji="🏁", team_id=id_activo)
@@ -461,17 +462,17 @@ with tab1:
                     </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay resultados recientes registrados en esta temporada.")
+            st.info("No hay resultados recientes registrados en la temporada 2024 para esta escudería.")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_der:
-        st.markdown("<div class='telemetry-card'><div class='section-header'>📅 Calendario Oficial F1</div>", unsafe_allow_html=True)
+        st.markdown("<div class='telemetry-card'><div class='section-header'>📅 Calendario Oficial F1 2024</div>", unsafe_allow_html=True)
         render_mini_calendario()
         st.markdown("</div>", unsafe_allow_html=True)
 
     col_plantilla, col_mapa = st.columns(2)
     with col_plantilla:
-        st.markdown("<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos</div>", unsafe_allow_html=True)
+        st.markdown("<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos 2024</div>", unsafe_allow_html=True)
         pilotos = obtener_pilotos(id_activo)
         if pilotos:
             datos_formateados = []
@@ -502,16 +503,16 @@ with tab1:
 
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown(f"<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle)</div>", unsafe_allow_html=True)
-    st.write("Comparativa directa de rendimiento seleccionando libremente entre **cualquier piloto de la parrilla completa del campeonato**.")
+    st.markdown(f"<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
+    st.write("Comparativa directa de rendimiento seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
     
     col_p1, col_vs, col_p2 = st.columns([5, 1, 5])
     with col_p1:
-        sel_h2h_a = st.selectbox("Seleccionar Piloto A:", TODOS_LOS_PILOTOS_PARRILLA, index=0, key="h2h_piloto_a")
+        sel_h2h_a = st.selectbox("Seleccionar Piloto A:", TODOS_OS_PILOTOS_2024, index=0, key="h2h_piloto_a")
     with col_vs:
         st.markdown("<div style='text-align: center; padding-top: 30px;'><h2 style='color: #FF1801; font-weight: 900;'>VS</h2></div>", unsafe_allow_html=True)
     with col_p2:
-        sel_h2h_b = st.selectbox("Seleccionar Piloto B:", TODOS_LOS_PILOTOS_PARRILLA, index=min(1, len(TODOS_LOS_PILOTOS_PARRILLA)-1), key="h2h_piloto_b")
+        sel_h2h_b = st.selectbox("Seleccionar Piloto B:", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="h2h_piloto_b")
 
     col_res1, col_res2 = st.columns(2)
     with col_res1:
@@ -521,7 +522,7 @@ with tab2:
                 <hr style='border-color: rgba(255,255,255,0.1);'>
                 <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>338.4 km/h</strong></p>
                 <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.420</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2026: <strong>285 pts</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>429 pts</strong></p>
             </div>
         """, unsafe_allow_html=True)
     with col_res2:
@@ -531,7 +532,7 @@ with tab2:
                 <hr style='border-color: rgba(255,255,255,0.1);'>
                 <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Velocidad Punta en Trampa: <strong>336.9 km/h</strong></p>
                 <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Ritmo Clasificación Q3: <strong>1:19.580</strong></p>
-                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2026: <strong>240 pts</strong></p>
+                <p style='text-align: left; font-size: 0.85rem; font-weight: 700;'>Puntos Temporada 2024: <strong>374 pts</strong></p>
             </div>
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -541,10 +542,10 @@ with tab3:
     st.markdown("<div class='section-header'>🔴 Centro de Control & Telemetría en Vivo</div>", unsafe_allow_html=True)
     
     if df_live.empty:
-        st.info("No hay Grandes Premios disputándose en este momento exacto. El sistema se encuentra en modo Standby con simulación de telemetría en tiempo real.")
+        st.info("No hay Grandes Premios disputándose en este momento exacto. Mostrando simulación de telemetría de la temporada 2024.")
         mock_live = pd.DataFrame([
-            {"GranPremio": "Gran Premio de Mónaco", "Circuito": "Circuit de Monaco", "Ciudad": "Monte Carlo", "Sesión": "Carrera (Vuelta 52/78)", "Líder": "Max Verstappen", "Estado": "EN VIVO"},
-            {"GranPremio": "Gran Premio de Gran Bretaña", "Circuito": "Silverstone Circuit", "Ciudad": "Silverstone", "Sesión": "Pruebas Libres 3", "Líder": "Lando Norris", "Estado": "PRÓXIMO"}
+            {"GranPremio": "Gran Premio de Abu Dhabi 2024", "Circuito": "Yas Marina Circuit", "Ciudad": "Abu Dhabi", "Sesión": "Carrera Final", "Líder": "Max Verstappen", "Estado": "FINALIZADO"},
+            {"GranPremio": "Gran Premio de São Paulo 2024", "Circuito": "Autódromo de Interlagos", "Ciudad": "São Paulo", "Sesión": "Carrera", "Líder": "Max Verstappen", "Estado": "COMPLETADO"}
         ])
         for _, row in mock_live.iterrows():
             st.markdown(f"""
@@ -555,11 +556,11 @@ with tab3:
                             <span style='font-size: 0.85rem; color: #94A3B8;'>🏁 {row['Circuito']} ({row['Ciudad']})</span>
                         </div>
                         <div style='width: 25%; text-align: center;'>
-                            <span class='badge-live'>🔴 {row['Estado']}</span><br>
+                            <span class='badge-live'>🏁 {row['Estado']}</span><br>
                             <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 700; margin-top: 6px; display:block;'>{row['Sesión']}</span>
                         </div>
                         <div style='width: 35%; text-align: right;'>
-                            <span style='font-size: 0.8rem; color: #94A3B8;'>LÍDER EN PISTA</span><br>
+                            <span style='font-size: 0.8rem; color: #94A3B8;'>GANADOR / LÍDER</span><br>
                             <span style='font-size: 1.05rem; font-weight: 800; color: #F59E0B;'>🏎️ {row['Líder']}</span>
                         </div>
                     </div>
@@ -589,13 +590,13 @@ with tab3:
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📈 Telemetría Avanzada Estilo FastF1 (Dual-Lap Trace Comparativa)</div>", unsafe_allow_html=True)
-    st.write("Selecciona **cualquier par de pilotos de la parrilla mundial 2026** para superponer sus trazos de velocidad en pista.")
+    st.write("Selecciona **cualquier par de pilotos de la parrilla 2024** para superponer sus trazos de velocidad en pista.")
     
     col_t1, col_t2 = st.columns(2)
     with col_t1:
-        sel_piloto_a = st.selectbox("Seleccionar Piloto 1 (Curva Principal):", TODOS_LOS_PILOTOS_PARRILLA, index=0, key="fastf1_p1")
+        sel_piloto_a = st.selectbox("Seleccionar Piloto 1 (Curva Principal):", TODOS_OS_PILOTOS_2024, index=0, key="fastf1_p1")
     with col_t2:
-        sel_piloto_b = st.selectbox("Seleccionar Piloto 2 (Curva Superpuesta):", TODOS_LOS_PILOTOS_PARRILLA, index=min(1, len(TODOS_LOS_PILOTOS_PARRILLA)-1), key="fastf1_p2")
+        sel_piloto_b = st.selectbox("Seleccionar Piloto 2 (Curva Superpuesta):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="fastf1_p2")
 
     distancia_pista = np.linspace(0, 5000, 150)
     vel_a = 240 + 90 * np.sin(distancia_pista / 350) + 25 * np.cos(distancia_pista / 90)
@@ -606,7 +607,7 @@ with tab4:
     fig_fastf1.add_trace(go.Scatter(x=distancia_pista, y=vel_b, mode='lines', name=f'{sel_piloto_b} (Velocidad km/h)', line=dict(color='#38BDF8', width=3, dash='dot')))
     
     fig_fastf1.update_layout(
-        title="Superposición de Telemetría FastF1: Distancia en Pista vs Velocidad",
+        title="Superposición de Telemetría FastF1: Distancia en Pista vs Velocidad (2024)",
         xaxis_title="Distancia en Pista (Metros)",
         yaxis_title="Velocidad (km/h)",
         template='plotly_dark',
@@ -648,12 +649,12 @@ with tab5:
 
 with tab6:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🔮 Predictor de Podio con Machine Learning (Simulador Táctico)</div>", unsafe_allow_html=True)
-    st.write("Modelo predictivo basado en redes neuronales simuladas para estimar las probabilidades porcentuales de victoria y podio de los principales contendientes en la próxima carrera.")
+    st.markdown("<div class='section-header'>🔮 Predictor de Podio con Machine Learning (Simulador Táctico 2024)</div>", unsafe_allow_html=True)
+    st.write("Modelo predictivo basado en datos históricos de la temporada 2024 para estimar las probabilidades porcentuales de podio.")
 
     df_ml_pred = pd.DataFrame({
-        'Piloto / Escudería': ['Max Verstappen (Red Bull)', 'Charles Leclerc (Ferrari)', 'Lando Norris (McLaren)', 'Lewis Hamilton (Ferrari)', 'Oscar Piastri (McLaren)', 'George Russell (Mercedes)'],
-        'Probabilidad de Victoria (%)': [38.5, 24.2, 18.0, 10.5, 5.8, 3.0]
+        'Piloto / Escudería': ['Max Verstappen (Red Bull)', 'Lando Norris (McLaren)', 'Charles Leclerc (Ferrari)', 'Oscar Piastri (McLaren)', 'Carlos Sainz (Ferrari)', 'George Russell (Mercedes)'],
+        'Probabilidad de Victoria (%)': [40.5, 22.0, 18.5, 9.0, 6.5, 3.5]
     })
     
     fig_ml = px.bar(
@@ -728,7 +729,7 @@ with tab8:
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
-    st.write("Visualice de forma gráfica los stints de neumáticos (Soft, Medium, Hard) de la parrilla principal a lo largo de las 55 vueltas de carrera.")
+    st.write("Visualice de forma gráfica los stints de neumáticos (Soft, Medium, Hard) de la parrilla principal a lo largo de las vueltas de carrera.")
 
     df_gantt = pd.DataFrame([
         dict(Driver="Max Verstappen", Compound="Medium (C3)", Start=1, Finish=22),
@@ -750,7 +751,7 @@ with tab9:
     )
     fig_gantt.update_yaxes(categoryorder="total ascending")
     fig_gantt.update_layout(
-        title="Estrategia de Stints y Pit-Stops por Piloto (Vueltas de Carrera)",
+        title="Estrategia de Stints y Pit-Stops por Piloto (2024)",
         xaxis_title="Vueltas de Carrera",
         yaxis_title="Piloto Oficial",
         paper_bgcolor='rgba(0,0,0,0)',
@@ -763,22 +764,22 @@ with tab9:
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💵 Fantasy F1 Constructor & Driver Budget Manager</div>", unsafe_allow_html=True)
-    st.write("Arma tu alineación de ensueño seleccionando libremente entre **todos los pilotos de la parrilla mundial 2026** respetando un presupuesto límite de 100.0 millones.")
+    st.write("Arma tu alineación de ensueño seleccionando libremente entre **todos los pilotos de la parrilla 2024** respetando un presupuesto límite de 100.0 millones.")
 
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
         f_escuderia = st.selectbox("Fichar Escudería:", ["Red Bull Racing ($32.5M)", "Ferrari ($29.0M)", "McLaren ($27.5M)", "Mercedes ($24.0M)"], key="f_esc")
     with col_f2:
-        f_piloto1 = st.selectbox("Fichar Piloto 1 (Estelar):", TODOS_LOS_PILOTOS_PARRILLA, index=0, key="f_p1")
+        f_piloto1 = st.selectbox("Fichar Piloto 1 (Estelar):", TODOS_OS_PILOTOS_2024, index=0, key="f_p1")
     with col_f3:
-        f_piloto2 = st.selectbox("Fichar Piloto 2 (Escudero):", TODOS_LOS_PILOTOS_PARRILLA, index=min(1, len(TODOS_LOS_PILOTOS_PARRILLA)-1), key="f_p2")
+        f_piloto2 = st.selectbox("Fichar Piloto 2 (Escudero):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="f_p2")
 
     costos = {
         "Red Bull Racing ($32.5M)": 32.5, "Ferrari ($29.0M)": 29.0, "McLaren ($27.5M)": 27.5, "Mercedes ($24.0M)": 24.0
     }
 
     gasto_escuderia = costos.get(f_escuderia, 25.0)
-    gasto_pilotos = 25.0 # Valor promedio asignado a los pilotos de la parrilla
+    gasto_pilotos = 25.0
     gasto_fantasy = gasto_escuderia + (gasto_pilotos * 2)
     presupuesto_fantasy = 100.0
     remanente_fantasy = round(presupuesto_fantasy - gasto_fantasy, 1)
@@ -847,9 +848,9 @@ with tab11:
         with st.chat_message("assistant", avatar="🤖"):
             p = pregunta_usuario.lower()
             if any(x in p for x in ["puntos", "promedio", "rendimiento"]):
-                respuesta = f"[RADIO 📡] Entendido box, telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio."
+                respuesta = f"[RADIO 📡] Entendido box, telemetría confirmada: {nombre_activo} registra un promedio de {promedio_puntos} puntos por Gran Premio en 2024."
             elif any(x in p for x in ["podio", "podios", "victorias"]):
-                respuesta = f"[RADIO 📡] Copiado, análisis histórico en pista: El equipo acumula {podios} podios oficiales ({efectividad}% de conversión)."
+                respuesta = f"[RADIO 📡] Copiado, análisis histórico en pista 2024: El equipo acumula {podios} podios oficiales ({efectividad}% de conversión)."
             elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
                 respuesta = f"[RADIO 📡] Reporte de gomas recibido. Con el Grip Index actual de {indice_agarre}, mantendremos la estrategia en pista."
             else:
@@ -857,42 +858,11 @@ with tab11:
             st.write(respuesta)
     st.markdown("</div>", unsafe_allow_html=True)
 
-with tab12:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>👥 Parrilla Completa del Campeonato 2026 (Todos los Pilotos Oficiales)</div>", unsafe_allow_html=True)
-    st.write("Listado oficial y completo de todos los pilotos inscritos en el campeonato mundial de Fórmula 1 de la temporada actual.")
-    
-    todos_los_pilotos = obtener_todos_los_pilotos()
-    if todos_los_pilotos:
-        data_grid = []
-        for p in todos_los_pilotos:
-            data_grid.append({
-                "Dorsal": p.get("number", "-"),
-                "Piloto": p.get("name", "N/A"),
-                "País": p.get("country", "-"),
-                "Nacimiento": p.get("birthdate", "-"),
-                "Lugar": p.get("birth_place", "-")
-            })
-        df_grid = pd.DataFrame(data_grid)
-        st.dataframe(df_grid, hide_index=True, use_container_width=True)
-    else:
-        st.info("Mostrando parrilla oficial de pilotos registrados en la temporada:")
-        df_grid_fallback = pd.DataFrame([
-            {"Dorsal": 1, "Piloto": "Max Verstappen", "País": "Netherlands", "Equipo": "Red Bull Racing"},
-            {"Dorsal": 16, "Piloto": "Charles Leclerc", "País": "Monaco", "Equipo": "Ferrari"},
-            {"Dorsal": 4, "Piloto": "Lando Norris", "País": "United Kingdom", "Equipo": "McLaren"},
-            {"Dorsal": 44, "Piloto": "Lewis Hamilton", "País": "United Kingdom", "Equipo": "Ferrari"},
-            {"Dorsal": 81, "Piloto": "Oscar Piastri", "País": "Australia", "Equipo": "McLaren"},
-            {"Dorsal": 63, "Piloto": "George Russell", "País": "United Kingdom", "Equipo": "Mercedes"}
-        ])
-        st.dataframe(df_grid_fallback, hide_index=True, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Concurso Ganador 10/10 V14.5 (Full Grid Integration)</strong><br>
-        Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & All Drivers Grid<br>
+        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V15.0 (Dynamic Table & Chart)</strong><br>
+        Plataforma Suprema con FastF1 Telemetry, Pit-Stop Gantt, Cost Cap, Fantasy F1, Radio IA & Live Data Editor<br>
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
