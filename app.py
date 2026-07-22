@@ -348,7 +348,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "🛑 Estrategia Gantt", 
     "💵 Fantasy Optimizer", 
     "🏆 Proyección Constructores",
-    "🎙️ Pit Wall Command: Live Radio AI"
+    "🎙️ Pit Wall "
 ])
 
 with tab1:
@@ -2077,72 +2077,74 @@ with tab10:
 
 with tab11:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🎙️ Pit Wall Command: FIA Team Radio AI & Live Telemetry</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🎙️ Pit Wall Command: Live Race Engineer Radio & Telemetry AI</div>", unsafe_allow_html=True)
     
     st.markdown("""
-        <div style='background: linear-gradient(135deg, rgba(8, 12, 22, 0.95), rgba(15, 23, 42, 0.9)); padding: 20px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); text-align: center; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);'>
-            <span style='font-size: 0.75rem; color: #38BDF8; font-weight: 800; letter-spacing: 3px; display:block; margin-bottom: 8px;'>SECURE FIA FREQUENCY // ACTIVE PIT WALL LINK</span>
-            <div style='font-size: 1.25rem; letter-spacing: 4px; color: #EF4444; font-weight: 900; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);'>
-                🔴 [REC] ▂▃▅▆▇█ LIVE TRANSMISSION █▇▆▅▃▂ [LIVE]
+        <div style='background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 12, 22, 0.95)); padding: 16px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); margin-bottom: 20px;'>
+            <div style='display: flex; justify-content: space-between; align-items: center;'>
+                <div>
+                    <span style='color: #38BDF8; font-size: 0.75rem; font-weight: 800; letter-spacing: 2px;'>COMMUNICATION CHANNEL: FIA SECURE // PIT WALL 1</span>
+                    <h4 style='color: #FFFFFF; margin: 4px 0 0 0; font-size: 1.1rem;'>Canal de Audio Directo con el Muro de Boxes</h4>
+                </div>
+                <div style='text-align: right;'>
+                    <span style='color: #10B981; font-weight: 800; font-size: 0.85rem;'>● LINK ESTABLECIDO (BAJA LATENCIA)</span>
+                </div>
             </div>
-            <p style='color: #94A3B8; font-size: 0.85rem; margin-top: 8px; margin-bottom: 0;'>Enlace directo con el ingeniero jefe de pista para consultas dinámicas de estrategia, degradación y ritmo de carrera.</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Variables de respaldo seguras en caso de ejecución independiente
-    d_pit = locals().get('delta_pit', 21.8)
-    v_ventaja = locals().get('vueltas_ventaja_necesarias', 15.5)
-    v_parada = locals().get('vuelta_parada_usuario', 22)
-    n_activo = locals().get('nombre_activo', 'Escudería F1')
-    p_puntos = locals().get('promedio_puntos', 25.0)
-    pods = locals().get('podios', 12)
-    efec = locals().get('efectividad', 75.0)
-    grip = locals().get('indice_agarre', 0.85)
-
-    # Botones de acceso rápido para transmisiones de radio comunes
-    st.markdown("<p style='font-size: 0.85rem; color: #94A3B8; margin-bottom: 10px;'>⚡ <b>Canales de transmisión rápida:</b></p>", unsafe_allow_html=True)
+    col_ctrl, col_chat = st.columns([1, 1.4])
     
-    q_col1, q_col2, q_col3, q_col4 = st.columns(4)
-
-    if "radio_msg" not in st.session_state:
-        st.session_state["radio_msg"] = ""
-
-    with q_col1:
-        if st.button("🏁 Ventana Undercut", use_container_width=True, key="r_btn_1_elite"):
-            st.session_state["radio_msg"] = "Dime la estrategia de undercut y paradas"
-    with q_col2:
-        if st.button("📈 Rendimiento / Puntos", use_container_width=True, key="r_btn_2_elite"):
-            st.session_state["radio_msg"] = "Cuál es el rendimiento y puntos del equipo"
-    with q_col3:
-        if st.button("🏆 Análisis de Podios", use_container_width=True, key="r_btn_3_elite"):
-            st.session_state["radio_msg"] = "Cuantos podios tenemos esta temporada"
-    with q_col4:
-        if st.button("⛅ Estado de Gomas", use_container_width=True, key="r_btn_4_elite"):
-            st.session_state["radio_msg"] = "Cómo está el desgaste de gomas y el clima"
-
-    pregunta_usuario = st.chat_input("Transmita mensaje por radio al ingeniero de boxes...", key="chat_input_radio_ai_elite")
-
-    # Evaluar si se presionó un botón de acceso rápido
-    if st.session_state["radio_msg"]:
-        pregunta_usuario = st.session_state["radio_msg"]
-        st.session_state["radio_msg"] = ""  # Limpiar estado
-
-    if pregunta_usuario:
-        with st.chat_message("user", avatar="👤"):
-            st.write(pregunta_usuario)
-        with st.chat_message("assistant", avatar="🤖"):
-            p = pregunta_usuario.lower()
-            if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
-                respuesta = f"[RADIO 📡] Análisis táctico completado. Con un delta de {d_pit}s en pit-lane y {v_ventaja} vueltas óptimas con compuesto fresco, la ventana para ejecutar el undercut se abre de inmediato en la vuelta {v_parada}."
-            elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
-                respuesta = f"[RADIO 📡] Telemetría oficial confirmada: {n_activo} mantiene un promedio competitivo de {p_puntos} puntos por Gran Premio en el campeonato."
-            elif any(x in p for x in ["podio", "podios", "victorias"]):
-                respuesta = f"[RADIO 📡] Reporte de podios de temporada: La escudería registra un total de {pods} podios oficiales con una efectividad de conversión del {efec}%."
-            elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
-                respuesta = f"[RADIO 📡] Datos de tracción sincronizados. El índice de agarre actual es de {grip}. Monitoreando la degradación térmica en tiempo real."
-            else:
-                respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {n_activo}. Todos los sistemas operan al {efec}% de rendimiento óptimo."
+    with col_ctrl:
+        st.markdown("<div style='background: rgba(30, 41, 59, 0.4); padding: 15px; border-radius: 8px;'>", unsafe_allow_html=True)
+        st.markdown("<p style='font-weight: 700; color: #FFFFFF; margin-bottom: 12px;'>📊 Parámetros de Telemetría en Vivo:</p>", unsafe_allow_html=True)
+        
+        tyre_compound = st.selectbox("Compuesto Actual:", ["Soft (Blando)", "Medium (Medio)", "Hard (Duro)"], key="eng_tyre_live")
+        tyre_age = st.slider("Vueltas en este set de gomas:", 1, 45, 16, key="eng_age_live")
+        gap_ahead = st.slider("Brecha con coche adelante (s):", 0.5, 6.0, 1.9, key="eng_gap_live")
+        track_temp = st.slider("Temperatura de Pista (°C):", 20, 60, 39, key="eng_temp_live")
+        
+        st.markdown("<small style='color: #94A3B8; display: block; margin-top: 10px;'>💡 Modifica estos valores para alterar la lectura táctica del ingeniero de pista.</small>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+    with col_chat:
+        st.markdown("<div style='background: rgba(30, 41, 59, 0.3); padding: 15px; border-radius: 8px;'>", unsafe_allow_html=True)
+        st.markdown("<p style='font-weight: 700; color: #FFFFFF; margin-bottom: 12px;'>💬 Transmisión de Radio (Box Radio):</p>", unsafe_allow_html=True)
+        
+        q1, q2 = st.columns(2)
+        if "radio_trigger" not in st.session_state:
+            st.session_state["radio_trigger"] = ""
             
-            st.write(respuesta)
-
+        with q1:
+            if st.button("Box this lap? (Undercut)", use_container_width=True, key="btn_eng_1_pro"):
+                st.session_state["radio_trigger"] = "Box this lap, check traffic for undercut"
+        with q2:
+            if st.button("How's my pace & tyre cliff?", use_container_width=True, key="btn_eng_2_pro"):
+                st.session_state["radio_trigger"] = "Evaluate pace and tyre degradation cliff"
+        
+        user_radio = st.chat_input("Transmita mensaje por radio al ingeniero...", key="input_eng_radio_pro")
+        
+        if st.session_state["radio_trigger"]:
+            user_radio = st.session_state["radio_trigger"]
+            st.session_state["radio_trigger"] = ""
+            
+        if user_radio:
+            with st.chat_message("user", avatar="🏎️"):
+                st.write(user_radio)
+            with st.chat_message("assistant", avatar="🎧"):
+                msg_lower = user_radio.lower()
+                if "box" in msg_lower or "undercut" in msg_lower:
+                    if tyre_age > 18:
+                        resp = f"[RADIO - INGENIERO]: Copy, box this lap. Box, box. Te montaremos compuestos nuevos. Tráfico limpio al salir, delta de 21.8s para cubrir el undercut sobre el rival de atrás. Push en la out-lap."
+                    else:
+                        resp = f"[RADIO - INGENIERO]: Negative, negative, stay out. Tus gomas tienen apenas {tyre_age} vueltas y el compuesto {tyre_compound} rinde óptimo. Mantén el ritmo, brecha de {gap_ahead}s con el coche de adelante."
+                elif "pace" in msg_lower or "cliff" in msg_lower or "degradation" in msg_lower:
+                    resp = f"[RADIO - INGENIERO]: Copied. Temperatura de pista a {track_temp}°C. Observamos fatiga leve en el eje trasero por temperatura superficial, pero el cliff de gomas no se espera hasta dentro de 8 vueltas. Cuida tracción en salida de curva lenta."
+                else:
+                    resp = f"[RADIO - INGENIERO]: Mensaje copiado y entendido. Copia el mapa motor en posición 5, recarga batería en frenada de curva 12. Estamos en ventana de puntos."
+                
+                st.write(resp)
+                
+        st.markdown("</div>", unsafe_allow_html=True)
+        
     st.markdown("</div>", unsafe_allow_html=True)
