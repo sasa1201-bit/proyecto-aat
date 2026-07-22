@@ -925,72 +925,97 @@ with tab6:
         "controla daños por accidentes imprevistos y evalúa las restricciones de túnel de viento (Regla ATR)."
     )
 
-    # --- INICIALIZAR ESTADOS DE SESIÓN PARA LOS PRESETS ---
-    if "cc_base" not in st.session_state:
-        st.session_state["cc_base"] = 135.0
-    if "cc_aero" not in st.session_state:
-        st.session_state["cc_aero"] = 48.5
-    if "cc_motor" not in st.session_state:
-        st.session_state["cc_motor"] = 35.0
-    if "cc_chasis" not in st.session_state:
-        st.session_state["cc_chasis"] = 25.0
-    if "cc_ops" not in st.session_state:
-        st.session_state["cc_ops"] = 18.0
-    if "cc_crash" not in st.session_state:
-        st.session_state["cc_crash"] = 4.0
+    # --- INICIALIZAR ESTADOS DE SESIÓN PARA LOS WIDGETS ---
+    if "input_cc_base" not in st.session_state:
+        st.session_state["input_cc_base"] = 135.0
+    if "slider_cc_aero" not in st.session_state:
+        st.session_state["slider_cc_aero"] = 48.5
+    if "slider_cc_motor" not in st.session_state:
+        st.session_state["slider_cc_motor"] = 35.0
+    if "slider_cc_chasis" not in st.session_state:
+        st.session_state["slider_cc_chasis"] = 25.0
+    if "slider_cc_ops" not in st.session_state:
+        st.session_state["slider_cc_ops"] = 18.0
+    if "slider_cc_crash" not in st.session_state:
+        st.session_state["slider_cc_crash"] = 4.0
 
-    # --- PRESETS FINANCIEROS RÁPIDOS (FUNCIONALES) ---
+    # --- PRESETS FINANCIEROS RÁPIDOS (ACTUALIZAN DIRECTAMENTE LAS LLAVES DE LOS WIDGETS) ---
     st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Estrategias Financieras Rápidas (Presets):</b>", unsafe_allow_html=True)
     col_p1, col_p2, col_p3 = st.columns(3)
     
     with col_p1:
         if st.button("🚀 Desarrollo Agresivo (Alto Riesgo)", use_container_width=True, key="btn_cc_agresivo"):
-            st.session_state["cc_aero"] = 62.0
-            st.session_state["cc_motor"] = 42.0
-            st.session_state["cc_chasis"] = 32.0
-            st.session_state["cc_ops"] = 22.0
-            st.session_state["cc_crash"] = 6.5
+            st.session_state["slider_cc_aero"] = 62.0
+            st.session_state["slider_cc_motor"] = 42.0
+            st.session_state["slider_cc_chasis"] = 32.0
+            st.session_state["slider_cc_ops"] = 22.0
+            st.session_state["slider_cc_crash"] = 6.5
+            st.session_state["input_cc_base"] = 135.0
             st.rerun()
             
     with col_p2:
         if st.button("⚖️ Fábrica Equilibrada (Estándar)", use_container_width=True, key="btn_cc_equilibrado"):
-            st.session_state["cc_aero"] = 48.5
-            st.session_state["cc_motor"] = 35.0
-            st.session_state["cc_chasis"] = 25.0
-            st.session_state["cc_ops"] = 18.0
-            st.session_state["cc_crash"] = 4.0
+            st.session_state["slider_cc_aero"] = 48.5
+            st.session_state["slider_cc_motor"] = 35.0
+            st.session_state["slider_cc_chasis"] = 25.0
+            st.session_state["slider_cc_ops"] = 18.0
+            st.session_state["slider_cc_crash"] = 4.0
+            st.session_state["input_cc_base"] = 135.0
             st.rerun()
             
     with col_p3:
         if st.button("🛡️ Modo Supervivencia / Ahorro", use_container_width=True, key="btn_cc_ahorro"):
-            st.session_state["cc_aero"] = 35.0
-            st.session_state["cc_motor"] = 25.0
-            st.session_state["cc_chasis"] = 18.0
-            st.session_state["cc_ops"] = 12.0
-            st.session_state["cc_crash"] = 2.0
+            st.session_state["slider_cc_aero"] = 35.0
+            st.session_state["slider_cc_motor"] = 25.0
+            st.session_state["slider_cc_chasis"] = 18.0
+            st.session_state["slider_cc_ops"] = 12.0
+            st.session_state["slider_cc_crash"] = 2.0
+            st.session_state["input_cc_base"] = 135.0
             st.rerun()
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
-    # --- CONTROLES Y SLIDERS VINCULADOS A SESSION STATE ---
+    # --- CONTROLES Y SLIDERS CON AYUDA (HELP) ---
     col_cc1, col_cc2 = st.columns(2)
     with col_cc1:
-        presupuesto_base = st.number_input("Límite Personalizado / Base ($M):", min_value=50.0, max_value=300.0, value=st.session_state["cc_base"], step=0.5, key="input_cc_base")
-        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel ($M):", min_value=10.0, max_value=150.0, value=st.session_state["cc_aero"], step=0.5, key="slider_cc_aero")
-        gasto_motor = st.slider("Unidad de Potencia e Integración ($M):", min_value=10.0, max_value=150.0, value=st.session_state["cc_motor"], step=0.5, key="slider_cc_motor")
-        gasto_crash = st.slider("Impacto por Accidentes y Daños (Crash Damage) ($M):", min_value=0.0, max_value=25.0, value=st.session_state["cc_crash"], step=0.5, key="slider_cc_crash")
-        
-        st.session_state["cc_base"] = presupuesto_base
-        st.session_state["cc_aero"] = gasto_aero
-        st.session_state["cc_motor"] = gasto_motor
-        st.session_state["cc_crash"] = gasto_crash
+        presupuesto_base = st.number_input(
+            "Límite Personalizado / Base ($M):", 
+            min_value=50.0, max_value=300.0, step=0.5, 
+            key="input_cc_base",
+            help="Establece el tope presupuestario total autorizado (Límite FIA estándar: $135M)."
+        )
+        gasto_aero = st.slider(
+            "Desarrollo Aerodinámico y Túnel ($M):", 
+            min_value=10.0, max_value=150.0, step=0.5, 
+            key="slider_cc_aero",
+            help="Invierte en carga aerodinámica y CFD. Mejora significativamente el paso por curva y el rendimiento general."
+        )
+        gasto_motor = st.slider(
+            "Unidad de Potencia e Integración ($M):", 
+            min_value=10.0, max_value=150.0, step=0.5, 
+            key="slider_cc_motor",
+            help="Optimiza la fiabilidad y potencia de la Power Unit. Afecta la velocidad punta en rectas y la resistencia mecánica."
+        )
+        gasto_crash = st.slider(
+            "Impacto por Accidentes y Daños (Crash Damage) ($M):", 
+            min_value=0.0, max_value=25.0, step=0.5, 
+            key="slider_cc_crash",
+            help="Reserva financiera destinada a reparar chasis destruidos, alerones y piezas rotas por incidentes en pista."
+        )
 
     with col_cc2:
-        gasto_chasis = st.slider("Chasis, Manufactura y Peso ($M):", min_value=10.0, max_value=150.0, value=st.session_state["cc_chasis"], step=0.5, key="slider_cc_chasis")
-        gasto_operaciones = st.slider("Logística y Operaciones ($M):", min_value=5.0, max_value=100.0, value=st.session_state["cc_ops"], step=0.5, key="slider_cc_ops")
-        
-        st.session_state["cc_chasis"] = gasto_chasis
-        st.session_state["cc_ops"] = gasto_operaciones
+        gasto_chasis = st.slider(
+            "Chasis, Manufactura y Peso ($M):", 
+            min_value=10.0, max_value=150.0, step=0.5, 
+            key="slider_cc_chasis",
+            help="Enfocado en reducir el peso del monoplaza y mejorar la rigidez estructural. Agiliza el comportamiento en curvas lentas."
+        )
+        gasto_operaciones = st.slider(
+            "Logística y Operaciones ($M):", 
+            min_value=5.0, max_value=100.0, step=0.5, 
+            key="slider_cc_ops",
+            help="Cubre costos de transporte global de carga, viajes del personal, salarios de fábrica y operaciones generales de pista."
+        )
 
         # Catálogo ampliado de mejoras
         upgrades_disponibles = {
@@ -1008,7 +1033,8 @@ with tab6:
         paquetes_seleccionados = st.multiselect(
             "Paquetes de Mejoras en Pista (Catálogo Ampliado):", 
             options=list(upgrades_disponibles.keys()),
-            key="cc_upgrades_pro"
+            key="cc_upgrades_pro",
+            help="Selecciona actualizaciones específicas para el monoplaza. Cada mejora reduce segundos por vuelta pero consume presupuesto y horas de túnel de viento."
         )
 
     # --- CÁLCULOS FINANCIEROS Y RESTRICCIÓN ATR (TÚNEL DE VIENTO) ---
@@ -1099,7 +1125,7 @@ with tab6:
                 font=dict(size=10)
             )
         )
-        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut_elite")
+        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut_elite_v2")
 
     st.markdown("</div>", unsafe_allow_html=True)
     
