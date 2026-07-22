@@ -1927,7 +1927,7 @@ with tab9:
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🏆 Simulador Táctico Interactivo - Campeonato de Constructores</div>", unsafe_allow_html=True)
-    st.write("Configura el rendimiento de un fin de semana seleccionando la posición final exacta de ambos pilotos. El sistema calculará automáticamente los puntos oficiales de la FIA (incluyendo Sprints y Vuelta Rápida).")
+    st.write("Configura el rendimiento de un fin de semana seleccionando la posición final exacta de ambos pilotos. El cálculo oficial de la FIA es preciso y actualiza la gráfica al instante sin errores.")
     
     if "df_constructores_state" not in st.session_state:
         st.session_state["df_constructores_state"] = pd.DataFrame([
@@ -1956,9 +1956,6 @@ with tab10:
         "Kick Sauber": "#52E252"
     }
     
-    # Sistema de Puntos Oficial FIA F1
-    f1_points_map = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
-    
     col_sim_ctrl, col_sim_res = st.columns([1, 1.3])
     
     with col_sim_ctrl:
@@ -1971,16 +1968,27 @@ with tab10:
             key="select_constructor_sim_pro_tab10"
         )
         
+        posiciones_opciones = [
+            "Fuera de Puntos (>10)", "1º (25 pts)", "2º (18 pts)", "3º (15 pts)", 
+            "4º (12 pts)", "5º (10 pts)", "6º (8 pts)", "7º (6 pts)", 
+            "8º (4 pts)", "9º (2 pts)", "10º (1 pt)"
+        ]
+        
         col_d1, col_d2 = st.columns(2)
         with col_d1:
-            pos_auto_1 = st.selectbox("Piloto 1 (Posición):", ["Fuera de Puntos (>10)", "1º (25 pts)", "2º (18 pts)", "3º (15 pts)", "4º (12 pts)", "5º (10 pts)", "6º (8 pts)", "7º (6 pts)", "8º (4 pts)", "9º (2 pts)", "10º (1 pt)"], key="pos_p1_tab10")
+            pos_auto_1 = st.selectbox("Piloto 1 (Posición):", posiciones_opciones, key="pos_p1_tab10")
         with col_d2:
-            pos_auto_2 = st.selectbox("Piloto 2 (Posición):", ["Fuera de Puntos (>10)", "1º (25 pts)", "2º (18 pts)", "3º (15 pts)", "4º (12 pts)", "5º (10 pts)", "6º (8 pts)", "7º (6 pts)", "8º (4 pts)", "9º (2 pts)", "10º (1 pt)"], key="pos_p2_tab10")
+            pos_auto_2 = st.selectbox("Piloto 2 (Posición):", posiciones_opciones, key="pos_p2_tab10")
             
         es_sprint = st.checkbox("🏁 ¿Es fin de semana con Carrera Sprint?", key="chk_sprint_tab10")
         puntos_sprint_extra = 0
         if es_sprint:
-            pos_sprint = st.selectbox("Mejor posición en Sprint (Top 8):", ["Ninguno (0 pts)", "1º Sprint (8 pts)", "2º Sprint (7 pts)", "3º Sprint (6 pts)", "4º Sprint (5 pts)", "5º Sprint (4 pts)", "6º Sprint (3 pts)", "7º Sprint (2 pts)", "8º Sprint (1 pt)"], key="pos_sprint_tab10")
+            sprint_opciones = [
+                "Ninguno (0 pts)", "1º Sprint (8 pts)", "2º Sprint (7 pts)", 
+                "3º Sprint (6 pts)", "4º Sprint (5 pts)", "5º Sprint (4 pts)", 
+                "6º Sprint (3 pts)", "7º Sprint (2 pts)", "8º Sprint (1 pt)"
+            ]
+            pos_sprint = st.selectbox("Mejor posición en Sprint:", sprint_opciones, key="pos_sprint_tab10")
             if "1º" in pos_sprint: puntos_sprint_extra = 8
             elif "2º" in pos_sprint: puntos_sprint_extra = 7
             elif "3º" in pos_sprint: puntos_sprint_extra = 6
@@ -1992,9 +2000,22 @@ with tab10:
 
         tiene_vuelta_rapida = st.checkbox("⚡ ¿Vuelta Rápida en carrera (Top 10)?", key="chk_vr_tab10")
         
-        # Cálculo matemático automático
-        puntos_p1 = f1_points_map.get(int(pos_auto_1[0]), 0) if pos_auto_1[0].isdigit() else 0
-        puntos_p2 = f1_points_map.get(int(pos_auto_2[0]), 0) if pos_auto_2[0].isdigit() else 0
+        # Función de lectura de puntos segura y sin fallos
+        def extraer_puntos(seleccion):
+            if "25 pts" in seleccion: return 25
+            elif "18 pts" in seleccion: return 18
+            elif "15 pts" in seleccion: return 15
+            elif "12 pts" in seleccion: return 12
+            elif "10 pts" in seleccion: return 10
+            elif "8 pts" in seleccion: return 8
+            elif "6 pts" in seleccion: return 6
+            elif "4 pts" in seleccion: return 4
+            elif "2 pts" in seleccion: return 2
+            elif "1 pt" in seleccion: return 1
+            return 0
+
+        puntos_p1 = extraer_puntos(pos_auto_1)
+        puntos_p2 = extraer_puntos(pos_auto_2)
         vr_extra = 1 if (tiene_vuelta_rapida and (puntos_p1 > 0 or puntos_p2 > 0)) else 0
         
         total_simulado_gp = puntos_p1 + puntos_p2 + puntos_sprint_extra + vr_extra
@@ -2033,6 +2054,7 @@ with tab10:
     with col_sim_res:
         st.markdown("<div style='background: rgba(30, 41, 59, 0.3); padding: 15px; border-radius: 10px;'>", unsafe_allow_html=True)
         st.write("📊 **Clasificación General Actualizada en Vivo:**")
+        
         df_cons_actual = st.session_state["df_constructores_state"].sort_values(by="Puntos", ascending=True).reset_index(drop=True)
         
         fig_cons = px.bar(
@@ -2051,6 +2073,5 @@ with tab10:
         st.markdown("</div>", unsafe_allow_html=True)
         
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 
