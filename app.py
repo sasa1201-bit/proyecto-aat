@@ -1109,36 +1109,35 @@ with tab7:
     
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🛑 Centro de Comando Estratégico (Pit-Wall Command Center)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🛑 Centro de Comando Estratégico: Simulador de Stints & Lluvia</div>", unsafe_allow_html=True)
     st.write(
-        "Centro de mando avanzado para la toma de decisiones en tiempo real. Utiliza los escenarios tácticos predefinidos "
-        "o personaliza los parámetros de la carrera para dominar la estrategia de boxes."
+        "Centro de mando avanzado para la toma de decisiones en condiciones secas, mixtas o de lluvia extrema. "
+        "Utiliza los escenarios tácticos rápidos o personaliza la estrategia de compuestos Pirelli."
     )
 
-    # --- SELECTOR DE ESCENARIOS TÁCTICOS (PRESETS RÁPIDOS) ---
+    # --- SELECTOR DE ESCENARIOS TÁCTICOS (PRESETS INTELIGENTES) ---
     st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Escenarios Tácticos Rápidos (Presets de Muro de Boxes):</b>", unsafe_allow_html=True)
     col_preset1, col_preset2, col_preset3 = st.columns(3)
     
-    # Variables de estado o valores por defecto para los presets
     with col_preset1:
-        preset_seco = st.button("☀️ Gran Premio Seco (Estándar)", use_container_width=True)
+        preset_seco = st.button("☀️ Gran Premio Seco (Estándar)", use_container_width=True, key="btn_dry")
     with col_preset2:
-        preset_sc = st.button("🟡 Safety Car / Oportunista", use_container_width=True)
+        preset_sc = st.button("🟡 Safety Car / Oportunista", use_container_width=True, key="btn_sc")
     with col_preset3:
-        preset_lluvia = st.button("🌧️ Riesgo de Lluvia Inminente", use_container_width=True)
+        preset_lluvia = st.button("🌧️ Riesgo de Lluvia Inminente", use_container_width=True, key="btn_rain")
 
-    # Lógica de asignación de presets mediante session_state si se desea, o valores dinámicos
+    # Lógica de valores según el escenario seleccionado
     if preset_sc:
-        default_pit, default_goma, default_vuelta = 19.0, 1.8, 15
+        default_pit, default_goma, default_vuelta, default_comp = 19.0, 1.8, 15, "Soft (C5)"
     elif preset_lluvia:
-        default_pit, default_goma, default_vuelta = 24.5, 2.2, 28
+        default_pit, default_goma, default_vuelta, default_comp = 25.0, 2.5, 20, "Intermediate"
     else:
-        default_pit, default_goma, default_vuelta = 21.8, 1.4, 22
+        default_pit, default_goma, default_vuelta, default_comp = 21.8, 1.4, 22, "Medium (C3)"
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
-    # --- SUB-PESTAÑAS INTERNAS PARA ORGANIZAR LA INTERACTIVIDAD ---
-    sub_t1, sub_t2, sub_t3 = st.tabs(["📊 Matriz de Stints (Gantt)", "⚙️ Simulador Avanzado de Undercut", "📋 Matriz de Datos Crudos"])
+    # --- SUB-PESTAÑAS INTERNAS DE NAVEGACIÓN ---
+    sub_t1, sub_t2, sub_t3 = st.tabs(["📊 Matriz de Stints (Gantt)", "⚙️ Simulador de Undercut & Clima", "📋 Matriz de Datos Crudos"])
 
     # ==========================================
     # SUB-PESTAÑA 1: MATRIZ DE STINTS Y GRÁFICA
@@ -1149,10 +1148,15 @@ with tab8:
             filtro_vista = st.selectbox(
                 "Filtrar Agrupación de Monoplazas:", 
                 ["Toda la Parrilla (20 Monoplazas)", "Top 10 / Zona de Puntos", "Equipos de Punta (Top Teams)"], 
-                key="sub_filtro_vista"
+                key="sub_filtro_vista_v2"
             )
         with col_g2:
-            compuesto_inicial = st.selectbox("Tu Compuesto Inicial:", ["Medium (C3)", "Soft (C5)", "Hard (C1)"], key="sub_c_init")
+            compuesto_inicial = st.selectbox(
+                "Tu Compuesto Inicial (Stint 1):", 
+                ["Medium (C3)", "Soft (C5)", "Hard (C1)", "Intermediate", "Wet"], 
+                index=["Medium (C3)", "Soft (C5)", "Hard (C1)", "Intermediate", "Wet"].index(default_comp) if default_comp in ["Medium (C3)", "Soft (C5)", "Hard (C1)", "Intermediate", "Wet"] else 0,
+                key="sub_c_init_v2"
+            )
 
         vuelta_parada_usuario = default_vuelta
         delta_pit = default_pit
@@ -1176,23 +1180,28 @@ with tab8:
 
         pilotos_con_usuario = ["🏎️ TU MONOPLAZA"] + pilotos_activos
 
-        # Generación de stints
+        # Generación de stints dinámicos (incluyendo lógica de lluvia si se selecciona)
         gantt_data = []
         total_vueltas_carrera = 55
 
         for i, piloto in enumerate(pilotos_con_usuario):
             if piloto == "🏎️ TU MONOPLAZA":
                 c1 = compuesto_inicial
-                c2 = "Hard (C1)" if "Soft" in compuesto_inicial or "Medium" in compuesto_inicial else "Medium (C3)"
+                if c1 == "Intermediate":
+                    c2 = "Wet" if preset_lluvia else "Medium (C3)"
+                elif c1 == "Wet":
+                    c2 = "Intermediate"
+                else:
+                    c2 = "Hard (C1)" if "Soft" in c1 or "Medium" in c1 else "Medium (C3)"
                 p_split = vuelta_parada_usuario
             elif "Verstappen" in piloto or "Pérez" in piloto:
-                c1, c2 = "Medium (C3)", "Hard (C1)"
+                c1, c2 = ("Intermediate", "Wet") if preset_lluvia else ("Medium (C3)", "Hard (C1)")
                 p_split = vuelta_parada_usuario + (1 if i % 2 == 0 else -1)
             elif "Leclerc" in piloto or "Sainz" in piloto:
-                c1, c2 = "Soft (C5)", "Hard (C1)"
+                c1, c2 = ("Wet", "Intermediate") if preset_lluvia else ("Soft (C5)", "Hard (C1)")
                 p_split = max(5, vuelta_parada_usuario - 2)
             else:
-                c1, c2 = ("Medium (C3)", "Hard (C1)") if i % 2 == 0 else ("Soft (C5)", "Medium (C3)")
+                c1, c2 = ("Intermediate", "Hard (C1)") if preset_lluvia else (("Medium (C3)", "Hard (C1)") if i % 2 == 0 else ("Soft (C5)", "Medium (C3)"))
                 p_split = max(8, min(48, vuelta_parada_usuario + (i % 4 - 2)))
 
             p_split = min(max(5, p_split), total_vueltas_carrera - 5)
@@ -1202,11 +1211,20 @@ with tab8:
 
         df_gantt = pd.DataFrame(gantt_data)
 
-        # Gráfico Plotly
+        # Paleta de colores oficial Pirelli incluyendo Lluvia (Intermedias y Wet)
+        color_compuestos = {
+            "Soft (C5)": "#EF4444",      # Rojo
+            "Medium (C3)": "#F59E0B",    # Amarillo
+            "Hard (C1)": "#94A3B8",      # Blanco / Plateado
+            "Intermediate": "#10B981",   # Verde bosque
+            "Wet": "#3B82F6"             # Azul eléctrico
+        }
+
+        # Gráfico Plotly de alta fidelidad
         fig_gantt = px.bar(
             df_gantt, x="Duration", y="Driver", base="Start", orientation="h", color="Compound",
             hover_name="Driver", hover_data={"Stint": True, "Start": True, "Finish": True, "Duration": True, "Driver": False},
-            color_discrete_map={"Soft (C5)": "#EF4444", "Medium (C3)": "#F59E0B", "Hard (C1)": "#38BDF8"},
+            color_discrete_map=color_compuestos,
             template="plotly_dark", category_orders={"Driver": pilotos_con_usuario[::-1]}
         )
         fig_gantt.update_yaxes(categoryorder="array", categoryarray=pilotos_con_usuario[::-1])
@@ -1214,16 +1232,16 @@ with tab8:
                             annotation_text=f"Tu Parada (V.{vuelta_parada_usuario})", annotation_position="top right",
                             annotation_font=dict(size=12, color="#FF1801"))
         fig_gantt.update_layout(
-            title=dict(text=f"<b>Estrategia Visual de Stints</b> — Meta: Vuelta {vuelta_parada_usuario}", font=dict(size=15, color="#FFFFFF")),
+            title=dict(text=f"<b>Estrategia Visual de Stints y Compuestos Pirelli</b> — Meta: Vuelta {vuelta_parada_usuario}", font=dict(size=15, color="#FFFFFF")),
             xaxis_title="<b>Vueltas de Carrera</b>", yaxis_title=None,
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(t=40, b=20, l=10, r=10), height=460,
+            margin=dict(t=40, b=20, l=10, r=10), height=480,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor='rgba(0,0,0,0.4)')
         )
         fig_gantt.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', dtick=5)
         fig_gantt.update_yaxes(showgrid=False)
 
-        st.plotly_chart(fig_gantt, use_container_width=True, key="chart_gantt_ultra")
+        st.plotly_chart(fig_gantt, use_container_width=True, key="chart_gantt_ultra_v2")
 
     # ==========================================
     # SUB-PESTAÑA 2: SIMULADOR AVANZADO
@@ -1232,15 +1250,14 @@ with tab8:
         st.markdown("<b style='color: #FFFFFF;'>Ajuste Fino de Parámetros Operativos del Monoplaza:</b>", unsafe_allow_html=True)
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
-            delta_pit = st.slider("Pérdida en Pit-Lane (s):", min_value=18.0, max_value=28.0, value=default_pit, step=0.1, key="sim_delta_pit")
+            delta_pit = st.slider("Pérdida en Pit-Lane (s):", min_value=18.0, max_value=32.0, value=default_pit, step=0.1, key="sim_delta_pit_v2")
         with col_s2:
-            delta_goma_fresca = st.slider("Ganancia de Ritmo (s/v):", min_value=0.5, max_value=2.5, value=default_goma, step=0.1, key="sim_delta_goma")
+            delta_goma_fresca = st.slider("Ganancia de Ritmo (s/v):", min_value=0.5, max_value=3.0, value=default_goma, step=0.1, key="sim_delta_goma_v2")
         with col_s3:
-            vuelta_parada_usuario = st.slider("Vuelta Exacta de Parada:", min_value=10, max_value=45, value=default_vuelta, step=1, key="sim_vuelta_parada")
+            vuelta_parada_usuario = st.slider("Vuelta Exacta de Parada:", min_value=5, max_value=45, value=default_vuelta, step=1, key="sim_vuelta_parada_v2")
 
         vueltas_ventaja_necesarias = round(delta_pit / delta_goma_fresca, 1)
 
-        # KPIs Interactivos en 3 columnas
         mk1, mk2, mk3 = st.columns(3)
         with mk1:
             st.metric("Ventana Óptima de Undercut", f"{vueltas_ventaja_necesarias} vls", "Margen seguro")
@@ -1256,18 +1273,19 @@ with tab8:
         st.markdown("<b style='color: #FFFFFF;'>Inspección de Tablas y Estadísticas del Stint:</b>", unsafe_allow_html=True)
         st.dataframe(df_gantt, use_container_width=True, height=250)
 
-    # --- REPORTE TÁCTICO INFORMATIVO INFERIOR ---
+    # --- REPORTE TÁCTICO INTELIGENTE INFERIOR ---
     efectividad_undercut = "ALTA 🟢" if vueltas_ventaja_necesarias <= 3.5 else ("MODERADA 🟡" if vueltas_ventaja_necesarias <= 5.0 else "BAJA 🔴")
+    condicion_pista = "Lluvia / Mixta 🌧️" if preset_lluvia else "Seco ☀️"
     
     st.markdown(f"""
         <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 16px 20px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.3); margin-top: 20px;'>
             <div style='display: flex; align-items: center; margin-bottom: 6px;'>
                 <span style='font-size: 1.1rem; margin-right: 8px;'>🎯</span>
-                <b style='color: #38BDF8; font-size: 1rem;'>Estado del Muro de Boxes:</b>
+                <b style='color: #38BDF8; font-size: 1rem;'>Estado del Muro de Boxes ({condicion_pista}):</b>
             </div>
             <p style='color: #E2E8F0; font-size: 0.9rem; line-height: 1.4; margin: 0;'>
-                Estrategia fijada en la <b>vuelta {vuelta_parada_usuario}</b>. Ventana de undercut necesaria: <b>{vueltas_ventaja_necesarias} vueltas</b> 
-                con una efectividad táctica evaluada como <b>{efectividad_undercut}</b>.
+                Estrategia fijada en la <b>vuelta {vuelta_parada_usuario}</b> con compuesto inicial <b>{compuesto_inicial}</b>. 
+                Ventana de undercut necesaria: <b>{vueltas_ventaja_necesarias} vueltas</b> (Efectividad Táctica: <b>{efectividad_undercut}</b>).
             </p>
         </div>
     """, unsafe_allow_html=True)
