@@ -704,8 +704,12 @@ with tab3:
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
-    st.write("Análisis cruzado de los inputs del piloto: Acelerador, Freno y Velocidad mediante la integración simulada de **FastF1** con toda la parrilla 2024.")
+    st.write(
+        "Análisis cruzado de los inputs del piloto: Acelerador, Freno y Velocidad mediante la integración "
+        "simulada de FastF1 con toda la parrilla."
+    )
     
+    # --- DICCIONARIO DE COLORES OFICIALES DE ESCUDERÍAS ---
     DRIVER_COLORS = {
         "Max Verstappen": "#0600EF", "Sergio Pérez": "#1E41FF",
         "Lewis Hamilton": "#00D2BE", "George Russell": "#00D2BE",
@@ -719,16 +723,48 @@ with tab4:
         "Daniel Ricciardo": "#2B4562", "Oliver Bearman": "#DC0000"
     }
 
+    # --- INICIALIZAR ESTADOS DE SESIÓN PARA LOS SELECTORES ---
+    if "tel_driver_1" not in st.session_state:
+        st.session_state["tel_driver_1"] = "Max Verstappen"
+    if "tel_driver_2" not in st.session_state:
+        st.session_state["tel_driver_2"] = "Lando Norris"
+    if "tel_session" not in st.session_state:
+        st.session_state["tel_session"] = "Q3 - Clasificación"
+
+    # --- DUELOS / PRESETS RÁPIDOS (100% FUNCIONALES) ---
+    st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Duelos Destacados en Pista (Presets):</b>", unsafe_allow_html=True)
+    col_p1, col_p2, col_p3 = st.columns(3)
+    
+    with col_p1:
+        if st.button("🔥 Verstappen vs Norris (Batalla por el Título)", use_container_width=True, key="btn_duel_1"):
+            st.session_state["tel_driver_1"] = "Max Verstappen"
+            st.session_state["tel_driver_2"] = "Lando Norris"
+            st.rerun()
+    with col_p2:
+        if st.button("🔴 Hamilton vs Leclerc (Legado Ferrari/Merc)", use_container_width=True, key="btn_duel_2"):
+            st.session_state["tel_driver_1"] = "Lewis Hamilton"
+            st.session_state["tel_driver_2"] = "Charles Leclerc"
+            st.rerun()
+    with col_p3:
+        if st.button("⚡ Piastri vs Russell (Nueva Generación)", use_container_width=True, key="btn_duel_3"):
+            st.session_state["tel_driver_1"] = "Oscar Piastri"
+            st.session_state["tel_driver_2"] = "George Russell"
+            st.rerun()
+
+    st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
+
+    # --- SELECTORES DE PILOTOS Y SESIÓN ---
     col_t1, col_t2, col_t3 = st.columns(3)
     with col_t1:
-        driver1 = st.selectbox("Piloto 1 (Referencia):", TODOS_OS_PILOTOS_2024, index=0, key="tel_driver_1")
+        driver1 = st.selectbox("Piloto 1 (Referencia):", TODOS_OS_PILOTOS_2024, key="tel_driver_1", help="Selecciona al piloto principal para la comparación de telemetría.")
         color1 = DRIVER_COLORS.get(driver1, "#FF1801")
     with col_t2:
-        driver2 = st.selectbox("Piloto 2 (Comparativa):", TODOS_OS_PILOTOS_2024, index=6, key="tel_driver_2")
+        driver2 = st.selectbox("Piloto 2 (Comparativa):", TODOS_OS_PILOTOS_2024, key="tel_driver_2", help="Selecciona al piloto rival contra el que se contrastarán los datos.")
         color2 = DRIVER_COLORS.get(driver2, "#38BDF8")
     with col_t3:
-        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
+        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session", help="Elige la sesión oficial para analizar el طgimen de carga de combustible y gomas.")
 
+    # --- GENERACIÓN DE DATOS DE TELEMETRÍA SIMULADA ---
     x = np.linspace(0, 100, 600)
     
     seed1 = sum(ord(c) for c in driver1)
@@ -742,6 +778,26 @@ with tab4:
     throttle2 = np.where(np.sin((x-1.5)/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
     brake2 = np.where(np.sin((x-1.5)/4) < -0.5, 100, 0)
 
+    max_speed_1 = round(max(speed1), 1)
+    max_speed_2 = round(max(speed2), 1)
+    delta_max_speed = round(max_speed_1 - max_speed_2, 1)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- KPIS / MÉTRICAS RÁPIDAS DE TELEMETRÍA ---
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        st.metric(label=f"Vmax {driver1.split()[-1]}", value=f"{max_speed_1} km/h")
+    with m2:
+        st.metric(label=f"Vmax {driver2.split()[-1]}", value=f"{max_speed_2} km/h")
+    with m3:
+        st.metric(label="Delta Velocidad Pura", value=f"{delta_max_speed:+g} km/h", delta_color="normal" if delta_max_speed >= 0 else "inverse")
+    with m4:
+        st.metric(label="Fase Analizada", value=session.split()[0], delta="FastF1 Telemetry")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA ---
     fig_tel = make_subplots(
         rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.06,
         subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)")
@@ -757,16 +813,15 @@ with tab4:
     fig_tel.add_trace(go.Scatter(x=x, y=brake2, showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
 
     fig_tel.update_layout(
-        height=750, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=40, b=20, l=20, r=20), hovermode="x unified",
-        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1)
+        height=720, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=30, b=20, l=10, r=10), hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.04, xanchor="right", x=1)
     )
-    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', zeroline=False)
-    fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title_text="Distancia del Circuito (m)", row=3, col=1)
+    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=False)
+    fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text="<b>Distancia del Circuito (m)</b>", row=3, col=1)
 
-    st.plotly_chart(fig_tel, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True) 
-
+    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_advanced_pro")
+    st.markdown("</div>", unsafe_allow_html=True)
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⛅ AWS Insights: Advanced Weather Radar & Track Evolution</div>", unsafe_allow_html=True)
