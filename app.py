@@ -18,6 +18,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- MÚSICA DE FONDO F1 OFICIAL ---
+st.audio("https://www.myinstants.com/media/sounds/f1-theme-song.mp3", format="audio/mp3", autoplay=True, loop=True)
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
