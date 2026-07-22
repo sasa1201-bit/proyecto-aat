@@ -18,9 +18,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- MÚSICA DE FONDO (SIN COPYRIGHT Y SIN BLOQUEOS) ---
-st.sidebar.markdown("### 🎵 Música de Fondo")
-st.sidebar.video("https://www.youtube.com/watch?v=p7ZsBPK656s")
+# --- MÚSICA F1 (COVER ÉPICO SIN BLOQUEO DE COPYRIGHT) ---
+st.sidebar.markdown("### 🎵 Tema Oficial F1")
+st.sidebar.video("https://www.youtube.com/watch?v=MSrHoJHCa3I")
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
