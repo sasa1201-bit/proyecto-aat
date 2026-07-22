@@ -377,30 +377,30 @@ with tab1:
         "Kick Sauber": {"lat": 47.3075, "lon": 8.8475, "base": "Hinwil, Suiza"}
     }
 
-    datos_equipo = TEAMS_DICT_2024[equipo_seleccionado_nombre]
-    id_activo = datos_equipo["id"]
+    datos_equipo = TEAMS_DICT_2024.get(equipo_seleccionado_nombre, {})
     nombre_activo = equipo_seleccionado_nombre
-    pais_activo = datos_equipo["country"]
-    logo_activo = datos_equipo["logo"]
+    pais_activo = datos_equipo.get("country", "F1")
+    logo_activo = datos_equipo.get("logo", "")
     
-    info_geo = TEAMS_GEO_COORDS.get(nombre_activo, {"lat": 44.5795, "lon": 10.8661, "base": datos_equipo["base"]})
+    info_geo = TEAMS_GEO_COORDS.get(nombre_activo, {"lat": 44.5795, "lon": 10.8661, "base": datos_equipo.get("base", "Europa")})
     lat_activa = info_geo["lat"]
     lon_activa = info_geo["lon"]
     ciudad_activa = info_geo["base"]
 
-    puntos_totales = datos_equipo["puntos"]
-    efectividad = datos_equipo["efectividad"]
-    promedio_puntos = datos_equipo["promedio"]
+    puntos_totales = datos_equipo.get("puntos", 0)
+    efectividad = datos_equipo.get("efectividad", 0)
+    promedio_puntos = datos_equipo.get("promedio", 0)
 
-    # --- PANEL DE MÉTRICAS CLAVE ---
+    # --- PANEL DE MÉTRICAS CLAVE (LOGOS DINÁMICOS CORREGIDOS) ---
     k1, k2, k3, k4 = st.columns(4)
     with k1:
-        logo_html_str = render_logo_html(logo_activo, width=42, fallback_emoji="🏎️")
         st.markdown(f"""
-            <div class='telemetry-card' style='display:flex; align-items:center; gap:14px; border-left: 5px solid #FF1801; padding: 18px; height: 100%; box-sizing: border-box;'>
-                <div style='min-width: 48px; display: flex; align-items: center; justify-content: center;'>{logo_html_str}</div>
+            <div class='telemetry-card' style='display:flex; align-items:center; gap:12px; border-left: 5px solid #FF1801; padding: 18px; height: 100%; box-sizing: border-box;'>
+                <div style='min-width: 42px; display: flex; align-items: center; justify-content: center;'>
+                    <img src="{logo_activo}" style="max-height: 38px; max-width: 45px; object-fit: contain;" onerror="this.onerror=null; this.src='https://media.formula1.com/content/dam/fom-website/teams/2024/logo.png';">
+                </div>
                 <div style='overflow: hidden;'>
-                    <h3 style='margin:0; font-size:0.95rem; font-weight:800; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>{nombre_activo}</h3>
+                    <h3 style='margin:0; font-size:0.9rem; font-weight:800; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>{nombre_activo}</h3>
                     <small style='color:#94A3B8; font-weight:600; font-size:0.75rem;'>{pais_activo}</small>
                 </div>
             </div>
@@ -461,7 +461,7 @@ with tab1:
     render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- DICCIONARIO DE PILOTOS CON TOQUE DIVERTIDO E INTERACTIVO (F1 VIBES) ---
+    # --- DICCIONARIO DE PILOTOS CON TARJETAS INTERACTIVAS Y GARANTIZADAS ---
     PILOTOS_EQUIPOS_2024_DIVERTIDO = {
         "Red Bull Racing": [
             {"Piloto": "Max Verstappen", "País": "Países Bajos 🇳🇱", "Número": "#1", "Apodo": "🦁 Mad Max", "Estilo": "Ritmo de videojuego, imparable en qualy y carrera."},
@@ -511,17 +511,20 @@ with tab1:
         st.write("Conoce el verdadero espíritu y estilo de los pilotos de esta escudería:")
         
         pilotos_equipo_info = PILOTOS_EQUIPOS_2024_DIVERTIDO.get(equipo_seleccionado_nombre, [])
-        for p in pilotos_equipo_info:
-            st.markdown(f"""
-                <div style='background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 24, 1, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px;'>
-                    <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
-                        <strong style='color: #FFFFFF; font-size: 1.05rem;'>🏎️ {p['Piloto']}</strong>
-                        <span style='background: #FF1801; color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;'>{p['Número']}</span>
+        if pilotos_equipo_info:
+            for p in pilotos_equipo_info:
+                st.markdown(f"""
+                    <div style='background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 24, 1, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px;'>
+                        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                            <strong style='color: #FFFFFF; font-size: 1.05rem;'>🏎️ {p['Piloto']}</strong>
+                            <span style='background: #FF1801; color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;'>{p['Número']}</span>
+                        </div>
+                        <div style='color: #38BDF8; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;'>{p['Apodo']} | {p['País']}</div>
+                        <p style='color: #94A3B8; font-size: 0.82rem; margin: 0;'>💡 <i>{p['Estilo']}</i></p>
                     </div>
-                    <div style='color: #38BDF8; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;'>{p['Apodo']} | {p['País']}</div>
-                    <p style='color: #94A3B8; font-size: 0.82rem; margin: 0;'>💡 <i>{p['Estilo']}</i></p>
-                </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+        else:
+            st.warning("No hay información de pilotos disponible para este equipo.")
             
         st.markdown("</div>", unsafe_allow_html=True)
         
