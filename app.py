@@ -18,9 +18,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- AUDIO F1 SIN BLOQUEOS (Pégalo debajo de st.set_page_config) ---
+# --- AUDIO F1 SEGURO SPOTIFY (Pégalo debajo de st.set_page_config) ---
 st.sidebar.markdown("### 🎵 Tema Oficial F1")
-st.sidebar.video("https://www.youtube.com/watch?v=aEqB-7D8mks")
+st.sidebar.markdown("""
+    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/30wTqEQ6lE7M6N3P0GAKuM?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+""", unsafe_allow_html=True)
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
