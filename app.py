@@ -705,8 +705,8 @@ with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
     st.write(
-        "Análisis cruzado de los inputs del piloto: Acelerador, Freno, Velocidad y Diferencial Directo "
-        "mediante la integración simulada de FastF1."
+        "Análisis cruzado de los inputs del piloto: Velocidad, Acelerador, Freno y Marchas "
+        "con comparación directa de ambos pilotos mediante la integración simulada de FastF1."
     )
     
     # --- DICCIONARIO DE COLORES OFICIALES DE ESCUDERÍAS ---
@@ -764,7 +764,7 @@ with tab4:
     with col_t3:
         session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
 
-    # --- GENERACIÓN DE DATOS DINÁMICOS ---
+    # --- GENERACIÓN DE DATOS DINÁMICOS PARA AMBOS PILOTOS ---
     x = np.linspace(0, 100, 600)
     
     seed1 = sum(ord(c) for c in driver1)
@@ -773,16 +773,17 @@ with tab4:
     fase1 = (seed1 % 12) * 0.08
     fase2 = (seed2 % 12) * 0.08
     
+    # Piloto 1
     speed1 = 305 + (seed1 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase1) + np.random.normal(0, 1.2, 600)
     throttle1 = np.where(np.sin(x/3.5 + fase1) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
     brake1 = np.where(np.sin(x/3.5 + fase1) < -0.65, 100, 0)
+    gear1 = np.clip(np.floor(speed1 / 42) + 1, 1, 8)
     
+    # Piloto 2
     speed2 = 305 + (seed2 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase2) + np.random.normal(0, 1.2, 600)
     throttle2 = np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
     brake2 = np.where(np.sin(x/3.5 + fase2) < -0.65, 100, 0)
-
-    # Diferencial de velocidad instantáneo (Piloto 2 menos Piloto 1)
-    speed_diff = speed2 - speed1
+    gear2 = np.clip(np.floor(speed2 / 42) + 1, 1, 8)
 
     max_speed_1 = round(max(speed1), 1)
     max_speed_2 = round(max(speed2), 1)
@@ -799,51 +800,41 @@ with tab4:
     with m3:
         st.metric(label="Delta Vmax Pura", value=f"{delta_max_speed:+g} km/h", delta_color="normal" if delta_max_speed >= 0 else "inverse")
     with m4:
-        st.metric(label="Ganancia Máxima", value=f"{round(max(speed_diff), 1)} km/h", delta="Punto álgido P2")
+        st.metric(label="Sesión Analizada", value=session.split()[0], delta="FastF1 Pro")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (4 PANELES) ---
+    # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (4 PANELES COMPARATIVOS) ---
     fig_tel = make_subplots(
         rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.05,
-        subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)", f"Diferencial de Velocidad ({driver2.split()[-1]} vs {driver1.split()[-1]}) (km/h)")
+        subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)", "Marchas (Gear Selection)")
     )
     
-    # Panel 1: Velocidad
+    # Panel 1: Velocidad (Ambos pilotos)
     fig_tel.add_trace(go.Scatter(x=x, y=speed1, name=driver1, line=dict(color=color1, width=2.5)), row=1, col=1)
     fig_tel.add_trace(go.Scatter(x=x, y=speed2, name=driver2, line=dict(color=color2, width=2.5)), row=1, col=1)
     
-    # Panel 2: Acelerador
-    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle1, 0, 100), showlegend=False, line=dict(color=color1, width=2)), row=2, col=1)
-    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle2, 0, 100), showlegend=False, line=dict(color=color2, width=2)), row=2, col=1)
+    # Panel 2: Acelerador (Ambos pilotos)
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle1, 0, 100), name=f"{driver1} (Throttle)", showlegend=False, line=dict(color=color1, width=2)), row=2, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle2, 0, 100), name=f"{driver2} (Throttle)", showlegend=False, line=dict(color=color2, width=2)), row=2, col=1)
     
-    # Panel 3: Freno
-    fig_tel.add_trace(go.Scatter(x=x, y=brake1, showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
-    fig_tel.add_trace(go.Scatter(x=x, y=brake2, showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
+    # Panel 3: Freno (Ambos pilotos)
+    fig_tel.add_trace(go.Scatter(x=x, y=brake1, name=f"{driver1} (Brake)", showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=brake2, name=f"{driver2} (Brake)", showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
 
-    # Panel 4: Diferencial de Velocidad Instantáneo (Verde = P2 más rápido / Rojo = P2 más lento)
-    diff_verde = np.where(speed_diff >= 0, speed_diff, 0)
-    diff_rojo = np.where(speed_diff < 0, speed_diff, 0)
-
-    fig_tel.add_trace(go.Scatter(
-        x=x, y=diff_verde, name=f"{driver2.split()[-1]} más rápido",
-        line=dict(color='#10B981', width=2), fill='tozeroy', fillcolor='rgba(16, 185, 129, 0.2)'
-    ), row=4, col=1)
-    
-    fig_tel.add_trace(go.Scatter(
-        x=x, y=diff_rojo, name=f"{driver2.split()[-1]} más lento",
-        line=dict(color='#EF4444', width=2), fill='tozeroy', fillcolor='rgba(239, 68, 68, 0.2)'
-    ), row=4, col=1)
+    # Panel 4: Marchas / Gear Selection (Ambos pilotos con línea escalonada tipo F1)
+    fig_tel.add_trace(go.Scatter(x=x, y=gear1, name=f"{driver1} (Gear)", showlegend=False, line=dict(color=color1, width=2, shape='hv')), row=4, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=gear2, name=f"{driver2} (Gear)", showlegend=False, line=dict(color=color2, width=2, shape='hv')), row=4, col=1)
 
     fig_tel.update_layout(
-        height=820, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        height=850, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(t=30, b=20, l=10, r=10), hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.03, xanchor="right", x=1)
     )
-    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=True, zerolinecolor='rgba(255,255,255,0.4)')
+    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=False)
     fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text="<b>Distancia del Circuito (m)</b>", row=4, col=1)
 
-    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_pro_4panels_speeddiff")
+    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_pro_4panels_gears")
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab5:
