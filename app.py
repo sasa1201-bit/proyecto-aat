@@ -1345,12 +1345,12 @@ with tab9:
     # --- CONTROLES SUPERIORES ORGANIZADOS ---
     col_f1, col_f2 = st.columns([2, 1])
     with col_f1:
-        presupuesto_max = st.slider("Presupuesto Disponible para Alineación ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy_pro")
+        presupuesto_max = st.slider("Presupuesto Disponible para Alineación ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy_pro_v2")
     with col_f2:
         criterio_opt = st.selectbox(
             "Criterio de Optimización:", 
             ["Máxima Puntuación Total", "Mejor Eficiencia (ROI Puntos/$M)"], 
-            key="select_criterio_opt"
+            key="select_criterio_opt_v2"
         )
 
     # --- ALGORITMO DE OPTIMIZACIÓN INTELIGENTE ---
@@ -1423,30 +1423,41 @@ with tab9:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # --- MAPA DE VALOR DE LA PARRILLA (SCATTER PLOT INTERACTIVO) ---
+        # --- MAPA DE VALOR LIMPIO Y LEGIBLE (SCATTER PLOT) ---
         st.markdown("<b style='color: #FFFFFF; font-size: 0.95rem;'>📊 Mapa de Valor de la Parrilla (Costo vs Puntos):</b>", unsafe_allow_html=True)
-        
+        st.write("Pasa el cursor sobre cualquier punto para ver los detalles del piloto. Los ganadores de la alineación aparecen etiquetados.")
+
         df_fantasy_plot = pd.DataFrame.from_dict(FANTASY_DB, orient='index').reset_index()
         df_fantasy_plot.columns = ["Piloto", "Costo", "Puntos"]
         df_fantasy_plot["Seleccionado"] = df_fantasy_plot["Piloto"].apply(lambda x: "Titular Óptimo 🏆" if x in mejor_par else "Resto de la Parrilla")
+        
+        # Truco para mostrar texto SOLO en los pilotos seleccionados y evitar que se sature la gráfica
+        df_fantasy_plot["Label_Texto"] = df_fantasy_plot.apply(
+            lambda row: f"<b>{row['Piloto']}</b> 🏆" if row["Piloto"] in mejor_par else "", axis=1
+        )
 
         fig_fantasy = px.scatter(
             df_fantasy_plot, x="Costo", y="Puntos", color="Seleccionado",
-            text="Piloto", hover_data=["Costo", "Puntos"],
-            color_discrete_map={"Titular Óptimo 🏆": "#10B981", "Resto de la Parrilla": "#94A3B8"},
+            text="Label_Texto",
+            hover_name="Piloto",
+            hover_data={"Costo": True, "Puntos": True, "Label_Texto": False, "Seleccionado": False},
+            color_discrete_map={"Titular Óptimo 🏆": "#10B981", "Resto de la Parrilla": "#64748B"},
             template="plotly_dark"
         )
-        fig_fantasy.update_traces(textposition='top center', marker=dict(size=12))
+        fig_fantasy.update_traces(
+            textposition='top center', 
+            marker=dict(size=13, line=dict(width=1.5, color='rgba(255,255,255,0.3)'))
+        )
         fig_fantasy.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(t=30, b=20, l=10, r=10), height=380,
+            margin=dict(t=40, b=20, l=10, r=10), height=420,
             xaxis_title="<b>Costo del Piloto ($M)</b>", yaxis_title="<b>Puntos Históricos 2024</b>",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
-        fig_fantasy.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
-        fig_fantasy.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+        fig_fantasy.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.08)')
+        fig_fantasy.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.08)')
 
-        st.plotly_chart(fig_fantasy, use_container_width=True, key="chart_fantasy_optimizer_pro")
+        st.plotly_chart(fig_fantasy, use_container_width=True, key="chart_fantasy_optimizer_pro_v2")
 
     else:
         st.warning("⚠️ No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite en el control deslizante superior.")
