@@ -536,13 +536,29 @@ with tab2:
     st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
     st.write("Comparativa dinámica de rendimiento y telemetría cruzada seleccionando libremente entre **cualquier piloto de la parrilla 2024**.")
     
+    # --- DICCIONARIO DE COLORES OFICIALES DE ESCUDERÍAS ---
+    DRIVER_COLORS = {
+        "Max Verstappen": "#0600EF", "Sergio Pérez": "#1E41FF",
+        "Lewis Hamilton": "#00D2BE", "George Russell": "#00D2BE",
+        "Charles Leclerc": "#DC0000", "Carlos Sainz": "#DC0000",
+        "Lando Norris": "#FF8000", "Oscar Piastri": "#FF8000",
+        "Fernando Alonso": "#006F62", "Lance Stroll": "#006F62",
+        "Pierre Gasly": "#0090FF", "Esteban Ocon": "#0090FF",
+        "Alex Albon": "#005AFF", "Yuki Tsunoda": "#2B4562",
+        "Nico Hülkenberg": "#B6BABD", "Kevin Magnussen": "#B6BABD",
+        "Valtteri Bottas": "#52E252", "Zhou Guanyu": "#52E252",
+        "Daniel Ricciardo": "#2B4562", "Oliver Bearman": "#DC0000"
+    }
+
     col_p1, col_vs, col_p2 = st.columns([5, 1, 5])
     with col_p1:
         sel_h2h_a = st.selectbox("Seleccionar Piloto A (Referencia):", TODOS_OS_PILOTOS_2024, index=0, key="h2h_piloto_a")
+        color_a = DRIVER_COLORS.get(sel_h2h_a, "#FF1801")
     with col_vs:
         st.markdown("<div style='text-align: center; padding-top: 30px;'><h2 style='color: #FF1801; font-weight: 900;'>VS</h2></div>", unsafe_allow_html=True)
     with col_p2:
         sel_h2h_b = st.selectbox("Seleccionar Piloto B (Rival):", TODOS_OS_PILOTOS_2024, index=min(1, len(TODOS_OS_PILOTOS_2024)-1), key="h2h_piloto_b")
+        color_b = DRIVER_COLORS.get(sel_h2h_b, "#38BDF8")
 
     if sel_h2h_a == sel_h2h_b:
         st.warning("⚠️ Has seleccionado al mismo piloto en ambos lados. Selecciona pilotos diferentes para una comparativa H2H real.")
@@ -562,8 +578,8 @@ with tab2:
     col_res1, col_res2 = st.columns(2)
     with col_res1:
         st.markdown(f"""
-            <div style='background: rgba(255,24,1,0.03); padding: 22px; border-radius: 14px; border: 1px solid rgba(255,24,1,0.3);'>
-                <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ {sel_h2h_a}</h3>
+            <div style='background: {color_a}15; padding: 22px; border-radius: 14px; border: 1px solid {color_a}50;'>
+                <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ <span style='color: {color_a};'>{sel_h2h_a}</span></h3>
                 <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>⚡ Velocidad Punta: <b style='color: #38BDF8;'>{vel_a_val} km/h</b></p>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>⏱️ Ritmo Q3: <b style='color: #F59E0B;'>1:19.{seed_a % 90}</b></p>
@@ -572,8 +588,8 @@ with tab2:
         """, unsafe_allow_html=True)
     with col_res2:
         st.markdown(f"""
-            <div style='background: rgba(59,130,246,0.03); padding: 22px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.3);'>
-                <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ {sel_h2h_b}</h3>
+            <div style='background: {color_b}15; padding: 22px; border-radius: 14px; border: 1px solid {color_b}50;'>
+                <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ <span style='color: {color_b};'>{sel_h2h_b}</span></h3>
                 <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>⚡ Velocidad Punta: <b style='color: #38BDF8;'>{vel_b_val} km/h</b></p>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>⏱️ Ritmo Q3: <b style='color: #F59E0B;'>1:19.{seed_b % 90}</b></p>
@@ -583,7 +599,7 @@ with tab2:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Gráfica comparativa visual Plotly con formato ordenado (tidy dataframe)
+    # Gráfica comparativa visual Plotly con formato ordenado (tidy dataframe) y colores oficiales sincronizados
     df_h2h = pd.DataFrame({
         "Métrica": ["Puntos 2024", "Velocidad Punta (km/h)", "Índice Q3"],
         sel_h2h_a: [pts_a_val, vel_a_val, q3_a],
@@ -595,7 +611,7 @@ with tab2:
     fig_h2h = px.bar(
         df_melted, x="Métrica", y="Valor", color="Piloto", barmode="group",
         template="plotly_dark", title="Comparativa Gráfica Directa H2H",
-        color_discrete_map={sel_h2h_a: "#FF1801", sel_h2h_b: "#38BDF8"}
+        color_discrete_map={sel_h2h_a: color_a, sel_h2h_b: color_b}
     )
     fig_h2h.update_layout(
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
