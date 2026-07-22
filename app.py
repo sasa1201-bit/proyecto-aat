@@ -456,7 +456,7 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CALENDARIO OFICIAL CON BADGES Y LEYENDAS (GP EN AZUL 🔵 Y SPRINT EN MORADO 🟣) ---
+    # --- CALENDARIO OFICIAL CON SOPORTE REAL DE GPs (AZUL) Y SPRINTS (MORADO) ---
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (GP en Azul y Sprints en Morado)</div>", unsafe_allow_html=True)
     st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en azul y los fines de semana Sprint en color morado.")
@@ -471,65 +471,55 @@ with tab1:
     
     st.write("")
     
-    # Función extendida o renderizador con soporte de Sprints (Fechas clave Sprint 2024: 20 Abr, 4 May, 29 Jun, 19 Oct, 2 Nov, 30 Nov)
-    def render_calendario_anual_2024_con_sprints():
-        # Fechas de ejemplo o llamada a tu renderizador actual que soporte marcado de sprints
-        if "render_calendario_anual_2024" in globals():
-            # Si tu función ya acepta argumentos o maneja sprints internamente, la llamamos:
-            render_calendario_anual_2024()
-        else:
-            # Renderizador integrado por defecto con soporte de GP (Azul) y Sprint (Morado)
-            import calendar
-            from datetime import date
+    import calendar
+    from datetime import date
+    
+    gps_2024 = {
+        date(2024, 3, 2), date(2024, 3, 9), date(2024, 3, 24), date(2024, 4, 7),
+        date(2024, 4, 21), date(2024, 5, 5), date(2024, 5, 19), date(2024, 5, 26),
+        date(2024, 6, 9), date(2024, 6, 23), date(2024, 6, 30), date(2024, 7, 7),
+        date(2024, 7, 21), date(2024, 7, 28), date(2024, 8, 25), date(2024, 9, 1),
+        date(2024, 9, 15), date(2024, 9, 22), date(2024, 10, 6), date(2024, 10, 20),
+        date(2024, 10, 27), date(2024, 11, 3), date(2024, 11, 24), date(2024, 12, 8)
+    }
+    sprints_2024 = {
+        date(2024, 4, 20),
+        date(2024, 5, 4),
+        date(2024, 6, 29),
+        date(2024, 10, 19),
+        date(2024, 11, 2),
+        date(2024, 11, 30)
+    }
+    
+    meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    cols = st.columns(3)
+    for i, mes in enumerate(range(1, 13), 1):
+        with cols[(i - 1) % 3]:
+            st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 10px; border-radius: 8px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[i-1]} 2024</p>", unsafe_allow_html=True)
             
-            # Fechas oficiales 2024 de Grandes Premios (Domingos) y Carreras Sprint (Sábados de Sprint)
-            gps_2024 = {
-                date(2024, 3, 2), date(2024, 3, 16), date(2024, 3, 24), date(2024, 4, 7),
-                date(2024, 4, 21), date(2024, 5, 5), date(2024, 5, 19), date(2024, 5, 26),
-                date(2024, 6, 9), date(2024, 6, 23), date(2024, 6, 30), date(2024, 7, 7),
-                date(2024, 7, 21), date(2024, 7, 28), date(2024, 8, 25), date(2024, 9, 1),
-                date(2024, 9, 15), date(2024, 9, 22), date(2024, 10, 20), date(2024, 10, 27),
-                date(2024, 11, 3), date(2024, 11, 23), date(2024, 12, 1), date(2024, 12, 8)
-            }
-            sprints_2024 = {
-                date(2024, 4, 20),   # China Sprint
-                date(2024, 5, 4),    # Miami Sprint
-                date(2024, 6, 29),   # Austria Sprint
-                date(2024, 10, 19),  # Estados Unidos Sprint
-                date(2024, 11, 2),   # São Paulo Sprint
-                date(2024, 11, 30)   # Qatar Sprint
-            }
+            cal_mat = calendar.monthcalendar(2024, mes)
+            cal_html = "<table style='width:100%; text-align:center; font-size:0.75rem; color:#94A3B8; border-collapse:collapse;'>"
+            cal_html += "<tr><th>l</th><th>m</th><th>m</th><th>j</th><th>v</th><th>s</th><th>d</th></tr>"
             
-            meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-            cols = st.columns(3)
-            for i, mes in enumerate(range(1, 13), 1):
-                with cols[(i - 1) % 3]:
-                    st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 10px; border-radius: 8px; margin-bottom: 10px;'>", unsafe_allow_html=True)
-                    st.markdown(f"<p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[i-1]} 2024</p>", unsafe_allow_html=True)
-                    
-                    cal_mat = calendar.monthcalendar(2024, mes)
-                    cal_html = "<table style='width:100%; text-align:center; font-size:0.75rem; color:#94A3B8; border-collapse:collapse;'>"
-                    cal_html += "<tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr>"
-                    
-                    for semana in cal_mat:
-                        cal_html += "<tr>"
-                        for dia in semana:
-                            if dia == 0:
-                                cal_html += "<td style='padding:3px;'></td>"
-                            else:
-                                d_obj = date(2024, mes, dia)
-                                if d_obj in gps_2024:
-                                    cal_html += f"<td style='padding:3px; background:#38BDF8; color:#0F172A; font-weight:bold; border-radius:4px;'>{dia}</td>"
-                                elif d_obj in sprints_2024:
-                                    cal_html += f"<td style='padding:3px; background:#A855F7; color:#FFFFFF; font-weight:bold; border-radius:4px;'>{dia}</td>"
-                                else:
-                                    cal_html += f"<td style='padding:3px;'>{dia}</td>"
-                        cal_html += "</tr>"
-                    cal_html += "</table>"
-                    st.markdown(cal_html, unsafe_allow_html=True)
-                    st.markdown("</div>", unsafe_allow_html=True)
+            for semana in cal_mat:
+                cal_html += "<tr>"
+                for dia in semana:
+                    if dia == 0:
+                        cal_html += "<td style='padding:3px;'></td>"
+                    else:
+                        d_obj = date(2024, mes, dia)
+                        if d_obj in gps_2024:
+                            cal_html += f"<td style='padding:3px; background:#38BDF8; color:#0F172A; font-weight:bold; border-radius:4px;'>{dia}</td>"
+                        elif d_obj in sprints_2024:
+                            cal_html += f"<td style='padding:3px; background:#A855F7; color:#FFFFFF; font-weight:bold; border-radius:4px;'>{dia}</td>"
+                        else:
+                            cal_html += f"<td style='padding:3px;'>{dia}</td>"
+                cal_html += "</tr>"
+            cal_html += "</table>"
+            st.markdown(cal_html, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
-    render_calendario_anual_2024_con_sprints()
     st.markdown("</div>", unsafe_allow_html=True)
 
     # --- DICCIONARIO DE PILOTOS CON COINCIDENCIA ROBUSTA ---
