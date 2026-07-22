@@ -855,11 +855,30 @@ with tab6:
     with col_cc2:
         gasto_chasis = st.slider("Manufactura y Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0, step=0.5, key="cc_chasis")
         gasto_operaciones = st.slider("Logística, Viajes y Operaciones de Fábrica ($M):", min_value=10.0, max_value=30.0, value=18.0, step=0.5, key="cc_ops")
-        paquete_mejoras = st.selectbox("Paquete de Mejoras Previsto para el Siguiente GP:", ["Ninguno ($0M)", "Actualización menor - Suelo y Difusor ($2.5M)", "Paquete Mayor - Rediseño Total de Pontones ($5.8M)"], key="cc_upgrades")
+        
+        # Opciones ampliadas de paquetes de mejoras
+        paquete_mejoras = st.selectbox(
+            "Paquete de Mejoras Previsto para el Siguiente GP:", 
+            [
+                "Ninguno ($0M)", 
+                "Evolución de Ala Delantera y Morro ($1.8M)",
+                "Actualización menor - Suelo y Difusor ($2.5M)", 
+                "Paquete de Alta Carga - Circuitos Rabiosos ($3.5M)",
+                "Paquete de Baja Carga - Especificación Monza ($4.2M)",
+                "Paquete Mayor - Rediseño Total de Pontones ($5.8M)"
+            ], 
+            key="cc_upgrades"
+        )
 
     costo_upgrades_val = 0.0
-    if "Suelo" in paquete_mejoras:
+    if "Ala Delantera" in paquete_mejoras:
+        costo_upgrades_val = 1.8
+    elif "Suelo" in paquete_mejoras:
         costo_upgrades_val = 2.5
+    elif "Alta Carga" in paquete_mejoras:
+        costo_upgrades_val = 3.5
+    elif "Baja Carga" in paquete_mejoras:
+        costo_upgrades_val = 4.2
     elif "Pontones" in paquete_mejoras:
         costo_upgrades_val = 5.8
 
@@ -885,12 +904,12 @@ with tab6:
             detalle_sancion = "Sanción severa: Deducción drástica de puntos en el Mundial y reducción del 20% en túnel de viento."
 
         st.markdown(f"""
-            <div style='background: #080C16; padding: 20px; border-radius: 14px; border: 1px solid {color_estado};'>
+            <div style='background: rgba(8, 12, 22, 0.8); padding: 20px; border-radius: 14px; border: 1px solid {color_estado};'>
                 <h4 style='color: {color_estado}; margin-top:0;'>📊 Auditoría Financiera FIA</h4>
-                <p><strong>Límite de Gasto Autorizado:</strong> ${presupuesto_base}M</p>
-                <p><strong>Gasto Acumulado Total:</strong> ${gasto_total}M</p>
-                <p><strong>Presupuesto Remanente:</strong> <span style='color: {color_estado}; font-weight: 800;'>${remanente}M</span></p>
-                <hr style='border-color: rgba(255,255,255,0.1);'>
+                <p style='margin: 6px 0;'><strong>Límite de Gasto Autorizado:</strong> ${presupuesto_base}M</p>
+                <p style='margin: 6px 0;'><strong>Gasto Acumulado Total:</strong> ${gasto_total}M</p>
+                <p style='margin: 6px 0;'><strong>Presupuesto Remanente:</strong> <span style='color: {color_estado}; font-weight: 800;'>${remanente}M</span></p>
+                <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
                 <div style='background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px;'>
                     <span style='color: {color_estado}; font-weight: 900; display:block; margin-bottom: 5px;'>{cumplimiento}</span>
                     <small style='color: #94A3B8;'>{detalle_sancion}</small>
@@ -917,7 +936,6 @@ with tab6:
         st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut")
 
     st.markdown("</div>", unsafe_allow_html=True)
-
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🚦 Simulador de Luces de Salida & Tiempo de Reacción F1</div>", unsafe_allow_html=True)
