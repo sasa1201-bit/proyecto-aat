@@ -367,6 +367,7 @@ with tab1:
     TEAMS_GEO_COORDS = {
         "Red Bull Racing": {"lat": 52.0406, "lon": -0.6835, "base": "Milton Keynes, Reino Unido"},
         "Ferrari": {"lat": 44.5795, "lon": 10.8661, "base": "Maranello, Italia"},
+        "Scuderia Ferrari": {"lat": 44.5795, "lon": 10.8661, "base": "Maranello, Italia"},
         "Mercedes": {"lat": 52.0292, "lon": -1.1444, "base": "Brackley, Reino Unido"},
         "McLaren": {"lat": 51.3444, "lon": -0.5516, "base": "Woking, Reino Unido"},
         "Aston Martin": {"lat": 52.0903, "lon": -1.0172, "base": "Silverstone, Reino Unido"},
@@ -392,7 +393,7 @@ with tab1:
     efectividad = datos_equipo.get("efectividad", 0)
     promedio_puntos = datos_equipo.get("promedio", 0)
 
-    # --- PANEL DE MÉTRICAS CLAVE (LOGOS DINÁMICOS CORREGIDOS) ---
+    # --- PANEL DE MÉTRICAS CLAVE ---
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         st.markdown(f"""
@@ -462,7 +463,7 @@ with tab1:
     render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- DICCIONARIO DE PILOTOS CON ESTILO INTERACTIVO ---
+    # --- DICCIONARIO DE PILOTOS CON COINCIDENCIA ROBUSTA ---
     PILOTOS_EQUIPOS_2024_DIVERTIDO = {
         "Red Bull Racing": [
             {"Piloto": "Max Verstappen", "País": "Países Bajos 🇳🇱", "Número": "#1", "Apodo": "🦁 Mad Max", "Estilo": "Ritmo de videojuego, imparable en qualy y carrera."},
@@ -506,6 +507,13 @@ with tab1:
         ]
     }
 
+    # Búsqueda flexible de pilotos por coincidencia parcial (evita errores de nombres exactos)
+    pilotos_equipo_info = []
+    for k, v in PILOTOS_EQUIPOS_2024_DIVERTIDO.items():
+        if k.lower() in equipo_seleccionado_nombre.lower() or equipo_seleccionado_nombre.lower() in k.lower():
+            pilotos_equipo_info = v
+            break
+
     col_plantilla, col_mapa = st.columns(2)
     
     with col_plantilla:
@@ -513,7 +521,6 @@ with tab1:
         st.markdown(f"<div class='section-header'>🔥 Alineación Estelar - {equipo_seleccionado_nombre}</div>", unsafe_allow_html=True)
         st.write("Conoce el verdadero espíritu y estilo de los pilotos de esta escudería:")
         
-        pilotos_equipo_info = PILOTOS_EQUIPOS_2024_DIVERTIDO.get(equipo_seleccionado_nombre, [])
         if pilotos_equipo_info:
             for p in pilotos_equipo_info:
                 st.markdown(f"""
