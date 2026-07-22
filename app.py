@@ -762,15 +762,30 @@ with tab5:
     st.write("Simulador atmosférico predictivo y análisis de desgaste de neumáticos por circuito. Modifica las condiciones para analizar la ventana táctica Pirelli.")
     
     circuitos_f1 = {
-        "Bahrain International Circuit (Sakhir)": {"factor_abrasion": 1.4, "tipo": "Alta Abrasión"},
-        "Silverstone Circuit (Gran Bretaña)": {"factor_abrasion": 1.35, "tipo": "Alta Carga Lateral"},
-        "Circuit de Barcelona-Catalunya (España)": {"factor_abrasion": 1.3, "tipo": "Técnico / Severo"},
-        "Circuit de Monaco (Mónaco)": {"factor_abrasion": 0.7, "tipo": "Baja Abrasión / Urbano"},
-        "Monza (Italia)": {"factor_abrasion": 0.8, "tipo": "Baja Degradación"},
-        "Spa-Francorchamps (Bélgica)": {"factor_abrasion": 1.15, "tipo": "Media-Alta"},
-        "Suzuka Circuit (Japón)": {"factor_abrasion": 1.2, "tipo": "Alta Exigencia"},
-        "Red Bull Ring (Austria)": {"factor_abrasion": 1.0, "tipo": "Equilibrado"},
-        "Miami International Autodrome": {"factor_abrasion": 1.1, "tipo": "Superficie Nueva / Térmica"}
+        "Gran Premio de Baréin (Sakhir)": {"factor_abrasion": 1.4, "tipo": "Alta Abrasión"},
+        "Gran Premio de Arabia Saudita (Yeda)": {"factor_abrasion": 0.9, "tipo": "Urbano Rápido / Media"},
+        "Gran Premio de Australia (Melbourne)": {"factor_abrasion": 1.0, "tipo": "Urbano / Semi-permanente"},
+        "Gran Premio de Japón (Suzuka)": {"factor_abrasion": 1.2, "tipo": "Alta Exigencia / Lateral"},
+        "Gran Premio de China (Shanghái)": {"factor_abrasion": 1.25, "tipo": "Exigente Frontal"},
+        "Gran Premio de Miami (Miami)": {"factor_abrasion": 1.1, "tipo": "Superficie Nueva / Térmica"},
+        "Gran Premio de Emilia-Romaña (Imola)": {"factor_abrasion": 1.05, "tipo": "Clásico / Técnico"},
+        "Gran Premio de Mónaco (Mónaco)": {"factor_abrasion": 0.7, "tipo": "Baja Abrasión / Urbano"},
+        "Gran Premio de Canadá (Montreal)": {"factor_abrasion": 0.85, "tipo": "Frenadas Severas / Baja Abrasión"},
+        "Gran Premio de España (Barcelona)": {"factor_abrasion": 1.3, "tipo": "Técnico / Severo"},
+        "Gran Premio de Austria (Spielberg)": {"factor_abrasion": 1.0, "tipo": "Equilibrado / Tracción"},
+        "Gran Premio del Reino Unido (Silverstone)": {"factor_abrasion": 1.35, "tipo": "Alta Carga Lateral"},
+        "Gran Premio de Hungría (Budapest)": {"factor_abrasion": 1.1, "tipo": "Alta Tracción / Curvas Lentas"},
+        "Gran Premio de Bélgica (Spa)": {"factor_abrasion": 1.15, "tipo": "Alta Carga / Mixto"},
+        "Gran Premio de los Países Bajos (Zandvoort)": {"factor_abrasion": 1.25, "tipo": "Peraltes / Carga Severa"},
+        "Gran Premio de Italia (Monza)": {"factor_abrasion": 0.8, "tipo": "Baja Carga / Velocidad Pura"},
+        "Gran Premio de Azerbaiyán (Bakú)": {"factor_abrasion": 0.85, "tipo": "Urbano / Frenadas Fuertes"},
+        "Gran Premio de Singapur (Singapur)": {"factor_abrasion": 1.0, "tipo": "Urbano Nocturno / Térmico"},
+        "Gran Premio de Estados Unidos (Austin)": {"factor_abrasion": 1.2, "tipo": "Exigente / Mixto"},
+        "Gran Premio de Ciudad de México (México)": {"factor_abrasion": 0.9, "tipo": "Gran Altitud / Refrigeración"},
+        "Gran Premio de São Paulo (Interlagos)": {"factor_abrasion": 1.15, "tipo": "Desnivel / Desgaste Medio"},
+        "Gran Premio de Las Vegas (Las Vegas)": {"factor_abrasion": 0.75, "tipo": "Urbano Frío / Baja Adherencia"},
+        "Gran Premio de Catar (Lusail)": {"factor_abrasion": 1.35, "tipo": "Alta Abrasión / Curvas Rápidas"},
+        "Gran Premio de Abu Dhabi (Yas Marina)": {"factor_abrasion": 1.0, "tipo": "Tracción / Nocturno"}
     }
 
     c_circ1, c_w1, c_w2, c_w3, c_w4 = st.columns([1.5, 1, 1, 1, 1])
