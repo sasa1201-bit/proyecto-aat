@@ -856,31 +856,24 @@ with tab6:
         gasto_chasis = st.slider("Manufactura y Reducción de Peso de Chasis ($M):", min_value=10.0, max_value=40.0, value=25.0, step=0.5, key="cc_chasis")
         gasto_operaciones = st.slider("Logística, Viajes y Operaciones de Fábrica ($M):", min_value=10.0, max_value=30.0, value=18.0, step=0.5, key="cc_ops")
         
-        # Opciones ampliadas de paquetes de mejoras
-        paquete_mejoras = st.selectbox(
-            "Paquete de Mejoras Previsto para el Siguiente GP:", 
-            [
-                "Ninguno ($0M)", 
-                "Evolución de Ala Delantera y Morro ($1.8M)",
-                "Actualización menor - Suelo y Difusor ($2.5M)", 
-                "Paquete de Alta Carga - Circuitos Rabiosos ($3.5M)",
-                "Paquete de Baja Carga - Especificación Monza ($4.2M)",
-                "Paquete Mayor - Rediseño Total de Pontones ($5.8M)"
-            ], 
+        # Diccionario con los paquetes de mejoras disponibles y sus costos asociados
+        upgrades_disponibles = {
+            "Evolución de Ala Delantera y Morro ($1.8M)": 1.8,
+            "Actualización menor - Suelo y Difusor ($2.5M)": 2.5,
+            "Paquete de Alta Carga - Circuitos Rabiosos ($3.5M)": 3.5,
+            "Paquete de Baja Carga - Especificación Monza ($4.2M)": 4.2,
+            "Paquete Mayor - Rediseño Total de Pontones ($5.8M)": 5.8
+        }
+        
+        # Selector múltiple para elegir varios paquetes de mejoras simultáneamente
+        paquetes_seleccionados = st.multiselect(
+            "Paquetes de Mejoras Previstos (puedes seleccionar varios):", 
+            options=list(upgrades_disponibles.keys()),
             key="cc_upgrades"
         )
 
-    costo_upgrades_val = 0.0
-    if "Ala Delantera" in paquete_mejoras:
-        costo_upgrades_val = 1.8
-    elif "Suelo" in paquete_mejoras:
-        costo_upgrades_val = 2.5
-    elif "Alta Carga" in paquete_mejoras:
-        costo_upgrades_val = 3.5
-    elif "Baja Carga" in paquete_mejoras:
-        costo_upgrades_val = 4.2
-    elif "Pontones" in paquete_mejoras:
-        costo_upgrades_val = 5.8
+    # Sumar automáticamente los costos de todos los paquetes seleccionados
+    costo_upgrades_val = sum(upgrades_disponibles[p] for p in paquetes_seleccionados)
 
     gasto_total = round(gasto_aero + gasto_motor + gasto_chasis + gasto_operaciones + costo_upgrades_val, 2)
     remanente = round(presupuesto_base - gasto_total, 2)
@@ -919,7 +912,7 @@ with tab6:
 
     with col_graf_cc:
         df_costos = pd.DataFrame({
-            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones / Logística", "Paquete Mejoras"],
+            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones / Logística", "Paquetes de Mejoras"],
             "Costo": [gasto_aero, gasto_motor, gasto_chasis, gasto_operaciones, costo_upgrades_val]
         })
         fig_donut = px.pie(
