@@ -525,10 +525,10 @@ with tab1:
         lat, lon = obtener_coordenadas(ciudad_activa, pais_activo)
         if lat and lon:
             df_mapa = pd.DataFrame({'lat': [lat], 'lon': [lon]})
-            st.map(df_mapa, zoom=10)
+            st.map(df_mapa, zoom=10, height=230)
         else:
             df_mapa = pd.DataFrame({'lat': [44.5385], 'lon': [10.8643]})
-            st.map(df_mapa, zoom=10)
+            st.map(df_mapa, zoom=10, height=230)
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
