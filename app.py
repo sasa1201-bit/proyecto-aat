@@ -700,6 +700,7 @@ with tab3:
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
+    
 with tab4:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
@@ -769,8 +770,49 @@ with tab4:
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⛅ AWS Insights: Advanced Weather Radar & Track Evolution</div>", unsafe_allow_html=True)
-    st.write("Simulador atmosférico predictivo y análisis de desgaste de neumáticos por circuito. Modifica las condiciones para analizar la ventana táctica Pirelli.")
+    st.write(
+        "Simulador atmosférico predictivo y análisis de desgaste de neumáticos por circuito. "
+        "Utiliza los escenarios meteorológicos rápidos o personaliza las variables para evaluar la ventana táctica Pirelli."
+    )
     
+    # --- INICIALIZAR ESTADOS DE SESIÓN PARA EL CLIMA ---
+    if "nw_temp" not in st.session_state:
+        st.session_state["nw_temp"] = 25
+    if "nw_rain" not in st.session_state:
+        st.session_state["nw_rain"] = 15
+    if "nw_hum" not in st.session_state:
+        st.session_state["nw_hum"] = 45
+    if "nw_wind" not in st.session_state:
+        st.session_state["nw_wind"] = 12
+
+    # --- ESCENARIOS METEOROLÓGICOS RÁPIDOS (PRESETS) ---
+    st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Escenarios Atmosféricos Rápidos:</b>", unsafe_allow_html=True)
+    col_p1, col_p2, col_p3 = st.columns(3)
+    
+    with col_p1:
+        if st.button("☀️ Calor Extremo / Verano", use_container_width=True, key="btn_weather_hot"):
+            st.session_state["nw_temp"] = 36
+            st.session_state["nw_rain"] = 5
+            st.session_state["nw_hum"] = 30
+            st.session_state["nw_wind"] = 8
+            st.rerun()
+    with col_p2:
+        if st.button("🌧️ Tormenta Inminente", use_container_width=True, key="btn_weather_rain"):
+            st.session_state["nw_temp"] = 21
+            st.session_state["nw_rain"] = 85
+            st.session_state["nw_hum"] = 90
+            st.session_state["nw_wind"] = 28
+            st.rerun()
+    with col_p3:
+        if st.button("🌙 Nocturna / Pista Fría", use_container_width=True, key="btn_weather_cold"):
+            st.session_state["nw_temp"] = 16
+            st.session_state["nw_rain"] = 10
+            st.session_state["nw_hum"] = 65
+            st.session_state["nw_wind"] = 10
+            st.rerun()
+
+    st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
+
     circuitos_f1 = {
         "Bahrain International Circuit (Sakhir)": {"factor_abrasion": 1.4, "tipo": "Alta Abrasión"},
         "Jeddah Corniche Circuit (Arabia Saudita)": {"factor_abrasion": 0.9, "tipo": "Urbano Rápido / Media"},
@@ -800,15 +842,15 @@ with tab5:
 
     c_circ1, c_w1, c_w2, c_w3, c_w4 = st.columns([1.5, 1, 1, 1, 1])
     with c_circ1:
-        circuito_seleccionado = st.selectbox("🏁 Circuito", list(circuitos_f1.keys()), key="nw_circuit")
+        circuito_seleccionado = st.selectbox("🏁 Circuito Oficial", list(circuitos_f1.keys()), key="nw_circuit")
     with c_w1:
-        temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=42, value=25, key="nw_temp")
+        temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=45, key="nw_temp", help="Temperatura del aire en el pit lane.")
     with c_w2:
-        prob_lluvia = st.slider("🌧️ Prob. de Lluvia (%)", min_value=0, max_value=100, value=15, key="nw_rain")
+        prob_lluvia = st.slider("🌧️ Prob. de Lluvia (%)", min_value=0, max_value=100, key="nw_rain", help="Probabilidad de precipitación según radar meteorológico AWS.")
     with c_w3:
-        humedad = st.slider("💧 Humedad Relativa (%)", min_value=10, max_value=100, value=45, key="nw_hum")
+        humedad = st.slider("💧 Humedad Relativa (%)", min_value=10, max_value=100, key="nw_hum", help="Nivel de vapor de agua en el ambiente.")
     with c_w4:
-        viento = st.slider("💨 Viento (km/h)", min_value=0, max_value=60, value=12, key="nw_wind")
+        viento = st.slider("💨 Viento (km/h)", min_value=0, max_value=60, key="nw_wind", help="Velocidad e intensidad de ráfagas en recta principal.")
 
     impacto_sol = 15 if prob_lluvia < 30 and humedad < 60 else (5 if prob_lluvia < 60 else 0)
     temp_pista = temp_amb + impacto_sol - (viento * 0.15)
@@ -838,14 +880,15 @@ with tab5:
     desgaste_por_vuelta = round(base_desgaste * factor_pista * (1 + (max(0, temp_pista - 30) * 0.01)), 2)
     vida_util_vueltas = int(100 / max(0.5, desgaste_por_vuelta))
 
-    st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 
+    # --- INDICADORES Y TARJETA RESUMEN ---
     col_g1, col_g2, col_g3 = st.columns([1, 1, 1.2])
     with col_g1:
         fig_grip = go.Figure(go.Indicator(
             mode="gauge+number",
             value=indice_agarre * 100,
-            title={'text': "Nivel de Agarre (Grip Index)", 'font': {'color': '#94A3B8', 'size': 18}},
+            title={'text': "Nivel de Agarre (Grip Index)", 'font': {'color': '#94A3B8', 'size': 16}},
             number={'suffix': "%", 'font': {'color': '#FFFFFF'}},
             gauge={
                 'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
@@ -859,14 +902,14 @@ with tab5:
                     {'range': [75, 100], 'color': "rgba(16, 185, 129, 0.2)"}],
             }
         ))
-        fig_grip.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
-        st.plotly_chart(fig_grip, use_container_width=True)
+        fig_grip.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=260, margin=dict(t=30, b=10, l=10, r=10))
+        st.plotly_chart(fig_grip, use_container_width=True, key="chart_gauge_grip_pro")
 
     with col_g2:
         fig_temp = go.Figure(go.Indicator(
             mode="gauge+number",
             value=temp_pista,
-            title={'text': "Temperatura de Asfalto", 'font': {'color': '#94A3B8', 'size': 18}},
+            title={'text': "Temperatura de Asfalto", 'font': {'color': '#94A3B8', 'size': 16}},
             number={'suffix': "°C", 'font': {'color': '#FFFFFF'}},
             gauge={
                 'axis': {'range': [0, 60], 'tickwidth': 1, 'tickcolor': "white"},
@@ -880,41 +923,73 @@ with tab5:
                     {'range': [45, 60], 'color': "rgba(255, 24, 1, 0.2)"}],
             }
         ))
-        fig_temp.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
-        st.plotly_chart(fig_temp, use_container_width=True)
+        fig_temp.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=260, margin=dict(t=30, b=10, l=10, r=10))
+        st.plotly_chart(fig_temp, use_container_width=True, key="chart_gauge_temp_pro")
 
     with col_g3:
         st.markdown(f"""
-            <div class='telemetry-card' style='padding: 22px; height: 280px; display: flex; flex-direction: column; justify-content: center; border-left: 4px solid {color_borde};'>
-                <small style='color: #94A3B8; font-weight: 700; letter-spacing: 1px;'>DESGASTE ESTIMADO POR CIRCUITO</small>
+            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 22px; border-radius: 12px; height: 260px; display: flex; flex-direction: column; justify-content: center; border-left: 4px solid {color_borde}; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+                <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>DESGASTE ESTIMADO POR CIRCUITO</span>
                 <div style='display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;'>
-                    <span style='color: #F1F5F9; font-size: 0.95rem;'>Tasa por vuelta:</span>
-                    <strong style='color: #FFFFFF; font-size: 1.4rem;'>{desgaste_por_vuelta}% /vta</strong>
+                    <span style='color: #E2E8F0; font-size: 0.95rem;'>Tasa por vuelta:</span>
+                    <strong style='color: #FFFFFF; font-size: 1.35rem;'>{desgaste_por_vuelta}% /vta</strong>
                 </div>
                 <div style='display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px;'>
-                    <span style='color: #F1F5F9; font-size: 0.95rem;'>Vida útil estimada:</span>
-                    <strong style='color: #10B981; font-size: 1.4rem;'>~{vida_util_vueltas} vueltas</strong>
+                    <span style='color: #E2E8F0; font-size: 0.95rem;'>Vida útil estimada:</span>
+                    <strong style='color: #10B981; font-size: 1.35rem;'>~{vida_util_vueltas} vueltas</strong>
                 </div>
                 <div style='margin-top: 15px; font-size: 0.85rem; color: #94A3B8; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;'>
-                    Perfil de pista: <span style='color: #E2E8F0;'>{info_circuito["tipo"]}</span>
+                    Perfil de pista: <span style='color: #F8FAFC; font-weight: 500;'>{info_circuito["tipo"]}</span>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
+    # --- BANNER DE RECOMENDACIÓN PIRELLI ---
     st.markdown(f"""
-        <div style='background: linear-gradient(90deg, rgba(8,12,22,1) 0%, {color_borde}22 100%); 
-                    padding: 22px; border-radius: 14px; border-left: 6px solid {color_borde}; 
-                    border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 30px;'>
+        <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px 24px; border-radius: 12px; border-left: 6px solid {color_borde}; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 25px;'>
             <div>
-                <span style='color: #94A3B8; font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;'>RECOMENDACIÓN ESTRATÉGICA PIRELLI • {circuito_seleccionado.split('(')[0]}</span>
-                <h2 style='color: {color_borde}; margin: 5px 0 0 0; font-weight: 900;'>{neumatico_rec}</h2>
-                <p style='color: #F1F5F9; margin: 5px 0 0 0; font-size: 0.95rem;'>{razon_rec}</p>
+                <span style='color: #94A3B8; font-weight: 800; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>RECOMENDACIÓN ESTRATÉGICA PIRELLI • {circuito_seleccionado.split('(')[0]}</span>
+                <h3 style='color: {color_borde}; margin: 5px 0 0 0; font-weight: 900;'>{neumatico_rec}</h3>
+                <p style='color: #E2E8F0; margin: 4px 0 0 0; font-size: 0.9rem;'>{razon_rec}</p>
             </div>
-            <div style='text-align: right;'>
-                <div style='font-size: 2.5rem;'>⚙️</div>
+            <div style='text-align: right; font-size: 2.2rem;'>
+                ⚙️
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+    # --- GRÁFICA DE EVOLUCIÓN DE PISTA DURANTE EL STINT ---
+    st.markdown("<b style='color: #FFFFFF; font-size: 0.95rem;'>📈 Simulación de Evolución de Agarre en el Stint (Primeras 30 Vueltas):</b>", unsafe_allow_html=True)
+    
+    vueltas_sim = list(range(1, 31))
+    # Simular evolución del grip (mejora al principio por depósito de goma, luego decae por desgaste)
+    grip_evolucion = [round(min(100, max(20, (indice_agarre * 100) + (v * 0.4) if v <= 8 else (indice_agarre * 100) + 3.2 - ((v - 8) * (desgaste_por_vuelta * 0.15)))), 1) for v in vueltas_sim]
+    
+    df_evolucion = pd.DataFrame({
+        "Vuelta": vueltas_sim,
+        _("Índice de Agarre Proyectado (%)"): grip_evolucion
+    })
+
+    fig_evo = px.line(
+        df_evolucion, x="Vuelta", y="Índice de Agarre Proyectado (%)",
+        markers=True,
+        template="plotly_dark"
+    )
+    fig_evo.update_traces(line_color=color_borde, line_width=3, marker_size=7)
+    fig_evo.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=20, b=10, l=10, r=10),
+        height=280,
+        xaxis_title="<b>Vueltas de Carrera</b>",
+        yaxis_title="<b>Nivel de Adherencia (%)</b>",
+        yaxis=dict(range=[0, 105])
+    )
+    fig_evo.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+    fig_evo.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+
+    st.plotly_chart(fig_evo, use_container_width=True, key="chart_track_evolution_pro")
+
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab6:
