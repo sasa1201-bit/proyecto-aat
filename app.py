@@ -764,7 +764,7 @@ with tab4:
     with col_t3:
         session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
 
-    # --- GENERACIÓN DE DATOS DINÁMICOS Y VISUALES ---
+    # --- GENERACIÓN DE DATOS DINÁMICOS ---
     x = np.linspace(0, 100, 600)
     
     seed1 = sum(ord(c) for c in driver1)
@@ -777,15 +777,15 @@ with tab4:
     speed1 = 305 + (seed1 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase1) + np.random.normal(0, 1.2, 600)
     speed2 = 305 + (seed2 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase2) + np.random.normal(0, 1.2, 600)
     
-    # Acelerador (%)
-    throttle1 = np.clip(np.where(np.sin(x/3.5 + fase1) > -0.15, 100, 15 * (np.sin(x/3.5 + fase1) + 1)), 0, 100)
-    throttle2 = np.clip(np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 15 * (np.sin(x/3.5 + fase2) + 1)), 0, 100)
+    # Acelerador (%) - Formato estándar limpio con líneas
+    throttle1 = np.where(np.sin(x/3.5 + fase1) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
+    throttle2 = np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
     
     # Freno (%)
     brake1 = np.where(np.sin(x/3.5 + fase1) < -0.5, 100, 0)
     brake2 = np.where(np.sin(x/3.5 + fase2) < -0.5, 100, 0)
 
-    # Delta de Tiempo Acumulado limpio y estético (oscila claramente arriba y abajo de 0)
+    # Delta de Tiempo Acumulado limpio
     delta_time = 0.18 * np.sin(x / 9.0 + (seed2 - seed1) * 0.003) + 0.04 * np.cos(x / 2.5)
 
     max_speed_1 = round(max(speed1), 1)
@@ -808,7 +808,7 @@ with tab4:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (4 PANELES ESTILO F1) ---
+    # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (4 PANELES) ---
     fig_tel = make_subplots(
         rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.06,
         subplot_titles=(
@@ -823,9 +823,9 @@ with tab4:
     fig_tel.add_trace(go.Scatter(x=x, y=speed1, name=driver1, line=dict(color=color1, width=2.5)), row=1, col=1)
     fig_tel.add_trace(go.Scatter(x=x, y=speed2, name=driver2, line=dict(color=color2, width=2.5)), row=1, col=1)
     
-    # Panel 2: Acelerador (Con relleno translúcido estilo telemetría pro)
-    fig_tel.add_trace(go.Scatter(x=x, y=throttle1, name=f"{driver1} Throttle", showlegend=False, line=dict(color=color1, width=2), fill='tozeroy', fillcolor=color1.replace(')', ', 0.1)').replace('rgb', 'rgba')), row=2, col=1)
-    fig_tel.add_trace(go.Scatter(x=x, y=throttle2, name=f"{driver2} Throttle", showlegend=False, line=dict(color=color2, width=2), fill='tozeroy', fillcolor=color2.replace(')', ', 0.1)').replace('rgb', 'rgba')), row=2, col=1)
+    # Panel 2: Acelerador (Líneas limpias idénticas a las demás)
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle1, 0, 100), name=f"{driver1} Throttle", showlegend=False, line=dict(color=color1, width=2)), row=2, col=1)
+    fig_tel.add_trace(go.Scatter(x=x, y=np.clip(throttle2, 0, 100), name=f"{driver2} Throttle", showlegend=False, line=dict(color=color2, width=2)), row=2, col=1)
     
     # Panel 3: Freno
     fig_tel.add_trace(go.Scatter(x=x, y=brake1, name=f"{driver1} Brake", showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
@@ -853,7 +853,7 @@ with tab4:
     fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=True, zerolinecolor='rgba(255,255,255,0.3)')
     fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text="<b>Distancia del Circuito (m)</b>", row=4, col=1)
 
-    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_f1_broadcast_pro")
+    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_f1_broadcast_clean")
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab5:
