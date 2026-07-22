@@ -347,7 +347,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "🚦 Luces Salida", 
     "🛑 Estrategia Gantt", 
     "💵 Fantasy Optimizer", 
-    "🏆 Proyección Constructores",
+    "🏆 Constructores ",
     "🎙️ Pit Wall "
 ])
 
@@ -2077,74 +2077,103 @@ with tab10:
 
 with tab11:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🎙️ Pit Wall Command: Live Race Engineer Radio & Telemetry AI</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🧠 AI Race Strategist & Chief Engineer (MARV v11.4)</div>", unsafe_allow_html=True)
     
     st.markdown("""
-        <div style='background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 12, 22, 0.95)); padding: 16px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); margin-bottom: 20px;'>
-            <div style='display: flex; justify-content: space-between; align-items: center;'>
-                <div>
-                    <span style='color: #38BDF8; font-size: 0.75rem; font-weight: 800; letter-spacing: 2px;'>COMMUNICATION CHANNEL: FIA SECURE // PIT WALL 1</span>
-                    <h4 style='color: #FFFFFF; margin: 4px 0 0 0; font-size: 1.1rem;'>Canal de Audio Directo con el Muro de Boxes</h4>
-                </div>
-                <div style='text-align: right;'>
-                    <span style='color: #10B981; font-weight: 800; font-size: 0.85rem;'>● LINK ESTABLECIDO (BAJA LATENCIA)</span>
-                </div>
-            </div>
+        <div style='background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); padding: 20px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.4); margin-bottom: 20px;'>
+            <h4 style='color: #38BDF8; margin: 0 0 8px 0; font-size: 1.1rem;'>📡 Muro de Estrategia Inteligente y Telemetría Predictiva</h4>
+            <p style='color: #94A3B8; font-size: 0.85rem; margin: 0;'>
+                Este módulo simula un ingeniero de carrera de IA de nivel de fábrica con procesamiento en tiempo real. 
+                Consulta escenarios complejos de carrera, análisis de ritmo de clasificación, gestión de unidades de potencia (PU) y ventanas de parada críticas.
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
-    col_ctrl, col_chat = st.columns([1, 1.4])
+    if "engineer_chat_history" not in st.session_state:
+        st.session_state["engineer_chat_history"] = [
+            {"role": "assistant", "content": "Box, box... O sistema de telemetría principal está en línea. Soy tu Ingeniero Jefe de Pista virtual. ¿Qué evaluamos para esta sesión? ¿Estrategia de neumáticos, gestión de combustible, mapa de motor o análisis de tráfico con el coche de atrás?"}
+        ]
+
+    st.markdown("<p style='font-size: 0.85rem; color: #FFFFFF; font-weight: 700; margin-bottom: 10px;'>⚡ Consultas Estratégicas Preconfiguradas:</p>", unsafe_allow_html=True)
     
-    with col_ctrl:
-        st.markdown("<div style='background: rgba(30, 41, 59, 0.4); padding: 15px; border-radius: 8px;'>", unsafe_allow_html=True)
-        st.markdown("<p style='font-weight: 700; color: #FFFFFF; margin-bottom: 12px;'>📊 Parámetros de Telemetría en Vivo:</p>", unsafe_allow_html=True)
+    sc_col1, sc_col2, sc_col3, sc_col4 = st.columns(4)
+    quick_prompt = None
+    
+    with sc_col1:
+        if st.button("🛡️ Plan de Defensa & Undercut", use_container_width=True, key="eng_q_1"):
+            quick_prompt = "Analiza detalladamente la viabilidad de un undercut frente al coche perseguidor, considerando el delta de pit-lane y el tráfico."
+    with sc_col2:
+        if st.button("🌧️ Simulación de Lluvia / Clima", use_container_width=True, key="eng_q_2"):
+            quick_prompt = "Hay previsión de lluvia inminente en el sector 2. ¿Cuál es el plan de transición a neumáticos intermedios y qué curva de temperatura debemos cuidar?"
+    with sc_col3:
+        if st.button("🔋 Gestión de Batería (SOC)", use_container_width=True, key="eng_q_3"):
+            quick_prompt = "Necesito un informe completo sobre el estado de carga de la batería (SOC) y cómo optimizar el despliegue de energía en la recta principal."
+    with sc_col4:
+        if st.button("📊 Análisis de Degradación", use_container_width=True, key="eng_q_4"):
+            quick_prompt = "Evalúa la curva de degradación de los neumáticos actuales y proyecta cuántas vueltas nos quedan antes de alcanzar el cliff de rendimiento."
+
+    chat_container = st.container()
+    with chat_container:
+        for message in st.session_state["engineer_chat_history"]:
+            if message["role"] == "user":
+                with st.chat_message("user", avatar="🏎️"):
+                    st.write(message["content"])
+            else:
+                with st.chat_message("assistant", avatar="🎧"):
+                    st.markdown(f"<div style='color: #F8FAFC; line-height: 1.5; font-size: 0.92rem;'>{message['content']}</div>", unsafe_allow_html=True)
+
+    user_input = st.chat_input("Escribe tu consulta táctica detallada para el ingeniero de pista...", key="engineer_chat_input")
+
+    if quick_prompt:
+        user_input = quick_prompt
+
+    if user_input:
+        st.session_state["engineer_chat_history"].append({"role": "user", "content": user_input})
         
-        tyre_compound = st.selectbox("Compuesto Actual:", ["Soft (Blando)", "Medium (Medio)", "Hard (Duro)"], key="eng_tyre_live")
-        tyre_age = st.slider("Vueltas en este set de gomas:", 1, 45, 16, key="eng_age_live")
-        gap_ahead = st.slider("Brecha con coche adelante (s):", 0.5, 6.0, 1.9, key="eng_gap_live")
-        track_temp = st.slider("Temperatura de Pista (°C):", 20, 60, 39, key="eng_temp_live")
-        
-        st.markdown("<small style='color: #94A3B8; display: block; margin-top: 10px;'>💡 Modifica estos valores para alterar la lectura táctica del ingeniero de pista.</small>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with col_chat:
-        st.markdown("<div style='background: rgba(30, 41, 59, 0.3); padding: 15px; border-radius: 8px;'>", unsafe_allow_html=True)
-        st.markdown("<p style='font-weight: 700; color: #FFFFFF; margin-bottom: 12px;'>💬 Transmisión de Radio (Box Radio):</p>", unsafe_allow_html=True)
-        
-        q1, q2 = st.columns(2)
-        if "radio_trigger" not in st.session_state:
-            st.session_state["radio_trigger"] = ""
-            
-        with q1:
-            if st.button("Box this lap? (Undercut)", use_container_width=True, key="btn_eng_1_pro"):
-                st.session_state["radio_trigger"] = "Box this lap, check traffic for undercut"
-        with q2:
-            if st.button("How's my pace & tyre cliff?", use_container_width=True, key="btn_eng_2_pro"):
-                st.session_state["radio_trigger"] = "Evaluate pace and tyre degradation cliff"
-        
-        user_radio = st.chat_input("Transmita mensaje por radio al ingeniero...", key="input_eng_radio_pro")
-        
-        if st.session_state["radio_trigger"]:
-            user_radio = st.session_state["radio_trigger"]
-            st.session_state["radio_trigger"] = ""
-            
-        if user_radio:
-            with st.chat_message("user", avatar="🏎️"):
-                st.write(user_radio)
-            with st.chat_message("assistant", avatar="🎧"):
-                msg_lower = user_radio.lower()
-                if "box" in msg_lower or "undercut" in msg_lower:
-                    if tyre_age > 18:
-                        resp = f"[RADIO - INGENIERO]: Copy, box this lap. Box, box. Te montaremos compuestos nuevos. Tráfico limpio al salir, delta de 21.8s para cubrir el undercut sobre el rival de atrás. Push en la out-lap."
-                    else:
-                        resp = f"[RADIO - INGENIERO]: Negative, negative, stay out. Tus gomas tienen apenas {tyre_age} vueltas y el compuesto {tyre_compound} rinde óptimo. Mantén el ritmo, brecha de {gap_ahead}s con el coche de adelante."
-                elif "pace" in msg_lower or "cliff" in msg_lower or "degradation" in msg_lower:
-                    resp = f"[RADIO - INGENIERO]: Copied. Temperatura de pista a {track_temp}°C. Observamos fatiga leve en el eje trasero por temperatura superficial, pero el cliff de gomas no se espera hasta dentro de 8 vueltas. Cuida tracción en salida de curva lenta."
-                else:
-                    resp = f"[RADIO - INGENIERO]: Mensaje copiado y entendido. Copia el mapa motor en posición 5, recarga batería en frenada de curva 12. Estamos en ventana de puntos."
-                
-                st.write(resp)
-                
-        st.markdown("</div>", unsafe_allow_html=True)
-        
+        query_lower = user_input.lower()
+        if "undercut" in query_lower or "defensa" in query_lower or "perseguidor" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - ANÁLISIS TÁCTICO DE UNDERCUT]</b><br>
+            Copia, recibido. Analizando datos en tiempo real del sector de boxes y tráfico:<br>
+            * <b>Delta de Pit-Lane:</b> Calculado en 21.8 segundos netos. El coche perseguidor viene recortando a razón de 0.32s por vuelta en aire limpio.<br>
+            * <b>Proyección:</b> Si realizamos la parada en esta vuelta, saldremos exactamente a 1.4 segundos por delante del tráfico pesado del Haas, pero requerirá un esfuerzo máximo en la <i>out-lap</i> con los neumáticos medios nuevos.<br>
+            * <b>Recomendación del Muro:</b> Ejecutar <b>Plan C - Inversión de Ventana</b>. Prepárate para empujar al 100% en el segundo sector. Te daré luz verde en el limitador de boxes en 3... 2... 1... ¡Box, box!
+            """
+        elif "lluvia" in query_lower or "clima" in query_lower or "intermedios" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - REPORTE METEOROLÓGICO DE RADAR]</b><br>
+            Atención cockpit, tenemos datos críticos de los radares FIA:<br>
+            * <b>Evolución de Pista:</b> Frente de humedad ingresando por la curva 4. Previsión de precipitaciones ligeras en los próximos 180 segundos.<br>
+            * <b>Temperatura de Asfalto:</b> Cayendo rápidamente de 38°C a 29°C. Los slicks actuales perderán temperatura superficial de manera crítica.<br>
+            * <b>Recomendación del Muro:</b> Mantén la calma en las zonas de frenada fuerte. Prepárate para la transición a neumáticos intermedios (Intermediates - Verde). Mantente en pista un giro más para evaluar el agarre residual en el sector 3.
+            """
+        elif "batería" in query_lower or "soc" in query_lower or "energía" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - GESTIÓN DE UNIDAD DE POTENCIA Y ERS]</b><br>
+            Informe de telemetría de energía obtenido del subsistema MGU-K y MGU-H:<br>
+            * <b>Estado de Carga (SOC):</b> Actualmente operando al 84% de capacidad máxima. Buen nivel de recuperación en las frenadas de las curvas 1, 5 y 12.<br>
+            * <b>Estrategia de Despliegue:</b> Te sugiero cambiar el selector del volante al <b>Mapa de Despliegue 7 (Modo Ataque / Super-Undercut)</b> solo en la aproximación a la recta trasera para asegurar el adelantamiento.<br>
+            * <b>Advertencia Térmica:</b> Cuidado con el pico de temperatura en el inversor trasero. No sobrepases los límites de regeneración en las curvas lentas.
+            """
+        elif "degradación" in query_lower or "cliff" in query_lower or "neumáticos" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - MONITOREO DE DESGASTE Y THERMAL CLIFF]</b><br>
+            Analizando sensores infrarrojos de la banda de rodadura de los neumáticos:<br>
+            * <b>Nivel de Desgaste:</b> El compuesto medio actual presenta un 64% de vida útil remanente. Las temperaturas de la carcasa están estabilizadas en 98°C.<br>
+            * <b>Predicción del Cliff:</b> La gráfica de caída de rendimiento indica que el <i>cliff</i> se manifestará con claridad dentro de aproximadamente 11 vueltas.<br>
+            * <b>Recomendación del Muro:</b> Evita sobrevolar los pianos agresivos en la chicana rápida; necesitamos conservar la integridad estructural del flanco interior derecho.
+            """
+        else:
+            ai_response = f"""
+            <b>[RADIO DE INGENIERÍA - CONFIRMACIÓN DE TELEMETRÍA GENERAL]</b><br>
+            Mensaje procesado correctamente por el núcleo de inteligencia artificial del muro de boxes:<br>
+            * <b>Estado del Monoplaza:</b> Todos los sensores del chasis, presiones hidráulicas y flujos aerodinámicos se encuentran dentro de los parámetros nominales óptimos.<br>
+            * <b>Ritmo de Carrera:</b> Estás rodando en ventanas de tiempo muy competitivas en comparación con los rivales directos del campeonato.<br>
+            * <b>Recomendación del Muro:</b> Mantén la concentración, ejecuta los procedimientos estándar de enfriamiento de frenos en rectas largas y confía en el paquete de mejoras aerodinámicas.
+            """
+
+        st.session_state["engineer_chat_history"].append({"role": "assistant", "content": ai_response})
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
