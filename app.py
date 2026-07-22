@@ -18,8 +18,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.sidebar.markdown("### 🎵 Tema Oficial F1")
-st.sidebar.audio("f1_theme.mp3", format="audio/mp3")
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
