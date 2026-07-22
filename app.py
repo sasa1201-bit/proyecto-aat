@@ -363,7 +363,7 @@ with tab1:
         )
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- DATOS OFICIALES Y COORDENADAS EXACTAS DE FÁBRICAS 2024 ---
+    # --- COORDENADAS EXACTAS DE FÁBRICAS 2024 ---
     TEAMS_GEO_COORDS = {
         "Red Bull Racing": {"lat": 52.0406, "lon": -0.6835, "base": "Milton Keynes, Reino Unido"},
         "Ferrari": {"lat": 44.5795, "lon": 10.8661, "base": "Maranello, Italia"},
@@ -456,110 +456,11 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CALENDARIO MAESTRO INTERACTIVO (CON TODAS LAS MEJORAS) ---
+    # --- CALENDARIO ORIGINAL RESTAURADO ---
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>📅 Calendario Interactivo y Selector de Circuitos F1 2024</div>", unsafe_allow_html=True)
-    st.write("Explora el calendario completo con cuenta regresiva, línea de tiempo interactiva, filtros regionales y detalles técnicos de cada circuito.")
-
-    calendario_2024_data = [
-        {"Ronda": 1, "GP": "Bahrain GP", "Circuito": "Bahrain International Circuit", "País": "Baréin 🇧🇭", "Fecha": "2024-03-02", "Región": "Medio Oriente", "Sprint": False, "Longitud": "5.412 km", "Vueltas": 57, "Record": "1:31.447 (Pedro de la Rosa, 2005)", "Ganador": "Max Verstappen"},
-        {"Ronda": 2, "GP": "Saudi Arabian GP", "Circuito": "Jeddah Corniche Circuit", "País": "Arabia Saudita 🇸🇦", "Fecha": "2024-03-09", "Región": "Medio Oriente", "Sprint": False, "Longitud": "6.174 km", "Vueltas": 50, "Record": "1:30.734 (Lewis Hamilton, 2021)", "Ganador": "Max Verstappen"},
-        {"Ronda": 3, "GP": "Australian GP", "Circuito": "Albert Park Circuit", "País": "Australia 🇦🇺", "Fecha": "2024-03-24", "Región": "Asia-Pacífico", "Sprint": False, "Longitud": "5.278 km", "Vueltas": 58, "Record": "1:19.813 (Charles Leclerc, 2024)", "Ganador": "Carlos Sainz"},
-        {"Ronda": 4, "GP": "Japanese GP", "Circuito": "Suzuka Circuit", "País": "Japón 🇯🇵", "Fecha": "2024-04-07", "Región": "Asia-Pacífico", "Sprint": False, "Longitud": "5.807 km", "Vueltas": 53, "Record": "1:30.983 (Lewis Hamilton, 2019)", "Ganador": "Max Verstappen"},
-        {"Ronda": 5, "GP": "Chinese GP", "Circuito": "Shanghai International Circuit", "País": "China 🇨🇳", "Fecha": "2024-04-21", "Región": "Asia-Pacífico", "Sprint": True, "Longitud": "5.451 km", "Vueltas": 56, "Record": "1:32.238 (Michael Schumacher, 2004)", "Ganador": "Max Verstappen"},
-        {"Ronda": 6, "GP": "Miami GP", "Circuito": "Miami International Autodrome", "País": "Estados Unidos 🇺🇸", "Fecha": "2024-05-05", "Región": "América", "Sprint": True, "Longitud": "5.412 km", "Vueltas": 57, "Record": "1:29.708 (Max Verstappen, 2023)", "Ganador": "Lando Norris"},
-        {"Ronda": 7, "GP": "Emilia Romagna GP", "Circuito": "Autodromo Enzo e Dino Ferrari", "País": "Italia 🇮🇹", "Fecha": "2024-05-19", "Región": "Europa", "Sprint": False, "Longitud": "4.909 km", "Vueltas": 63, "Record": "1:15.484 (Lewis Hamilton, 2020)", "Ganador": "Max Verstappen"},
-        {"Ronda": 8, "GP": "Monaco GP", "Circuito": "Circuit de Monaco", "País": "Mónaco 🇲🇨", "Fecha": "2024-05-26", "Región": "Europa", "Sprint": False, "Longitud": "3.337 km", "Vueltas": 78, "Record": "1:12.909 (Lewis Hamilton, 2021)", "Ganador": "Charles Leclerc"},
-        {"Ronda": 9, "GP": "Canadian GP", "Circuito": "Circuit Gilles Villeneuve", "País": "Canadá 🇨🇦", "Fecha": "2024-06-09", "Región": "América", "Sprint": False, "Longitud": "4.361 km", "Vueltas": 70, "Record": "1:13.078 (Valtteri Bottas, 2019)", "Ganador": "Max Verstappen"},
-        {"Ronda": 10, "GP": "Spanish GP", "Circuito": "Circuit de Barcelona-Catalunya", "País": "España 🇪🇸", "Fecha": "2024-06-23", "Región": "Europa", "Sprint": False, "Longitud": "4.657 km", "Vueltas": 66, "Record": "1:16.330 (Max Verstappen, 2023)", "Ganador": "Max Verstappen"},
-        {"Ronda": 11, "GP": "Austrian GP", "Circuito": "Red Bull Ring", "País": "Austria 🇦🇹", "Fecha": "2024-06-30", "Región": "Europa", "Sprint": True, "Longitud": "4.318 km", "Vueltas": 71, "Record": "1:05.619 (Carlos Sainz, 2020)", "Ganador": "George Russell"},
-        {"Ronda": 12, "GP": "British GP", "Circuito": "Silverstone Circuit", "País": "Reino Unido 🇬🇧", "Fecha": "2024-07-07", "Región": "Europa", "Sprint": False, "Longitud": "5.891 km", "Vueltas": 52, "Record": "1:27.097 (Max Verstappen, 2020)", "Ganador": "Lewis Hamilton"},
-        {"Ronda": 13, "GP": "Hungarian GP", "Circuito": "Hungaroring", "País": "Hungría 🇭🇺", "Fecha": "2024-07-21", "Región": "Europa", "Sprint": False, "Longitud": "4.381 km", "Vueltas": 70, "Record": "1:16.627 (Lewis Hamilton, 2020)", "Ganador": "Oscar Piastri"},
-        {"Ronda": 14, "GP": "Belgian GP", "Circuito": "Circuit de Spa-Francorchamps", "País": "Bélgica 🇧🇪", "Fecha": "2024-07-28", "Región": "Europa", "Sprint": False, "Longitud": "7.004 km", "Vueltas": 44, "Record": "1:46.286 (Valtteri Bottas, 2018)", "Ganador": "Lewis Hamilton"},
-        {"Ronda": 15, "GP": "Dutch GP", "Circuito": "Circuit Zandvoort", "País": "Países Bajos 🇳🇱", "Fecha": "2024-08-25", "Región": "Europa", "Sprint": False, "Longitud": "4.259 km", "Vueltas": 72, "Record": "1:11.097 (Lewis Hamilton, 2021)", "Ganador": "Lando Norris"},
-        {"Ronda": 16, "GP": "Italian GP", "Circuito": "Autodromo Nazionale Monza", "País": "Italia 🇮🇹", "Fecha": "2024-09-01", "Región": "Europa", "Sprint": False, "Longitud": "5.793 km", "Vueltas": 53, "Record": "1:21.046 (Rubens Barrichello, 2004)", "Ganador": "Charles Leclerc"},
-        {"Ronda": 17, "GP": "Azerbaijan GP", "Circuito": "Baku City Circuit", "País": "Azerbaiyán 🇦🇿", "Fecha": "2024-09-15", "Región": "Asia-Pacífico", "Sprint": False, "Longitud": "6.003 km", "Vueltas": 51, "Record": "1:43.370 (Charles Leclerc, 2023)", "Ganador": "Oscar Piastri"},
-        {"Ronda": 18, "GP": "Singapore GP", "Circuito": "Marina Bay Street Circuit", "País": "Singapur 🇸🇬", "Fecha": "2024-09-22", "Región": "Asia-Pacífico", "Sprint": False, "Longitud": "4.940 km", "Vueltas": 62, "Record": "1:35.867 (Lewis Hamilton, 2023)", "Ganador": "Lando Norris"},
-        {"Ronda": 19, "GP": "United States GP", "Circuito": "Circuit of the Americas", "País": "Estados Unidos 🇺🇸", "Fecha": "2024-10-20", "Región": "América", "Sprint": True, "Longitud": "5.513 km", "Vueltas": 56, "Record": "1:36.169 (Charles Leclerc, 2019)", "Ganador": "Charles Leclerc"},
-        {"Ronda": 20, "GP": "Mexican GP", "Circuito": "Autódromo Hermanos Rodríguez", "País": "México 🇲🇽", "Fecha": "2024-10-27", "Región": "América", "Sprint": False, "Longitud": "4.304 km", "Vueltas": 71, "Record": "1:17.774 (Valtteri Bottas, 2021)", "Ganador": "Carlos Sainz"},
-        {"Ronda": 21, "GP": "Brazilian GP", "Circuito": "Autódromo José Carlos Pace", "País": "Brasil 🇧🇷", "Fecha": "2024-11-03", "Región": "América", "Sprint": True, "Longitud": "4.309 km", "Vueltas": 71, "Record": "1:10.540 (Valtteri Bottas, 2018)", "Ganador": "Max Verstappen"},
-        {"Ronda": 22, "GP": "Las Vegas GP", "Circuito": "Las Vegas Strip Circuit", "País": "Estados Unidos 🇺🇸", "Fecha": "2024-11-23", "Región": "América", "Sprint": False, "Longitud": "6.201 km", "Vueltas": 50, "Record": "1:35.490 (Oscar Piastri, 2023)", "Ganador": "George Russell"},
-        {"Ronda": 23, "GP": "Qatar GP", "Circuito": "Lusail International Circuit", "País": "Catar 🇶🇦", "Fecha": "2024-12-01", "Región": "Medio Oriente", "Sprint": True, "Longitud": "5.419 km", "Vueltas": 57, "Record": "1:24.319 (Max Verstappen, 2023)", "Ganador": "Max Verstappen"},
-        {"Ronda": 24, "GP": "Abu Dhabi GP", "Circuito": "Yas Marina Circuit", "País": "Emiratos Árabes Unidos 🇦🇪", "Fecha": "2024-12-08", "Región": "Medio Oriente", "Sprint": False, "Longitud": "5.281 km", "Vueltas": 58, "Record": "1:26.103 (Max Verstappen, 2021)", "Ganador": "Lando Norris"}
-    ]
-    
-    df_cal = pd.DataFrame(calendario_2024_data)
-    
-    import datetime
-    hoy = datetime.date.today()
-    df_cal_temp = df_cal.copy()
-    df_cal_temp["Fecha_dt"] = pd.to_datetime(df_cal_temp["Fecha"]).dt.date
-    proximas = df_cal_temp[df_cal_temp["Fecha_dt"] >= hoy]
-
-    if not proximas.empty:
-        proxima_carrera = proximas.iloc[0]
-        dias_restantes = (proxima_carrera["Fecha_dt"] - hoy).days
-        st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #1e1e2f, #2d2b42); padding: 15px; border-radius: 10px; border-left: 5px solid #F59E0B; margin-bottom: 20px;'>
-                <h4 style='margin:0; color: #F59E0B;'>⏳ Próximo Gran Premio</h4>
-                <p style='margin: 5px 0 0 0; font-size: 1.1rem; color: white;'>
-                    <b>{proxima_carrera['GP']} ({proxima_carrera['País']})</b> — Faltan <b>{dias_restantes} días</b> (Fecha: {proxima_carrera['Fecha']})
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with st.expander("📈 Ver Línea de Tiempo Interactiva de la Temporada (Gantt)", expanded=False):
-        df_gantt = df_cal.copy()
-        df_gantt["Start"] = pd.to_datetime(df_gantt["Fecha"]) - pd.Timedelta(days=2)
-        df_gantt["End"] = pd.to_datetime(df_gantt["Fecha"])
-        
-        fig_gantt = px.timeline(
-            df_gantt, 
-            x_start="Start", 
-            x_end="End", 
-            y="GP", 
-            color="Región",
-            title="Calendario de Fines de Semana F1",
-            labels={"GP": "Gran Premio", "Start": "Inicio del Fin de Semana"}
-        )
-        fig_gantt.update_yaxes(categoryorder="total ascending")
-        fig_gantt.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)",
-            paper_bgcolor="rgba(0,0,0,0)",
-            font_color="white",
-            height=500
-        )
-        st.plotly_chart(fig_gantt, use_container_width=True)
-
-    st.markdown("---")
-
-    f_col1, f_col2 = st.columns(2)
-    with f_col1:
-        region_sel = st.selectbox("🌍 Filtrar por Región:", ["Todas", "Europa", "América", "Asia-Pacífico", "Medio Oriente"], key="filtro_region_calendario")
-    with f_col2:
-        solo_sprint = st.checkbox("⚡ Mostrar solo Fines de Semana Sprint", key="filtro_sprint_calendario")
-        
-    df_filtrado = df_cal.copy()
-    if region_sel != "Todas":
-        df_filtrado = df_filtrado[df_filtrado["Región"] == region_sel]
-    if solo_sprint:
-        df_filtrado = df_filtrado[df_filtrado["Sprint"] == True]
-        
-    st.write(f"Mostrando **{len(df_filtrado)}** Grandes Premios:")
-    
-    for idx, row in df_filtrado.iterrows():
-        sprint_badge = "⚡ <span style='background:#F59E0B; color:black; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;'>SPRINT WEEKEND</span>" if row['Sprint'] else ""
-        with st.expander(f"Ronda {row['Ronda']} | 🏁 {row['GP']} ({row['País']}) — 📅 {row['Fecha']} {sprint_badge}", expanded=False):
-            dc1, dc2 = st.columns(2)
-            with dc1:
-                st.markdown(f"**📍 Circuito:** {row['Circuito']}")
-                st.markdown(f"**📏 Longitud:** {row['Longitud']} | **Vueltas:** {row['Vueltas']}")
-                st.markdown(f"**🏆 Ganador:** <span style='color:#10B981; font-weight:bold;'>{row['Ganador']}</span>", unsafe_allow_html=True)
-            with dc2:
-                st.markdown(f"**⚡ Tipo de Evento:** {'Fin de Semana Sprint (Práctica, Sprint Qualy, Sprint & GP)' if row['Sprint'] else 'Fin de Semana Estándar'}")
-                st.markdown(f"**⏱️ Récord de Pista:** {row['Record']}")
-                st.markdown(f"**🌍 Región:** {row['Región']}")
-                
+    st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (Carreras en Azul)</div>", unsafe_allow_html=True)
+    st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en color azul.")
+    render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
     # --- DICCIONARIO DE PILOTOS CON COINCIDENCIA ROBUSTA ---
@@ -569,6 +470,10 @@ with tab1:
             {"Piloto": "Sergio Pérez", "País": "México 🇲🇽", "Número": "#11", "Apodo": "🛡️ Ministro de Defensa", "Estilo": "Especialista en remontadas épicas y domingos locos."}
         ],
         "Ferrari": [
+            {"Piloto": "Charles Leclerc", "País": "Mónaco 🇲🇨", "Número": "#16", "Apodo": "⚡ Lord Perma-Pole", "Estilo": "Magia pura a una vuelta, sufre los domingos con estrategia."},
+            {"Piloto": "Carlos Sainz", "País": "España 🇪🇸", "Número": "#55", "Apodo": "🧠 El Profesor / Chili", "Estilo": "Calculador, preciso y siempre aprovechando los errores ajenos."}
+        ],
+        "Scuderia Ferrari": [
             {"Piloto": "Charles Leclerc", "País": "Mónaco 🇲🇨", "Número": "#16", "Apodo": "⚡ Lord Perma-Pole", "Estilo": "Magia pura a una vuelta, sufre los domingos con estrategia."},
             {"Piloto": "Carlos Sainz", "País": "España 🇪🇸", "Número": "#55", "Apodo": "🧠 El Profesor / Chili", "Estilo": "Calculador, preciso y siempre aprovechando los errores ajenos."}
         ],
