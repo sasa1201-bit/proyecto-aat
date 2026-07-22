@@ -2002,3 +2002,95 @@ st.markdown("""
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
+
+with tab6:
+    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🏆 Simulador de Proyección del Campeonato de Constructores</div>", unsafe_allow_html=True)
+    st.write("Simula los puntos de un fin de semana de Gran Premio para cualquier escudería y proyecta al instante cómo se reestructura la tabla oficial del Mundial de Constructores.")
+    
+    if "df_constructores_state" not in st.session_state:
+        st.session_state["df_constructores_state"] = pd.DataFrame([
+            {"Escudería": "McLaren", "Puntos": 666},
+            {"Escudería": "Ferrari", "Puntos": 552},
+            {"Escudería": "Red Bull Racing", "Puntos": 544},
+            {"Escudería": "Mercedes", "Puntos": 382},
+            {"Escudería": "Aston Martin", "Puntos": 94},
+            {"Escudería": "Alpine", "Puntos": 49},
+            {"Escudería": "Haas", "Puntos": 46},
+            {"Escudería": "RB", "Puntos": 44},
+            {"Escudería": "Williams", "Puntos": 17},
+            {"Escudería": "Kick Sauber", "Puntos": 4}
+        ])
+        
+    col_sim_ctrl, col_sim_res = st.columns([1, 1.2])
+    
+    with col_sim_ctrl:
+        st.markdown("<div style='background: rgba(30, 41, 59, 0.4); padding: 15px; border-radius: 8px;'>", unsafe_allow_html=True)
+        st.write("🛠️ **Parámetros de Simulación:**")
+        
+        constructor_seleccionado = st.selectbox(
+            "Selecciona Escudería a Simular:",
+            st.session_state["df_constructores_state"]["Escudería"].tolist(),
+            key="select_constructor_sim_tab6"
+        )
+        
+        modo_simulacion = st.radio(
+            "Tipo de Fin de Semana:",
+            ["Fin de Semana Perfecto (Doblete 1º+2º + VR = 44 pts)", "Personalizado (Puntos manuales)", "Fin de Semana Desastroso (0 pts)"],
+            key="radio_modo_sim_tab6"
+        )
+        
+        puntos_a_sumar = 0
+        if "Perfecto" in modo_simulacion:
+            puntos_a_sumar = 44
+        elif "Desastroso" in modo_simulacion:
+            puntos_a_sumar = 0
+        else:
+            puntos_a_sumar = st.slider("Selecciona puntos obtenidos en el GP:", 0, 45, 18, key="slider_pts_manual_tab6")
+            
+        if st.button("🚀 Aplicar Simulación al Mundial", use_container_width=True, key="btn_simular_constructores_tab6"):
+            idx = st.session_state["df_constructores_state"][st.session_state["df_constructores_state"]["Escudería"] == constructor_seleccionado].index
+            if not idx.empty:
+                pts_actuales = st.session_state["df_constructores_state"].loc[idx[0], "Puntos"]
+                st.session_state["df_constructores_state"].loc[idx[0], "Puntos"] = pts_actuales + puntos_a_sumar
+            st.success(f"¡Se han sumado {puntos_a_sumar} puntos a {constructor_seleccionado}!")
+            
+        if st.button("🔄 Reiniciar Puntos Originales", use_container_width=True, key="btn_reset_constructores_tab6"):
+            st.session_state["df_constructores_state"] = pd.DataFrame([
+                {"Escudería": "McLaren", "Puntos": 666},
+                {"Escudería": "Ferrari", "Puntos": 552},
+                {"Escudería": "Red Bull Racing", "Puntos": 544},
+                {"Escudería": "Mercedes", "Puntos": 382},
+                {"Escudería": "Aston Martin", "Puntos": 94},
+                {"Escudería": "Alpine", "Puntos": 49},
+                {"Escudería": "Haas", "Puntos": 46},
+                {"Escudería": "RB", "Puntos": 44},
+                {"Escudería": "Williams", "Puntos": 17},
+                {"Escudería": "Kick Sauber", "Puntos": 4}
+            ])
+            st.rerun()
+            
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+    with col_sim_res:
+        st.write("📊 **Gráfica Dinámica del Mundial de Constructores:**")
+        df_cons_actual = st.session_state["df_constructores_state"].sort_values(by="Puntos", ascending=True).reset_index(drop=True)
+        
+        fig_cons = px.bar(
+            df_cons_actual, x="Puntos", y="Escudería", orientation="h",
+            color="Puntos", color_continuous_scale="Blues", template="plotly_dark",
+            title="Proyección en Vivo - Campeonato de Constructores"
+        )
+        fig_cons.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(t=30, b=10, l=10, r=10),
+            yaxis={'categoryorder':'total ascending'}
+        )
+        st.plotly_chart(fig_cons, use_container_width=True, key="chart_constructores_sim_tab6")
+        
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+
+
