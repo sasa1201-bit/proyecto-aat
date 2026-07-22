@@ -19,11 +19,7 @@ st.set_page_config(
 )
 
 st.sidebar.markdown("### 🎵 Tema Oficial F1")
-st.sidebar.markdown("""
-    <iframe width="100%" height="80" src="https://www.youtube.com/embed/0V53Z23h2wU?autoplay=1&loop=1&playlist=0V53Z23h2wU" 
-    title="F1 Theme" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="border-radius: 8px;">
-    </iframe>
-""", unsafe_allow_html=True)
+st.sidebar.audio("https://upload.wikimedia.org/wikipedia/commons/b/b3/Formula_1_theme_sample.ogg", format="audio/ogg")
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
