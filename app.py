@@ -18,10 +18,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.sidebar.markdown("### 🎵 Tema Oficial F1")
+# --- AUDIO F1 (Pégalo únicamente al final de todo tu código) ---
+st.sidebar.markdown("### 🎵 Audio F1")
 st.sidebar.markdown("""
-    <audio controls loop style="width: 100%;">
-        <source src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Nurburgring_F1_onboard_sound_sample.ogg" type="audio/ogg">
+    <audio controls style="width: 100%;">
+        <source src="https://actions.google.com/sounds/v1/transportation/race_car_passing.ogg" type="audio/ogg">
         Tu navegador no soporta el audio.
     </audio>
 """, unsafe_allow_html=True)
