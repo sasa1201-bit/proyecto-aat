@@ -456,10 +456,18 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CALENDARIO ORIGINAL RESTAURADO ---
+    # --- CALENDARIO OFICIAL CON BADGE Y LEYENDA AGREGADOS ---
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (Carreras en Azul)</div>", unsafe_allow_html=True)
     st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en color azul.")
+    
+    col_cal_info1, col_cal_info2 = st.columns([2, 1])
+    with col_cal_info1:
+        st.markdown("<span style='background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;'>🏆 Temporada 2024: 24 Grandes Premios</span>", unsafe_allow_html=True)
+    with col_cal_info2:
+        st.markdown("<span style='color: #38BDF8; font-size: 0.8rem; font-weight: 600; float: right;'>🔵 Días de Gran Premio F1</span>", unsafe_allow_html=True)
+    
+    st.write("")
     render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
