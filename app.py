@@ -337,7 +337,7 @@ if "reaccion" not in st.session_state:
     st.session_state["reaccion"] = None
 
 # Navegación con 10 pestañas maestras
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "🏠 Panel 2024", 
     "⚔️ H2H", 
     "🔴 En Vivo / 2024", 
@@ -347,7 +347,8 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🚦 Luces Salida", 
     "🛑 Estrategia Gantt", 
     "💵 Fantasy Optimizer", 
-    "🏆 Proyección Constructores"
+    "🏆 Proyección Constructores",
+    "🎙️ Pit Wall Command: Live Radio AI"
 ])
 
 with tab1:
@@ -2074,4 +2075,74 @@ with tab10:
         
     st.markdown("</div>", unsafe_allow_html=True)
 
+with tab11:
+    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🎙️ Pit Wall Command: FIA Team Radio AI & Live Telemetry</div>", unsafe_allow_html=True)
+    
+    st.markdown("""
+        <div style='background: linear-gradient(135deg, rgba(8, 12, 22, 0.95), rgba(15, 23, 42, 0.9)); padding: 20px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); text-align: center; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);'>
+            <span style='font-size: 0.75rem; color: #38BDF8; font-weight: 800; letter-spacing: 3px; display:block; margin-bottom: 8px;'>SECURE FIA FREQUENCY // ACTIVE PIT WALL LINK</span>
+            <div style='font-size: 1.25rem; letter-spacing: 4px; color: #EF4444; font-weight: 900; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);'>
+                🔴 [REC] ▂▃▅▆▇█ LIVE TRANSMISSION █▇▆▅▃▂ [LIVE]
+            </div>
+            <p style='color: #94A3B8; font-size: 0.85rem; margin-top: 8px; margin-bottom: 0;'>Enlace directo con el ingeniero jefe de pista para consultas dinámicas de estrategia, degradación y ritmo de carrera.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
+    # Variables de respaldo seguras en caso de ejecución independiente
+    d_pit = locals().get('delta_pit', 21.8)
+    v_ventaja = locals().get('vueltas_ventaja_necesarias', 15.5)
+    v_parada = locals().get('vuelta_parada_usuario', 22)
+    n_activo = locals().get('nombre_activo', 'Escudería F1')
+    p_puntos = locals().get('promedio_puntos', 25.0)
+    pods = locals().get('podios', 12)
+    efec = locals().get('efectividad', 75.0)
+    grip = locals().get('indice_agarre', 0.85)
+
+    # Botones de acceso rápido para transmisiones de radio comunes
+    st.markdown("<p style='font-size: 0.85rem; color: #94A3B8; margin-bottom: 10px;'>⚡ <b>Canales de transmisión rápida:</b></p>", unsafe_allow_html=True)
+    
+    q_col1, q_col2, q_col3, q_col4 = st.columns(4)
+
+    if "radio_msg" not in st.session_state:
+        st.session_state["radio_msg"] = ""
+
+    with q_col1:
+        if st.button("🏁 Ventana Undercut", use_container_width=True, key="r_btn_1_elite"):
+            st.session_state["radio_msg"] = "Dime la estrategia de undercut y paradas"
+    with q_col2:
+        if st.button("📈 Rendimiento / Puntos", use_container_width=True, key="r_btn_2_elite"):
+            st.session_state["radio_msg"] = "Cuál es el rendimiento y puntos del equipo"
+    with q_col3:
+        if st.button("🏆 Análisis de Podios", use_container_width=True, key="r_btn_3_elite"):
+            st.session_state["radio_msg"] = "Cuantos podios tenemos esta temporada"
+    with q_col4:
+        if st.button("⛅ Estado de Gomas", use_container_width=True, key="r_btn_4_elite"):
+            st.session_state["radio_msg"] = "Cómo está el desgaste de gomas y el clima"
+
+    pregunta_usuario = st.chat_input("Transmita mensaje por radio al ingeniero de boxes...", key="chat_input_radio_ai_elite")
+
+    # Evaluar si se presionó un botón de acceso rápido
+    if st.session_state["radio_msg"]:
+        pregunta_usuario = st.session_state["radio_msg"]
+        st.session_state["radio_msg"] = ""  # Limpiar estado
+
+    if pregunta_usuario:
+        with st.chat_message("user", avatar="👤"):
+            st.write(pregunta_usuario)
+        with st.chat_message("assistant", avatar="🤖"):
+            p = pregunta_usuario.lower()
+            if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
+                respuesta = f"[RADIO 📡] Análisis táctico completado. Con un delta de {d_pit}s en pit-lane y {v_ventaja} vueltas óptimas con compuesto fresco, la ventana para ejecutar el undercut se abre de inmediato en la vuelta {v_parada}."
+            elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
+                respuesta = f"[RADIO 📡] Telemetría oficial confirmada: {n_activo} mantiene un promedio competitivo de {p_puntos} puntos por Gran Premio en el campeonato."
+            elif any(x in p for x in ["podio", "podios", "victorias"]):
+                respuesta = f"[RADIO 📡] Reporte de podios de temporada: La escudería registra un total de {pods} podios oficiales con una efectividad de conversión del {efec}%."
+            elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
+                respuesta = f"[RADIO 📡] Datos de tracción sincronizados. El índice de agarre actual es de {grip}. Monitoreando la degradación térmica en tiempo real."
+            else:
+                respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {n_activo}. Todos los sistemas operan al {efec}% de rendimiento óptimo."
+            
+            st.write(respuesta)
+
+    st.markdown("</div>", unsafe_allow_html=True)
