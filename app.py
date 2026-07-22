@@ -762,21 +762,25 @@ with tab4:
         driver2 = st.selectbox("Piloto 2 (Comparativa):", TODOS_OS_PILOTOS_2024, key="tel_driver_2", help="Selecciona al piloto rival contra el que se contrastarán los datos.")
         color2 = DRIVER_COLORS.get(driver2, "#38BDF8")
     with col_t3:
-        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session", help="Elige la sesión oficial para analizar el طgimen de carga de combustible y gomas.")
+        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session", help="Elige la sesión oficial para analizar el régimen de carga.")
 
-    # --- GENERACIÓN DE DATOS DE TELEMETRÍA SIMULADA ---
+    # --- GENERACIÓN DE DATOS DINÁMICOS BASADOS EN CADA PILOTO ---
     x = np.linspace(0, 100, 600)
     
     seed1 = sum(ord(c) for c in driver1)
     seed2 = sum(ord(c) for c in driver2)
     
-    speed1 = 320 - (seed1 % 20) - 180 * np.exp(-x/15) + 25 * np.sin(x/4) + np.random.normal(0, 1.5, 600)
-    throttle1 = np.where(np.sin(x/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
-    brake1 = np.where(np.sin(x/4) < -0.6, 100, 0)
+    # Fases únicas por piloto para que frenado y aceleración varíen de verdad
+    fase1 = (seed1 % 12) * 0.08
+    fase2 = (seed2 % 12) * 0.08
     
-    speed2 = 315 - (seed2 % 20) - 170 * np.exp(-x/18) + 27 * np.sin((x-1.5)/4) + np.random.normal(0, 1.5, 600)
-    throttle2 = np.where(np.sin((x-1.5)/4) > 0, 100, 0) + np.random.normal(0, 3, 600)
-    brake2 = np.where(np.sin((x-1.5)/4) < -0.5, 100, 0)
+    speed1 = 305 + (seed1 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase1) + np.random.normal(0, 1.2, 600)
+    throttle1 = np.where(np.sin(x/3.5 + fase1) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
+    brake1 = np.where(np.sin(x/3.5 + fase1) < -0.65, 100, 0)
+    
+    speed2 = 305 + (seed2 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase2) + np.random.normal(0, 1.2, 600)
+    throttle2 = np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
+    brake2 = np.where(np.sin(x/3.5 + fase2) < -0.65, 100, 0)
 
     max_speed_1 = round(max(speed1), 1)
     max_speed_2 = round(max(speed2), 1)
@@ -822,6 +826,7 @@ with tab4:
 
     st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_advanced_pro")
     st.markdown("</div>", unsafe_allow_html=True)
+    
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⛅ AWS Insights: Advanced Weather Radar & Track Evolution</div>", unsafe_allow_html=True)
