@@ -18,12 +18,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- MÚSICA DE FONDO F1 (Pégalo al inicio, después de la configuración de página) ---
-st.markdown("""
-    <audio autoplay loop>
-        <source src="https://www.myinstants.com/media/sounds/f1-theme-song.mp3" type="audio/mp3">
-    </audio>
-""", unsafe_allow_html=True)
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
