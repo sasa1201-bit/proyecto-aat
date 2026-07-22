@@ -1336,16 +1336,28 @@ with tab8:
     
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
-    st.write("Ajusta el presupuesto disponible y el optimizador calculará en tiempo real la mejor alineación de pilotos basada en los precios y puntos de 2024.")
+    st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer & Value Engine</div>", unsafe_allow_html=True)
+    st.write(
+        "Algoritmo avanzado de optimización financiera y deportiva. Calcula la alineación de pilotos ideal "
+        "maximizando el rendimiento bajo el límite presupuestario y evaluando la eficiencia de costos (ROI)."
+    )
 
-    # Control deslizante reactivo de presupuesto
-    presupuesto_max = st.slider("Presupuesto Disponible para Pilotos ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy")
+    # --- CONTROLES SUPERIORES ORGANIZADOS ---
+    col_f1, col_f2 = st.columns([2, 1])
+    with col_f1:
+        presupuesto_max = st.slider("Presupuesto Disponible para Alineación ($M):", min_value=30.0, max_value=60.0, value=52.0, step=0.5, key="slider_presupuesto_fantasy_pro")
+    with col_f2:
+        criterio_opt = st.selectbox(
+            "Criterio de Optimización:", 
+            ["Máxima Puntuación Total", "Mejor Eficiencia (ROI Puntos/$M)"], 
+            key="select_criterio_opt"
+        )
 
-    # Algoritmo de optimización ejecutado de forma reactiva
+    # --- ALGORITMO DE OPTIMIZACIÓN INTELIGENTE ---
     mejor_puntaje = -1
     mejor_par = None
     mejor_costo = 0
+    mejor_eficiencia = -1
 
     pilotos_keys = list(FANTASY_DB.keys())
     for i in range(len(pilotos_keys)):
@@ -1354,55 +1366,102 @@ with tab9:
             p2 = pilotos_keys[j]
             costo_par = FANTASY_DB[p1]["costo"] + FANTASY_DB[p2]["costo"]
             puntos_par = FANTASY_DB[p1]["puntos"] + FANTASY_DB[p2]["puntos"]
-            if costo_par <= presupuesto_max and puntos_par > mejor_puntaje:
-                mejor_puntaje = puntos_par
-                mejor_par = (p1, p2)
-                mejor_costo = costo_par
+            eficiencia_par = puntos_par / costo_par if costo_par > 0 else 0
 
-    st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 20px 0;'>", unsafe_allow_html=True)
+            if costo_par <= presupuesto_max:
+                if criterio_opt == "Máxima Puntuación Total" and puntos_par > mejor_puntaje:
+                    mejor_puntaje = puntos_par
+                    mejor_par = (p1, p2)
+                    mejor_costo = costo_par
+                elif criterio_opt == "Mejor Eficiencia (ROI Puntos/$M)" and eficiencia_par > mejor_eficiencia:
+                    mejor_eficiencia = eficiencia_par
+                    mejor_puntaje = puntos_par
+                    mejor_par = (p1, p2)
+                    mejor_costo = costo_par
+
+    st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
     if mejor_par:
-        st.success("🏆 **¡Alineación Óptima Encontrada!**")
+        st.success("🏆 **¡Alineación Óptima Detectada por el Algoritmo!**")
         
-        # Panel de métricas clave estilo F1
-        m_opt1, m_opt2, m_opt3 = st.columns(3)
+        presupuesto_restante = round(presupuesto_max - mejor_costo, 1)
+        eficiencia_alineacion = round(mejor_puntaje / mejor_costo, 2) if mejor_costo > 0 else 0
+
+        # --- PANEL DE MÉTRICAS AVANZADAS (4 COLUMNAS) ---
+        m_opt1, m_opt2, m_opt3, m_opt4 = st.columns(4)
         with m_opt1:
-            st.metric(label="Costo Total Alineación", value=f"${mejor_costo}M", delta=f"Límite: ${presupuesto_max}M")
+            st.metric(label="Costo Alineación", value=f"${mejor_costo}M", delta=f"Límite: ${presupuesto_max}M")
         with m_opt2:
-            st.metric(label="Presupuesto Restante", value=f"${round(presupuesto_max - mejor_costo, 1)}M", delta="Ahorro en caja")
+            st.metric(label="Restante en Caja", value=f"${presupuesto_restante}M", delta="Ahorro financiero")
         with m_opt3:
-            st.metric(label="Puntuación Proyectada", value=f"{mejor_puntaje} pts", delta="Rendimiento 2024")
+            st.metric(label="Puntos Proyectados", value=f"{mejor_puntaje} pts", delta="Rendimiento")
+        with m_opt4:
+            st.metric(label="Eficiencia (ROI)", value=f"{eficiencia_alineacion} pts/$M", delta="Valor por millón")
 
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # Tarjetas visuales para los dos pilotos seleccionados
+        # --- TARJETAS VISUALES DE LOS PILOTOS SELECCIONADOS ---
         col_opt1, col_opt2 = st.columns(2)
         
         for idx, p_sel in enumerate(mejor_par):
             p_data = FANTASY_DB[p_sel]
+            roi_piloto = round(p_data['puntos'] / p_data['costo'], 2)
             with (col_opt1 if idx == 0 else col_opt2):
                 st.markdown(f"""
-                    <div style='background: rgba(16, 185, 129, 0.04); padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.25);'>
-                        <div style='font-size: 0.8rem; color: #10B981; font-weight: bold; text-transform: uppercase;'>Piloto Seleccionado #{idx+1}</div>
-                        <h3 style='color: #F8FAFC; margin: 5px 0 10px 0;'>🏎️ {p_sel}</h3>
-                        <div style='display: flex; justify-content: space-between; font-size: 0.9rem; color: #94A3B8;'>
+                    <div style='background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(15,23,42,0.8)); padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+                        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;'>
+                            <span style='font-size: 0.75rem; color: #10B981; font-weight: bold; text-transform: uppercase;'>Slot Titular #{idx+1}</span>
+                            <span style='background: rgba(16,185,129,0.15); color: #10B981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;'>ROI: {roi_piloto} pts/$M</span>
+                        </div>
+                        <h3 style='color: #F8FAFC; margin: 5px 0 12px 0;'>🏎️ {p_sel}</h3>
+                        <div style='display: flex; justify-content: space-between; font-size: 0.9rem; color: #94A3B8; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px;'>
                             <span>Costo: <b style='color: #F8FAFC;'>${p_data['costo']}M</b></span>
                             <span>Puntos 2024: <b style='color: #F8FAFC;'>{p_data['puntos']} pts</b></span>
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # --- MAPA DE VALOR DE LA PARRILLA (SCATTER PLOT INTERACTIVO) ---
+        st.markdown("<b style='color: #FFFFFF; font-size: 0.95rem;'>📊 Mapa de Valor de la Parrilla (Costo vs Puntos):</b>", unsafe_allow_html=True)
+        
+        df_fantasy_plot = pd.DataFrame.from_dict(FANTASY_DB, orient='index').reset_index()
+        df_fantasy_plot.columns = ["Piloto", "Costo", "Puntos"]
+        df_fantasy_plot["Seleccionado"] = df_fantasy_plot["Piloto"].apply(lambda x: "Titular Óptimo 🏆" if x in mejor_par else "Resto de la Parrilla")
+
+        fig_fantasy = px.scatter(
+            df_fantasy_plot, x="Costo", y="Puntos", color="Seleccionado",
+            text="Piloto", hover_data=["Costo", "Puntos"],
+            color_discrete_map={"Titular Óptimo 🏆": "#10B981", "Resto de la Parrilla": "#94A3B8"},
+            template="plotly_dark"
+        )
+        fig_fantasy.update_traces(textposition='top center', marker=dict(size=12))
+        fig_fantasy.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(t=30, b=20, l=10, r=10), height=380,
+            xaxis_title="<b>Costo del Piloto ($M)</b>", yaxis_title="<b>Puntos Históricos 2024</b>",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        fig_fantasy.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+        fig_fantasy.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+
+        st.plotly_chart(fig_fantasy, use_container_width=True, key="chart_fantasy_optimizer_pro")
+
     else:
         st.warning("⚠️ No se encontró ninguna combinación válida con el presupuesto seleccionado. Aumenta el límite en el control deslizante superior.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Expansor útil para consultar los datos fuente de la aplicación
-    with st.expander("📊 Consultar Base de Datos de Precios y Puntos (FANTASY_DB)"):
+    # --- EXPANSOR DE DATOS CON EFICIENCIA CALCULADA ---
+    with st.expander("📊 Consultar Base de Datos Completa de Fantasy (FANTASY_DB)"):
         df_fantasy = pd.DataFrame.from_dict(FANTASY_DB, orient='index').reset_index()
         df_fantasy.columns = ["Piloto Oficial", "Costo ($M)", "Puntos Históricos 2024"]
+        df_fantasy["Eficiencia (Pts/$M)"] = round(df_fantasy["Puntos Históricos 2024"] / df_fantasy["Costo ($M)"], 2)
         st.dataframe(df_fantasy.sort_values(by="Puntos Históricos 2024", ascending=False), use_container_width=True, hide_index=True)
 
-    st.markdown("</div>", unsafe_allow_html=True) 
+    st.markdown("</div>", unsafe_allow_html=True)
+    
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛠️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
