@@ -1926,8 +1926,8 @@ with tab9:
     
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🏆 Simulador Avanzado de Proyección del Mundial de Constructores</div>", unsafe_allow_html=True)
-    st.write("Simula los puntos de un fin de semana de Gran Premio para cualquier escudería, aplicando automáticamente los colores oficiales de los equipos en la gráfica.")
+    st.markdown("<div class='section-header'>🏆 Simulador Táctico Interactivo - Campeonato de Constructores</div>", unsafe_allow_html=True)
+    st.write("Configura el rendimiento de un fin de semana seleccionando la posición final exacta de ambos pilotos. El sistema calculará automáticamente los puntos oficiales de la FIA (incluyendo Sprints y Vuelta Rápida).")
     
     if "df_constructores_state" not in st.session_state:
         st.session_state["df_constructores_state"] = pd.DataFrame([
@@ -1955,41 +1955,65 @@ with tab10:
         "Williams": "#64C4FF",
         "Kick Sauber": "#52E252"
     }
-        
-    col_sim_ctrl, col_sim_res = st.columns([1, 1.2])
+    
+    # Sistema de Puntos Oficial FIA F1
+    f1_points_map = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
+    
+    col_sim_ctrl, col_sim_res = st.columns([1, 1.3])
     
     with col_sim_ctrl:
-        st.markdown("<div style='background: rgba(30, 41, 59, 0.4); padding: 15px; border-radius: 8px;'>", unsafe_allow_html=True)
-        st.write("🛠️ **Parámetros de Simulación:**")
+        st.markdown("<div style='background: rgba(30, 41, 59, 0.5); padding: 18px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.2);'>", unsafe_allow_html=True)
+        st.write("🔧 **Configuración Estratégica del Gran Premio:**")
         
         constructor_seleccionado = st.selectbox(
-            "Selecciona Escudería a Simular:",
+            "Selecciona Escudería:",
             st.session_state["df_constructores_state"]["Escudería"].tolist(),
-            key="select_constructor_sim_tab10"
+            key="select_constructor_sim_pro_tab10"
         )
         
-        modo_simulacion = st.radio(
-            "Tipo de Fin de Semana:",
-            ["Fin de Semana Perfecto (Doblete 1º+2º + VR = 44 pts)", "Personalizado (Puntos manuales)", "Fin de Semana Desastroso (0 pts)"],
-            key="radio_modo_sim_tab10"
-        )
-        
-        puntos_a_sumar = 0
-        if "Perfecto" in modo_simulacion:
-            puntos_a_sumar = 44
-        elif "Desastroso" in modo_simulacion:
-            puntos_a_sumar = 0
-        else:
-            puntos_a_sumar = st.slider("Selecciona puntos obtenidos en el GP:", 0, 45, 18, key="slider_pts_manual_tab10")
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            pos_auto_1 = st.selectbox("Piloto 1 (Posición):", ["Fuera de Puntos (>10)", "1º (25 pts)", "2º (18 pts)", "3º (15 pts)", "4º (12 pts)", "5º (10 pts)", "6º (8 pts)", "7º (6 pts)", "8º (4 pts)", "9º (2 pts)", "10º (1 pt)"], key="pos_p1_tab10")
+        with col_d2:
+            pos_auto_2 = st.selectbox("Piloto 2 (Posición):", ["Fuera de Puntos (>10)", "1º (25 pts)", "2º (18 pts)", "3º (15 pts)", "4º (12 pts)", "5º (10 pts)", "6º (8 pts)", "7º (6 pts)", "8º (4 pts)", "9º (2 pts)", "10º (1 pt)"], key="pos_p2_tab10")
             
-        if st.button("🚀 Aplicar Simulación al Mundial", use_container_width=True, key="btn_simular_constructores_tab10"):
+        es_sprint = st.checkbox("🏁 ¿Es fin de semana con Carrera Sprint?", key="chk_sprint_tab10")
+        puntos_sprint_extra = 0
+        if es_sprint:
+            pos_sprint = st.selectbox("Mejor posición en Sprint (Top 8):", ["Ninguno (0 pts)", "1º Sprint (8 pts)", "2º Sprint (7 pts)", "3º Sprint (6 pts)", "4º Sprint (5 pts)", "5º Sprint (4 pts)", "6º Sprint (3 pts)", "7º Sprint (2 pts)", "8º Sprint (1 pt)"], key="pos_sprint_tab10")
+            if "1º" in pos_sprint: puntos_sprint_extra = 8
+            elif "2º" in pos_sprint: puntos_sprint_extra = 7
+            elif "3º" in pos_sprint: puntos_sprint_extra = 6
+            elif "4º" in pos_sprint: puntos_sprint_extra = 5
+            elif "5º" in pos_sprint: puntos_sprint_extra = 4
+            elif "6º" in pos_sprint: puntos_sprint_extra = 3
+            elif "7º" in pos_sprint: puntos_sprint_extra = 2
+            elif "8º" in pos_sprint: puntos_sprint_extra = 1
+
+        tiene_vuelta_rapida = st.checkbox("⚡ ¿Vuelta Rápida en carrera (Top 10)?", key="chk_vr_tab10")
+        
+        # Cálculo matemático automático
+        puntos_p1 = f1_points_map.get(int(pos_auto_1[0]), 0) if pos_auto_1[0].isdigit() else 0
+        puntos_p2 = f1_points_map.get(int(pos_auto_2[0]), 0) if pos_auto_2[0].isdigit() else 0
+        vr_extra = 1 if (tiene_vuelta_rapida and (puntos_p1 > 0 or puntos_p2 > 0)) else 0
+        
+        total_simulado_gp = puntos_p1 + puntos_p2 + puntos_sprint_extra + vr_extra
+        
+        st.markdown(f"""
+            <div style='background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10B981; padding: 12px; border-radius: 6px; margin: 15px 0;'>
+                <p style='margin:0; font-size:0.9rem; color:#10B981; font-weight:800;'>🎯 Cosecha Total en este GP: +{total_simulado_gp} puntos</p>
+                <small style='color:#94A3B8;'>({puntos_p1} P1 + {puntos_p2} P2 + {puntos_sprint_extra} Sprint + {vr_extra} VR)</small>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🚀 Inyectar Simulación al Campeonato", use_container_width=True, key="btn_simular_pro_tab10"):
             idx = st.session_state["df_constructores_state"][st.session_state["df_constructores_state"]["Escudería"] == constructor_seleccionado].index
             if not idx.empty:
                 pts_actuales = st.session_state["df_constructores_state"].loc[idx[0], "Puntos"]
-                st.session_state["df_constructores_state"].loc[idx[0], "Puntos"] = pts_actuales + puntos_a_sumar
-            st.success(f"¡Se han sumado {puntos_a_sumar} puntos a {constructor_seleccionado}!")
+                st.session_state["df_constructores_state"].loc[idx[0], "Puntos"] = pts_actuales + total_simulado_gp
+            st.success(f"¡Se han sumado {total_simulado_gp} puntos a {constructor_seleccionado}!")
             
-        if st.button("🔄 Reiniciar Puntos Originales", use_container_width=True, key="btn_reset_constructores_tab10"):
+        if st.button("🔄 Reiniciar Campeonato Original", use_container_width=True, key="btn_reset_pro_tab10"):
             st.session_state["df_constructores_state"] = pd.DataFrame([
                 {"Escudería": "McLaren", "Puntos": 666},
                 {"Escudería": "Ferrari", "Puntos": 552},
@@ -2007,21 +2031,24 @@ with tab10:
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_sim_res:
-        st.write("📊 **Gráfica Dinámica con Colores Oficiales:**")
+        st.markdown("<div style='background: rgba(30, 41, 59, 0.3); padding: 15px; border-radius: 10px;'>", unsafe_allow_html=True)
+        st.write("📊 **Clasificación General Actualizada en Vivo:**")
         df_cons_actual = st.session_state["df_constructores_state"].sort_values(by="Puntos", ascending=True).reset_index(drop=True)
         
         fig_cons = px.bar(
             df_cons_actual, x="Puntos", y="Escudería", orientation="h",
             color="Escudería", color_discrete_map=TEAM_COLORS_2024, template="plotly_dark",
-            title="Proyección en Vivo - Campeonato de Constructores"
+            title="Mundial de Constructores (Simulación Activa)"
         )
         fig_cons.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             margin=dict(t=30, b=10, l=10, r=10),
-            yaxis={'categoryorder':'total ascending'}
+            yaxis={'categoryorder':'total ascending'},
+            showlegend=False
         )
-        st.plotly_chart(fig_cons, use_container_width=True, key="chart_constructores_sim_tab10")
+        st.plotly_chart(fig_cons, use_container_width=True, key="chart_constructores_sim_pro_tab10")
+        st.markdown("</div>", unsafe_allow_html=True)
         
     st.markdown("</div>", unsafe_allow_html=True)
 
