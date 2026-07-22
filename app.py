@@ -622,17 +622,17 @@ with tab2:
     
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🗺️ Calendario y Detalles de los Grandes Premios (2024)</div>", unsafe_allow_html=True)
-    st.write("Selecciona cualquier Gran Premio de la temporada para consultar los detalles clave del circuito, la fecha oficial y el ganador de la carrera.")
+    st.markdown("<div class='section-header'>🗺️ Calendario, Mapas y Geolocalización F1 (2024)</div>", unsafe_allow_html=True)
+    st.write("Explora cada circuito del calendario 2024, su ubicación geográfica exacta en el mapa interactivo y el ganador de la prueba.")
 
     # Selector limpio y directo
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_map")
 
     # Extraer datos del GP activo
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
 
-    # Formatear fecha en español de forma robusta
+    # Formatear fecha en español
     meses_es = {
         1: "enero", 2: "febrero", 3: "marzo", 4: "abril", 5: "mayo", 6: "junio",
         7: "julio", 8: "agosto", 9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
@@ -640,69 +640,77 @@ with tab3:
     fecha_dt = datetime.strptime(gp_info['fecha'], "%Y-%m-%d")
     fecha_formateada = f"{fecha_dt.day} de {meses_es[fecha_dt.month]}, {fecha_dt.year}"
 
-    # Distribución en dos columnas equilibradas de alta gama (Sin mapas, 100% limpio y funcional)
-    col_det1, col_det2 = st.columns(2)
+    # Distribución en dos columnas: Ficha técnica y Mapa interactivo
+    col_det, col_map = st.columns([1, 1])
 
-    with col_det1:
+    with col_det:
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 22px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 240px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 285px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
                 <div>
-                    <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>INFORMACIÓN DEL CIRCUITO</span>
-                    <h3 style='color: #FF1801; margin: 8px 0 10px 0; font-size: 1.15rem;'>🏁 {gp_info['gp']}</h3>
-                    <p style='margin: 4px 0; color: #E2E8F0; font-size: 0.95rem;'><b>Circuito:</b> {gp_info['circuito']}</p>
-                    <p style='margin: 4px 0; color: #E2E8F0; font-size: 0.95rem;'><b>Ubicación:</b> {gp_info['ciudad']}</p>
+                    <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>FICHA TÉCNICA DEL CIRCUITO</span>
+                    <h3 style='color: #FF1801; margin: 6px 0 8px 0; font-size: 1.1rem;'>🏁 {gp_info['gp']}</h3>
+                    <p style='margin: 4px 0; color: #E2E8F0; font-size: 0.9rem;'><b>Circuito:</b> {gp_info['circuito']}</p>
+                    <p style='margin: 4px 0; color: #E2E8F0; font-size: 0.9rem;'><b>Ubicación:</b> {gp_info['ciudad']}</p>
+                    <p style='margin: 4px 0; color: #E2E8F0; font-size: 0.9rem;'><b>Fecha:</b> {fecha_formateada}</p>
+                </div>
+                <div style='border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;'>
+                    <span style='color: #94A3B8; font-size: 0.75rem; display: block;'>GANADOR DE LA CARRERA</span>
+                    <strong style='color: #10B981; font-size: 1.15rem;'>🏆 {gp_info['ganador']}</strong>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
-    with col_det2:
-        st.markdown(f"""
-            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 22px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.3); height: 240px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
-                <div>
-                    <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>ESTADO Y RESULTADO</span>
-                    <p style='margin: 12px 0 8px 0; color: #E2E8F0; font-size: 0.95rem;'><b>Fecha Oficial:</b> {fecha_formateada}</p>
-                </div>
-                <div style='border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;'>
-                    <span style='color: #94A3B8; font-size: 0.8rem; display: block;'>GANADOR DEL GRAN PREMIO</span>
-                    <strong style='color: #10B981; font-size: 1.25rem;'>🏆 {gp_info['ganador']}</strong>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+    with col_map:
+        st.markdown("<p style='font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #38BDF8;'>📍 Geolocalización del Circuito:</p>", unsafe_allow_html=True)
+        df_mapa = pd.DataFrame({'lat': [gp_info['lat']], 'lon': [gp_info['lon']]})
+        st.map(df_mapa, zoom=9, height=245)
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
-    # Encabezado del resumen con diseño amigable para el filtro de pilotos
-    st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 15px;'>📋 Resumen Interactivo de Carreras 2024</h4>", unsafe_allow_html=True)
-    
-    # Obtener lista única de ganadores de forma ordenada
-    ganadores_disponibles = ["Todos los Pilotos"] + sorted(list(set(item['ganador'] for item in CARRERAS_2024_DATOS)))
+    # --- SALÓN DE LA FAMA Y RESUMEN LLAMATIVO ---
+    st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 10px;'>🔥 Salón de la Fama y Estadísticas de la Temporada 2024</h4>", unsafe_allow_html=True)
+    st.write("Filtra el desempeño por piloto y analiza su dominio en el campeonato con métricas visuales de alto impacto.")
+
+    # Calcular estadísticas de victorias por piloto para las métricas superiores
+    df_base = pd.DataFrame(CARRERAS_2024_DATOS)
+    conteo_victorias = df_base['ganador'].value_counts().reset_index()
+    conteo_victorias.columns = ['Piloto', 'Victorias']
+
+    # Mostrar métricas rápidas de los máximos ganadores en columnas superiores
+    cols_podio = st.columns(min(len(conteo_victorias), 4))
+    for idx, row in conteo_victorias.head(4).iterrows():
+        with cols_podio[idx]:
+            st.metric(label=f"🥇 {row['Piloto']}", value=f"{row['Victorias']} Triunfos")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Selector de filtro de piloto estilizado
+    ganadores_disponibles = ["Todos los Pilotos"] + sorted(list(df_base['ganador'].unique()))
     
     col_f1, col_f2 = st.columns([2, 1])
     with col_f1:
-        piloto_filtro = st.selectbox("Selecciona un corredor:", ganadores_disponibles, key="select_filtro_piloto_victorias")
+        piloto_filtro = st.selectbox("Filtrar Grandes Premios por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro")
 
-    # Crear DataFrame base
-    df_carreras = pd.DataFrame(CARRERAS_2024_DATOS)[["gp", "circuito", "fecha", "ganador"]]
+    df_carreras = df_base[["gp", "circuito", "fecha", "ganador"]].copy()
     df_carreras.columns = ["Gran Premio", "Circuito Oficial", "Fecha", "Ganador del GP"]
     
-    # Filtrar dinámicamente si se selecciona un piloto específico
     if piloto_filtro != "Todos los Pilotos":
         df_carreras_filtrado = df_carreras[df_carreras["Ganador del GP"] == piloto_filtro]
         total_victorias = len(df_carreras_filtrado)
-        texto_metrica = f"{total_victorias} Victorias"
+        texto_metrica = f"{total_victorias} Victorias Registradas"
     else:
         df_carreras_filtrado = df_carreras
-        texto_metrica = f"{len(CARRERAS_2024_DATOS)} Grandes Premios"
+        texto_metrica = f"{len(CARRERAS_2024_DATOS)} Grandes Premios Totales"
 
     with col_f2:
         st.markdown(f"""
-            <div style='background: rgba(255, 24, 1, 0.15); border: 1px solid rgba(255, 24, 1, 0.4); padding: 8px 15px; border-radius: 8px; text-align: center; margin-top: 24px;'>
-                <span style='font-size: 0.75rem; color: #94A3B8; display: block;'>REGISTROS MOSTRADOS</span>
-                <strong style='color: #FF1801; font-size: 1.1rem;'>{texto_metrica}</strong>
+            <div style='background: linear-gradient(135deg, rgba(255,24,1,0.2), rgba(16,185,129,0.1)); border: 1px solid rgba(255,24,1,0.4); padding: 8px 15px; border-radius: 8px; text-align: center; margin-top: 24px;'>
+                <span style='font-size: 0.75rem; color: #94A3B8; display: block;'>FILTRO ACTIVO</span>
+                <strong style='color: #38BDF8; font-size: 1.05rem;'>{texto_metrica}</strong>
             </div>
         """, unsafe_allow_html=True)
 
-    # Tabla interactiva moderna
+    # Tabla interactiva mejorada
     st.dataframe(
         df_carreras_filtrado, 
         use_container_width=True, 
