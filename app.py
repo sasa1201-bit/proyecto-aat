@@ -1137,7 +1137,7 @@ with tab8:
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
     # --- SUB-PESTAÑAS INTERNAS DE NAVEGACIÓN ---
-    sub_t1, sub_t2, sub_t3 = st.tabs(["📊 Matriz de Stints (Gantt)", "⚙️ Simulador de Undercut & Clima", "📋 Matriz de Datos Crudos"])
+    sub_t1, sub_t2, sub_t3 = st.tabs(["📊 Matriz de Stints (Gantt)", "⚙️ Simulador de Undercut & Clima", "📈 Curva de Degradación de Neumáticos"])
 
     # ==========================================
     # SUB-PESTAÑA 1: MATRIZ DE STINTS Y GRÁFICA
@@ -1180,7 +1180,7 @@ with tab8:
 
         pilotos_con_usuario = ["🏎️ TU MONOPLAZA"] + pilotos_activos
 
-        # Generación de stints dinámicos (incluyendo lógica de lluvia si se selecciona)
+        # Generación de stints dinámicos
         gantt_data = []
         total_vueltas_carrera = 55
 
@@ -1211,16 +1211,15 @@ with tab8:
 
         df_gantt = pd.DataFrame(gantt_data)
 
-        # Paleta de colores oficial Pirelli incluyendo Lluvia (Intermedias y Wet)
+        # Paleta de colores oficial Pirelli
         color_compuestos = {
-            "Soft (C5)": "#EF4444",      # Rojo
-            "Medium (C3)": "#F59E0B",    # Amarillo
-            "Hard (C1)": "#94A3B8",      # Blanco / Plateado
-            "Intermediate": "#10B981",   # Verde bosque
-            "Wet": "#3B82F6"             # Azul eléctrico
+            "Soft (C5)": "#EF4444",      
+            "Medium (C3)": "#F59E0B",    
+            "Hard (C1)": "#94A3B8",      
+            "Intermediate": "#10B981",   
+            "Wet": "#3B82F6"             
         }
 
-        # Gráfico Plotly de alta fidelidad
         fig_gantt = px.bar(
             df_gantt, x="Duration", y="Driver", base="Start", orientation="h", color="Compound",
             hover_name="Driver", hover_data={"Stint": True, "Start": True, "Finish": True, "Duration": True, "Driver": False},
@@ -1241,7 +1240,7 @@ with tab8:
         fig_gantt.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', dtick=5)
         fig_gantt.update_yaxes(showgrid=False)
 
-        st.plotly_chart(fig_gantt, use_container_width=True, key="chart_gantt_ultra_v2")
+        st.plotly_chart(fig_gantt, use_container_width=True, key="chart_gantt_ultra_v3")
 
     # ==========================================
     # SUB-PESTAÑA 2: SIMULADOR AVANZADO
@@ -1250,11 +1249,11 @@ with tab8:
         st.markdown("<b style='color: #FFFFFF;'>Ajuste Fino de Parámetros Operativos del Monoplaza:</b>", unsafe_allow_html=True)
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
-            delta_pit = st.slider("Pérdida en Pit-Lane (s):", min_value=18.0, max_value=32.0, value=default_pit, step=0.1, key="sim_delta_pit_v2")
+            delta_pit = st.slider("Pérdida en Pit-Lane (s):", min_value=18.0, max_value=32.0, value=default_pit, step=0.1, key="sim_delta_pit_v3")
         with col_s2:
-            delta_goma_fresca = st.slider("Ganancia de Ritmo (s/v):", min_value=0.5, max_value=3.0, value=default_goma, step=0.1, key="sim_delta_goma_v2")
+            delta_goma_fresca = st.slider("Ganancia de Ritmo (s/v):", min_value=0.5, max_value=3.0, value=default_goma, step=0.1, key="sim_delta_goma_v3")
         with col_s3:
-            vuelta_parada_usuario = st.slider("Vuelta Exacta de Parada:", min_value=5, max_value=45, value=default_vuelta, step=1, key="sim_vuelta_parada_v2")
+            vuelta_parada_usuario = st.slider("Vuelta Exacta de Parada:", min_value=5, max_value=45, value=default_vuelta, step=1, key="sim_vuelta_parada_v3")
 
         vueltas_ventaja_necesarias = round(delta_pit / delta_goma_fresca, 1)
 
@@ -1267,11 +1266,54 @@ with tab8:
             st.metric("Vuelta Seleccionada", f"V.{vuelta_parada_usuario}", "Box Target")
 
     # ==========================================
-    # SUB-PESTAÑA 3: DATOS CRUDOS
+    # SUB-PESTAÑA 3: CURVA DE DEGRADACIÓN TÉCNICA (NUEVO)
     # ==========================================
     with sub_t3:
-        st.markdown("<b style='color: #FFFFFF;'>Inspección de Tablas y Estadísticas del Stint:</b>", unsafe_allow_html=True)
-        st.dataframe(df_gantt, use_container_width=True, height=250)
+        st.markdown("<b style='color: #FFFFFF;'>📈 Análisis de Comportamiento y Desgaste del Compuesto Seleccionado:</b>", unsafe_allow_html=True)
+        st.write(f"Simulación teórica de la pérdida de ritmo por vuelta debido al desgaste físico del compuesto **{compuesto_inicial}**.")
+
+        # Generar datos matemáticos de degradación según el compuesto seleccionado
+        vueltas_stint = list(range(1, 31))
+        if "Soft" in compuesto_inicial:
+            degradacion = [round(0.0 + (i * 0.14) + (0.015 * (i**1.2)), 2) for i in range(len(vueltas_stint))]
+            color_linea = "#EF4444"
+        elif "Medium" in compuesto_inicial:
+            degradacion = [round(0.0 + (i * 0.08) + (0.008 * (i**1.1)), 2) for i in range(len(vueltas_stint))]
+            color_linea = "#F59E0B"
+        elif "Hard" in compuesto_inicial:
+            degradacion = [round(0.0 + (i * 0.04) + (0.003 * (i**1.05)), 2) for i in range(len(vueltas_stint))]
+            color_linea = "#94A3B8"
+        elif "Intermediate" in compuesto_inicial:
+            degradacion = [round(0.0 + (i * 0.12) + (0.02 * (i**1.25)), 2) for i in range(len(vueltas_stint))]
+            color_linea = "#10B981"
+        else: # Wet
+            degradacion = [round(0.0 + (i * 0.10) + (0.01 * (i**1.15)), 2) for i in range(len(vueltas_stint))]
+            color_linea = "#3B82F6"
+
+        df_deg = pd.DataFrame({
+            "Vuelta de Stint": vueltas_stint,
+            "Pérdida de Tiempo Acumulada (s)": degradacion
+        })
+
+        fig_deg = px.line(
+            df_deg, x="Vuelta de Stint", y="Pérdida de Tiempo Acumulada (s)",
+            markers=True,
+            template="plotly_dark",
+            title=f"Curva de Degradación — Compuesto {compuesto_inicial}"
+        )
+        fig_deg.update_traces(line_color=color_linea, line_width=3, marker_size=6)
+        fig_deg.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(t=40, b=20, l=10, r=10),
+            height=320,
+            xaxis_title="<b>Vueltas con el Neumático</b>",
+            yaxis_title="<b>Pérdida vs Vuelta 1 (s)</b>"
+        )
+        fig_deg.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+        fig_deg.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+
+        st.plotly_chart(fig_deg, use_container_width=True, key="chart_degradacion_pro")
 
     # --- REPORTE TÁCTICO INTELIGENTE INFERIOR ---
     efectividad_undercut = "ALTA 🟢" if vueltas_ventaja_necesarias <= 3.5 else ("MODERADA 🟡" if vueltas_ventaja_necesarias <= 5.0 else "BAJA 🔴")
