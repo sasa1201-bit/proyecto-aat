@@ -1105,6 +1105,7 @@ with tab7:
             st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True) 
+    
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
@@ -1230,6 +1231,10 @@ with tab8:
 
     st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_v2_{vuelta_parada_usuario}_{delta_pit}_{filtro_vista}")
     
+    # Tabla interactiva desplegable de respaldo para inspeccionar los stints
+    with st.expander("📊 Ver Tabla de Datos de Stints (Detalle por Piloto)"):
+        st.dataframe(df_gantt, use_container_width=True)
+
     # Alerta dinámica basada en la estrategia de undercut
     st.markdown(f"""
         <div style='background: rgba(255,24,1,0.04); padding: 14px 18px; border-radius: 10px; border: 1px solid rgba(255,24,1,0.25); margin-top: 15px;'>
@@ -1240,6 +1245,7 @@ with tab8:
     """, unsafe_allow_html=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
+    
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
