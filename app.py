@@ -925,50 +925,86 @@ with tab6:
         "simula paquetes de evolución aerodinámica y controla el riesgo de sanciones reglamentarias."
     )
 
-    # --- PRESETS FINANCIEROS RÁPIDOS ---
+    # --- INICIALIZAR ESTADOS DE SESIÓN PARA LOS PRESETS ---
+    if "cc_base" not in st.session_state:
+        st.session_state["cc_base"] = 135.0
+    if "cc_aero" not in st.session_state:
+        st.session_state["cc_aero"] = 48.5
+    if "cc_motor" not in st.session_state:
+        st.session_state["cc_motor"] = 35.0
+    if "cc_chasis" not in st.session_state:
+        st.session_state["cc_chasis"] = 25.0
+    if "cc_ops" not in st.session_state:
+        st.session_state["cc_ops"] = 18.0
+
+    # --- PRESETS FINANCIEROS RÁPIDOS (FUNCIONALES) ---
     st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Estrategias Financieras Rápidas (Presets):</b>", unsafe_allow_html=True)
     col_p1, col_p2, col_p3 = st.columns(3)
+    
     with col_p1:
-        preset_agresivo = st.button("🚀 Desarrollo Agresivo (Alto Riesgo)", use_container_width=True, key="btn_cc_agresivo")
+        if st.button("🚀 Desarrollo Agresivo (Alto Riesgo)", use_container_width=True, key="btn_cc_agresivo"):
+            st.session_state["cc_aero"] = 62.0
+            st.session_state["cc_motor"] = 42.0
+            st.session_state["cc_chasis"] = 32.0
+            st.session_state["cc_ops"] = 22.0
+            st.rerun()
+            
     with col_p2:
-        preset_equilibrado = st.button("⚖️ Fábrica Equilibrada (Estándar)", use_container_width=True, key="btn_cc_equilibrado")
+        if st.button("⚖️ Fábrica Equilibrada (Estándar)", use_container_width=True, key="btn_cc_equilibrado"):
+            st.session_state["cc_aero"] = 48.5
+            st.session_state["cc_motor"] = 35.0
+            st.session_state["cc_chasis"] = 25.0
+            st.session_state["cc_ops"] = 18.0
+            st.rerun()
+            
     with col_p3:
-        preset_ahorro = st.button("🛡️ Modo Supervivencia / Ahorro", use_container_width=True, key="btn_cc_ahorro")
-
-    if preset_agresivo:
-        def_aero, def_motor, def_chasis, def_ops, def_base = 62.0, 42.0, 32.0, 22.0, 135.0
-    elif preset_ahorro:
-        def_aero, def_motor, def_chasis, def_ops, def_base = 35.0, 25.0, 18.0, 12.0, 135.0
-    else:
-        def_aero, def_motor, def_chasis, def_ops, def_base = 48.5, 35.0, 25.0, 18.0, 135.0
+        if st.button("🛡️ Modo Supervivencia / Ahorro", use_container_width=True, key="btn_cc_ahorro"):
+            st.session_state["cc_aero"] = 35.0
+            st.session_state["cc_motor"] = 25.0
+            st.session_state["cc_chasis"] = 18.0
+            st.session_state["cc_ops"] = 12.0
+            st.rerun()
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
-    # --- CONTROLES Y SLIDERS EN 2 COLUMNAS ---
+    # --- CONTROLES Y SLIDERS VINCULADOS A SESSION STATE ---
     col_cc1, col_cc2 = st.columns(2)
     with col_cc1:
-        presupuesto_base = st.number_input("Límite Base FIA ($M):", min_value=100.0, max_value=150.0, value=def_base, step=0.5, key="cc_base_pro")
-        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel ($M):", min_value=20.0, max_value=70.0, value=def_aero, step=0.5, key="cc_aero_pro")
-        gasto_motor = st.slider("Unidad de Potencia e Integración ($M):", min_value=15.0, max_value=50.0, value=def_motor, step=0.5, key="cc_motor_pro")
-    with col_cc2:
-        gasto_chasis = st.slider("Chasis, Manufactura y Peso ($M):", min_value=10.0, max_value=40.0, value=def_chasis, step=0.5, key="cc_chasis_pro")
-        gasto_operaciones = st.slider("Logística y Operaciones ($M):", min_value=10.0, max_value=30.0, value=def_ops, step=0.5, key="cc_ops_pro")
+        presupuesto_base = st.number_input("Límite Base FIA ($M):", min_value=100.0, max_value=150.0, value=st.session_state["cc_base"], step=0.5, key="input_cc_base")
+        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel ($M):", min_value=20.0, max_value=70.0, value=st.session_state["cc_aero"], step=0.5, key="slider_cc_aero")
+        gasto_motor = st.slider("Unidad de Potencia e Integración ($M):", min_value=15.0, max_value=50.0, value=st.session_state["cc_motor"], step=0.5, key="slider_cc_motor")
         
+        st.session_state["cc_base"] = presupuesto_base
+        st.session_state["cc_aero"] = gasto_aero
+        st.session_state["cc_motor"] = gasto_motor
+
+    with col_cc2:
+        gasto_chasis = st.slider("Chasis, Manufactura y Peso ($M):", min_value=10.0, max_value=40.0, value=st.session_state["cc_chasis"], step=0.5, key="slider_cc_chasis")
+        gasto_operaciones = st.slider("Logística y Operaciones ($M):", min_value=10.0, max_value=30.0, value=st.session_state["cc_ops"], step=0.5, key="slider_cc_ops")
+        
+        st.session_state["cc_chasis"] = gasto_chasis
+        st.session_state["cc_ops"] = gasto_operaciones
+
+        # Catálogo ampliado de mejoras
         upgrades_disponibles = {
             "Evolución de Ala Delantera y Morro ($1.8M)": {"costo": 1.8, "ganancia": 0.08},
             "Actualización menor - Suelo y Difusor ($2.5M)": {"costo": 2.5, "ganancia": 0.12},
-            "Paquete de Alta Carga - Circuitos Rabiosos ($3.5M)": {"costo": 3.5, "ganancia": 0.18},
+            "Geometría de Conductos de Freno - Cooling ($1.2M)": {"costo": 1.2, "ganancia": 0.04},
+            "Paquete de Alta Carga - Circuitos Ratoneros ($3.5M)": {"costo": 3.5, "ganancia": 0.18},
             "Paquete de Baja Carga - Especificación Monza ($4.2M)": {"costo": 4.2, "ganancia": 0.22},
+            "Nuevos Deflectores de Pontones y Espejos ($2.1M)": {"costo": 2.1, "ganancia": 0.09},
+            "Rediseño de Beam Wing / Ala Trasera ($1.6M)": {"costo": 1.6, "ganancia": 0.07},
+            "Optimización de Suspensión Pull/Push-rod ($3.1M)": {"costo": 3.1, "ganancia": 0.15},
             "Paquete Mayor - Rediseño Total de Pontones ($5.8M)": {"costo": 5.8, "ganancia": 0.35}
         }
         
         paquetes_seleccionados = st.multiselect(
-            "Paquetes de Mejoras en Pista (Upgrades):", 
+            "Paquetes de Mejoras en Pista (Catálogo Ampliado):", 
             options=list(upgrades_disponibles.keys()),
             key="cc_upgrades_pro"
         )
 
-    # Cálculos financieros y de rendimiento
+    # --- CÁLCULOS FINANCIEROS Y DE RENDIMIENTO ---
     costo_upgrades_val = sum(upgrades_disponibles[p]["costo"] for p in paquetes_seleccionados)
     ganancia_tiempo_total = round(sum(upgrades_disponibles[p]["ganancia"] for p in paquetes_seleccionados), 2)
     gasto_total = round(gasto_aero + gasto_motor + gasto_chasis + gasto_operaciones + costo_upgrades_val, 2)
@@ -989,8 +1025,8 @@ with tab6:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- AUDITORÍA Y GRÁFICA EN 2 COLUMNAS ---
-    col_res_cc, col_graf_cc = st.columns([1, 1.3])
+    # --- AUDITORÍA Y GRÁFICA CIRCULAR / DONUT LIMPIA Y ESPACIADA ---
+    col_res_cc, col_graf_cc = st.columns([1, 1.4])
 
     with col_res_cc:
         if remanente >= 0:
@@ -1024,25 +1060,37 @@ with tab6:
 
     with col_graf_cc:
         df_costos = pd.DataFrame({
-            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones / Logística", "Paquetes de Mejoras"],
+            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones", "Mejoras"],
             "Costo ($M)": [gasto_aero, gasto_motor, gasto_chasis, gasto_operaciones, costo_upgrades_val]
         })
         
+        # Gráfica de Donut con diseño limpio, holgado y sin amontonarse
         fig_donut = px.pie(
-            df_costos, names="Rubro", values="Costo ($M)", hole=0.6,
-            title="<b>Distribución Estructural del Cost Cap</b>",
+            df_costos, names="Rubro", values="Costo ($M)", hole=0.65,
+            title="<b>Distribución del Cost Cap</b>",
             color_discrete_sequence=["#FF1801", "#38BDF8", "#F59E0B", "#10B981", "#8B5CF6"],
             template="plotly_dark"
+        )
+        fig_donut.update_traces(
+            textposition='inside', 
+            textinfo='percent',
+            hoverinfo='label+value+percent'
         )
         fig_donut.update_layout(
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             margin=dict(t=40, b=10, l=10, r=10),
-            height=350,
-            legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5)
+            height=360,
+            legend=dict(
+                orientation="h", 
+                yanchor="top", 
+                y=-0.12, 
+                xanchor="center", 
+                x=0.5,
+                font=dict(size=11)
+            )
         )
-        fig_donut.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut_pro")
+        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut_clean_v2")
 
     st.markdown("</div>", unsafe_allow_html=True)
     
