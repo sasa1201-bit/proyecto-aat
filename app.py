@@ -759,9 +759,23 @@ with tab4:
 with tab5:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⛅ AWS Insights: Advanced Weather Radar & Track Evolution</div>", unsafe_allow_html=True)
-    st.write("Simulador atmosférico predictivo. Modifica las condiciones para analizar en tiempo real la temperatura de asfalto y la ventana táctica Pirelli.")
+    st.write("Simulador atmosférico predictivo y análisis de desgaste de neumáticos por circuito. Modifica las condiciones para analizar la ventana táctica Pirelli.")
     
-    c_w1, c_w2, c_w3, c_w4 = st.columns(4)
+    circuitos_f1 = {
+        "Bahrain International Circuit (Sakhir)": {"factor_abrasion": 1.4, "tipo": "Alta Abrasión"},
+        "Silverstone Circuit (Gran Bretaña)": {"factor_abrasion": 1.35, "tipo": "Alta Carga Lateral"},
+        "Circuit de Barcelona-Catalunya (España)": {"factor_abrasion": 1.3, "tipo": "Técnico / Severo"},
+        "Circuit de Monaco (Mónaco)": {"factor_abrasion": 0.7, "tipo": "Baja Abrasión / Urbano"},
+        "Monza (Italia)": {"factor_abrasion": 0.8, "tipo": "Baja Degradación"},
+        "Spa-Francorchamps (Bélgica)": {"factor_abrasion": 1.15, "tipo": "Media-Alta"},
+        "Suzuka Circuit (Japón)": {"factor_abrasion": 1.2, "tipo": "Alta Exigencia"},
+        "Red Bull Ring (Austria)": {"factor_abrasion": 1.0, "tipo": "Equilibrado"},
+        "Miami International Autodrome": {"factor_abrasion": 1.1, "tipo": "Superficie Nueva / Térmica"}
+    }
+
+    c_circ1, c_w1, c_w2, c_w3, c_w4 = st.columns([1.5, 1, 1, 1, 1])
+    with c_circ1:
+        circuito_seleccionado = st.selectbox("🏁 Circuito", list(circuitos_f1.keys()), key="nw_circuit")
     with c_w1:
         temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=42, value=25, key="nw_temp")
     with c_w2:
@@ -780,18 +794,28 @@ with tab5:
 
     if prob_lluvia > 75 or (prob_lluvia > 50 and indice_agarre < 0.45):
         neumatico_rec, razon_rec, color_borde = "🔵 Lluvia Extrema (Wet)", "Alto riesgo de aquaplaning. Pista inundada.", "#0066FF"
+        base_desgaste = 0.5
     elif prob_lluvia > 25 or indice_agarre < 0.65:
         neumatico_rec, razon_rec, color_borde = "🟢 Intermedios (Inters)", "Asfalto mixto / Condiciones de transición.", "#10B981"
+        base_desgaste = 1.2
     elif temp_pista > 45:
         neumatico_rec, razon_rec, color_borde = "⚪ Duros (Hard C1/C2)", "Alta abrasión y riesgo severo de blistering térmico.", "#FFFFFF"
+        base_desgaste = 1.8
     elif temp_pista < 26:
         neumatico_rec, razon_rec, color_borde = "🔴 Blandos (Soft C4/C5)", "Necesidad de encender gomas rápido por baja temperatura.", "#FF1801"
+        base_desgaste = 3.5
     else:
         neumatico_rec, razon_rec, color_borde = "🟡 Medios (Medium C3)", "Ventana operativa ideal. Balance perfecto degradación/agarre.", "#F59E0B"
+        base_desgaste = 2.3
+
+    info_circuito = circuitos_f1[circuito_seleccionado]
+    factor_pista = info_circuito["factor_abrasion"]
+    desgaste_por_vuelta = round(base_desgaste * factor_pista * (1 + (max(0, temp_pista - 30) * 0.01)), 2)
+    vida_util_vueltas = int(100 / max(0.5, desgaste_por_vuelta))
 
     st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
 
-    col_g1, col_g2 = st.columns(2)
+    col_g1, col_g2, col_g3 = st.columns([1, 1, 1.2])
     with col_g1:
         fig_grip = go.Figure(go.Indicator(
             mode="gauge+number",
@@ -834,12 +858,30 @@ with tab5:
         fig_temp.update_layout(paper_bgcolor='rgba(0,0,0,0)', font={'color': "white"}, height=280, margin=dict(t=40, b=10))
         st.plotly_chart(fig_temp, use_container_width=True)
 
+    with col_g3:
+        st.markdown(f"""
+            <div class='telemetry-card' style='padding: 22px; height: 280px; display: flex; flex-direction: column; justify-content: center; border-left: 4px solid {color_borde};'>
+                <small style='color: #94A3B8; font-weight: 700; letter-spacing: 1px;'>DESGASTE ESTIMADO POR CIRCUITO</small>
+                <div style='display: flex; justify-content: space-between; align-items: baseline; margin-top: 15px;'>
+                    <span style='color: #F1F5F9; font-size: 0.95rem;'>Tasa por vuelta:</span>
+                    <strong style='color: #FFFFFF; font-size: 1.4rem;'>{desgaste_por_vuelta}% /vta</strong>
+                </div>
+                <div style='display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px;'>
+                    <span style='color: #F1F5F9; font-size: 0.95rem;'>Vida útil estimada:</span>
+                    <strong style='color: #10B981; font-size: 1.4rem;'>~{vida_util_vueltas} vueltas</strong>
+                </div>
+                <div style='margin-top: 15px; font-size: 0.85rem; color: #94A3B8; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;'>
+                    Perfil de pista: <span style='color: #E2E8F0;'>{info_circuito["tipo"]}</span>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
     st.markdown(f"""
         <div style='background: linear-gradient(90deg, rgba(8,12,22,1) 0%, {color_borde}22 100%); 
                     padding: 22px; border-radius: 14px; border-left: 6px solid {color_borde}; 
                     border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 30px;'>
             <div>
-                <span style='color: #94A3B8; font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;'>RECOMENDACIÓN ESTRATÉGICA PIRELLI</span>
+                <span style='color: #94A3B8; font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;'>RECOMENDACIÓN ESTRATÉGICA PIRELLI • {circuito_seleccionado.split('(')[0]}</span>
                 <h2 style='color: {color_borde}; margin: 5px 0 0 0; font-weight: 900;'>{neumatico_rec}</h2>
                 <p style='color: #F1F5F9; margin: 5px 0 0 0; font-size: 0.95rem;'>{razon_rec}</p>
             </div>
@@ -849,7 +891,6 @@ with tab5:
         </div>
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
-
 with tab6:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💰 Gestor Financiero Avanzado y Límite de Presupuesto (Cost Cap War Room)</div>", unsafe_allow_html=True)
