@@ -347,7 +347,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🚦 Luces Salida", 
     "🛑 Estrategia Gantt", 
     "💵 Fantasy Optimizer", 
-    "🛠️ Ing. Radio IA"
+    "🏆 Proyección Constructores"
 ])
 
 with tab1:
@@ -1926,87 +1926,8 @@ with tab9:
     
 with tab10:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🛠️ Asistente Táctico Inteligente con Transmisión de Radio (Team Radio AI)</div>", unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div style='background: rgba(8, 12, 22, 0.8); padding: 18px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); text-align: center; margin-bottom: 20px;'>
-            <span style='font-size: 0.8rem; color: #38BDF8; font-weight: 800; letter-spacing: 2px; display:block; margin-bottom: 6px;'>📡 CANAL DE RADIO ACTIVO - INGENIERO DE PISTA FIA</span>
-            <div style='font-size: 1.3rem; letter-spacing: 3px; color: #FF1801; font-weight: 900;'>
-                📶 ▂▃▅▆▇█▇▆▅▃▂ 📡 ▂▃▅▆▇█▇▆▅▃▂ 📶
-            </div>
-            <small style='color: #94A3B8; font-style: italic;'>Agente conversacional inteligente listo para resolver dudas de estrategia, clima y telemetría</small>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Variables de respaldo seguras en caso de ejecución independiente
-    d_pit = locals().get('delta_pit', 21.8)
-    v_ventaja = locals().get('vueltas_ventaja_necesarias', 15.5)
-    v_parada = locals().get('vuelta_parada_usuario', 22)
-    n_activo = locals().get('nombre_activo', 'Escudería F1')
-    p_puntos = locals().get('promedio_puntos', 25.0)
-    pods = locals().get('podios', 12)
-    efec = locals().get('efectividad', 75.0)
-    grip = locals().get('indice_agarre', 0.85)
-
-    # Botones de acceso rápido para transmisiones de radio comunes
-    st.markdown("<p style='font-size: 0.85rem; color: #94A3B8; margin-bottom: 8px;'>💬 <b>Transmisiones rápidas sugeridas:</b></p>", unsafe_allow_html=True)
-    q_col1, q_col2, q_col3, q_col4 = st.columns(4)
-    
-    if "radio_msg" not in st.session_state:
-        st.session_state["radio_msg"] = ""
-
-    with q_col1:
-        if st.button("🏁 Ventana Undercut", use_container_width=True, key="r_btn_1"):
-            st.session_state["radio_msg"] = "Dime la estrategia de undercut y paradas"
-    with q_col2:
-        if st.button("📈 Rendimiento / Puntos", use_container_width=True, key="r_btn_2"):
-            st.session_state["radio_msg"] = "Cuál es el rendimiento y puntos del equipo"
-    with q_col3:
-        if st.button("🏆 Análisis de Podios", use_container_width=True, key="r_btn_3"):
-            st.session_state["radio_msg"] = "Cuantos podios tenemos esta temporada"
-    with q_col4:
-        if st.button("⛅ Estado de Gomas", use_container_width=True, key="r_btn_4"):
-            st.session_state["radio_msg"] = "Cómo está el desgaste de gomas y el clima"
-
-    pregunta_usuario = st.chat_input("Transmita mensaje por radio al ingeniero de boxes...", key="chat_input_radio_ai")
-    
-    # Evaluar si se presionó un botón de acceso rápido
-    if st.session_state["radio_msg"]:
-        pregunta_usuario = st.session_state["radio_msg"]
-        st.session_state["radio_msg"] = "" # Limpiar estado
-
-    if pregunta_usuario:
-        with st.chat_message("user", avatar="👤"):
-            st.write(pregunta_usuario)
-        with st.chat_message("assistant", avatar="🤖"):
-            p = pregunta_usuario.lower()
-            if any(x in p for x in ["undercut", "parar", "boxes", "estrategia"]):
-                respuesta = f"[RADIO 📡] Analizando ventana táctica. Con un delta de {d_pit}s en pit-lane y {v_ventaja} vueltas óptimas con neumático fresco, recomendamos buscar el undercut inmediato en la vuelta {v_parada}."
-            elif any(x in p for x in ["puntos", "promedio", "rendimiento"]):
-                respuesta = f"[RADIO 📡] Telemetría confirmada: {n_activo} registra un promedio de {p_puntos} puntos por Gran Premio en 2024."
-            elif any(x in p for x in ["podio", "podios", "victorias"]):
-                respuesta = f"[RADIO 📡] Análisis histórico de temporada: El equipo acumula {pods} podios oficiales ({efec}% de conversión)."
-            elif any(x in p for x in ["neumático", "goma", "desgaste", "clima"]):
-                respuesta = f"[RADIO 📡] Reporte de gomas recibido. El Grip Index actual es de {grip}. Mantendremos la ventana de temperatura óptima."
-            else:
-                respuesta = f"[RADIO 📡] Mensaje recibido fuerte y claro desde el muro de boxes de {n_activo}. El monoplaza opera al {efec}% de efectividad óptima."
-            st.write(respuesta)
-            
-    st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("""
-    <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
-    <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
-        <strong>Forza F1 World Elite Supreme - Edición Temporada 2024 V24.6 (FastF1 Telemetry Redesign Pro)</strong><br>
-        Plataforma Suprema con FastF1 Multi-Channel Telemetry, Pit-Stop Gantt, Cost Cap War Room, Fantasy Optimizer, Radio IA & Live Data Editor<br>
-        Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
-    </div>
-""", unsafe_allow_html=True)
-
-with tab6:
-    st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🏆 Simulador de Proyección del Campeonato de Constructores</div>", unsafe_allow_html=True)
-    st.write("Simula los puntos de un fin de semana de Gran Premio para cualquier escudería y proyecta al instante cómo se reestructura la tabla oficial del Mundial de Constructores.")
+    st.markdown("<div class='section-header'>🏆 Simulador Avanzado de Proyección del Mundial de Constructores</div>", unsafe_allow_html=True)
+    st.write("Simula los puntos de un fin de semana de Gran Premio para cualquier escudería, aplicando automáticamente los colores oficiales de los equipos en la gráfica.")
     
     if "df_constructores_state" not in st.session_state:
         st.session_state["df_constructores_state"] = pd.DataFrame([
@@ -2022,6 +1943,19 @@ with tab6:
             {"Escudería": "Kick Sauber", "Puntos": 4}
         ])
         
+    TEAM_COLORS_2024 = {
+        "McLaren": "#FF8000",
+        "Ferrari": "#E8002D",
+        "Red Bull Racing": "#3671C6",
+        "Mercedes": "#27F4D2",
+        "Aston Martin": "#229971",
+        "Alpine": "#0093CC",
+        "Haas": "#B6BABD",
+        "RB": "#6692FF",
+        "Williams": "#64C4FF",
+        "Kick Sauber": "#52E252"
+    }
+        
     col_sim_ctrl, col_sim_res = st.columns([1, 1.2])
     
     with col_sim_ctrl:
@@ -2031,13 +1965,13 @@ with tab6:
         constructor_seleccionado = st.selectbox(
             "Selecciona Escudería a Simular:",
             st.session_state["df_constructores_state"]["Escudería"].tolist(),
-            key="select_constructor_sim_tab6"
+            key="select_constructor_sim_tab10"
         )
         
         modo_simulacion = st.radio(
             "Tipo de Fin de Semana:",
             ["Fin de Semana Perfecto (Doblete 1º+2º + VR = 44 pts)", "Personalizado (Puntos manuales)", "Fin de Semana Desastroso (0 pts)"],
-            key="radio_modo_sim_tab6"
+            key="radio_modo_sim_tab10"
         )
         
         puntos_a_sumar = 0
@@ -2046,16 +1980,16 @@ with tab6:
         elif "Desastroso" in modo_simulacion:
             puntos_a_sumar = 0
         else:
-            puntos_a_sumar = st.slider("Selecciona puntos obtenidos en el GP:", 0, 45, 18, key="slider_pts_manual_tab6")
+            puntos_a_sumar = st.slider("Selecciona puntos obtenidos en el GP:", 0, 45, 18, key="slider_pts_manual_tab10")
             
-        if st.button("🚀 Aplicar Simulación al Mundial", use_container_width=True, key="btn_simular_constructores_tab6"):
+        if st.button("🚀 Aplicar Simulación al Mundial", use_container_width=True, key="btn_simular_constructores_tab10"):
             idx = st.session_state["df_constructores_state"][st.session_state["df_constructores_state"]["Escudería"] == constructor_seleccionado].index
             if not idx.empty:
                 pts_actuales = st.session_state["df_constructores_state"].loc[idx[0], "Puntos"]
                 st.session_state["df_constructores_state"].loc[idx[0], "Puntos"] = pts_actuales + puntos_a_sumar
             st.success(f"¡Se han sumado {puntos_a_sumar} puntos a {constructor_seleccionado}!")
             
-        if st.button("🔄 Reiniciar Puntos Originales", use_container_width=True, key="btn_reset_constructores_tab6"):
+        if st.button("🔄 Reiniciar Puntos Originales", use_container_width=True, key="btn_reset_constructores_tab10"):
             st.session_state["df_constructores_state"] = pd.DataFrame([
                 {"Escudería": "McLaren", "Puntos": 666},
                 {"Escudería": "Ferrari", "Puntos": 552},
@@ -2073,12 +2007,12 @@ with tab6:
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_sim_res:
-        st.write("📊 **Gráfica Dinámica del Mundial de Constructores:**")
+        st.write("📊 **Gráfica Dinámica con Colores Oficiales:**")
         df_cons_actual = st.session_state["df_constructores_state"].sort_values(by="Puntos", ascending=True).reset_index(drop=True)
         
         fig_cons = px.bar(
             df_cons_actual, x="Puntos", y="Escudería", orientation="h",
-            color="Puntos", color_continuous_scale="Blues", template="plotly_dark",
+            color="Escudería", color_discrete_map=TEAM_COLORS_2024, template="plotly_dark",
             title="Proyección en Vivo - Campeonato de Constructores"
         )
         fig_cons.update_layout(
@@ -2087,10 +2021,9 @@ with tab6:
             margin=dict(t=30, b=10, l=10, r=10),
             yaxis={'categoryorder':'total ascending'}
         )
-        st.plotly_chart(fig_cons, use_container_width=True, key="chart_constructores_sim_tab6")
+        st.plotly_chart(fig_cons, use_container_width=True, key="chart_constructores_sim_tab10")
         
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 
 
