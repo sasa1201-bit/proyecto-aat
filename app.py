@@ -962,12 +962,11 @@ with tab5:
     st.markdown("<b style='color: #FFFFFF; font-size: 0.95rem;'>📈 Simulación de Evolución de Agarre en el Stint (Primeras 30 Vueltas):</b>", unsafe_allow_html=True)
     
     vueltas_sim = list(range(1, 31))
-    # Simular evolución del grip (mejora al principio por depósito de goma, luego decae por desgaste)
     grip_evolucion = [round(min(100, max(20, (indice_agarre * 100) + (v * 0.4) if v <= 8 else (indice_agarre * 100) + 3.2 - ((v - 8) * (desgaste_por_vuelta * 0.15)))), 1) for v in vueltas_sim]
     
     df_evolucion = pd.DataFrame({
         "Vuelta": vueltas_sim,
-        _("Índice de Agarre Proyectado (%)"): grip_evolucion
+        "Índice de Agarre Proyectado (%)": grip_evolucion
     })
 
     fig_evo = px.line(
