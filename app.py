@@ -1130,7 +1130,7 @@ with tab8:
     # Panel de métricas clave (KPIs estilo telemetría)
     m1, m2, m3 = st.columns(3)
     with m1:
-        st.metric(label="Ventana de Undercut Óptima", value=f"{vueltas_ventaja_necesarias} vueltas", delta="Necesarias post-pit", delta_color="normal")
+        st.metric(label="Ventana de Undercut Óptima", value=f"{vueltas_ventaja_necesarias} vueltas", delta="Margen estratégico", delta_color="normal")
     with m2:
         st.metric(label="Costo de Parada", value=f"{delta_pit}s", delta="Pérdida neta pit-lane", delta_color="inverse")
     with m3:
@@ -1203,6 +1203,17 @@ with tab8:
 
     fig_gantt.update_yaxes(categoryorder="array", categoryarray=pilotos_activos, autorange="reversed")
     
+    # Línea vertical interactiva para marcar la vuelta de parada elegida por el usuario
+    fig_gantt.add_vline(
+        x=vuelta_parada_usuario, 
+        line_dash="dash", 
+        line_color="#FF1801", 
+        line_width=2,
+        annotation_text=f"Tu Parada (V.{vuelta_parada_usuario})", 
+        annotation_position="top right",
+        annotation_font_color="#FF1801"
+    )
+    
     fig_gantt.update_layout(
         title=f"Estrategia de Stints en Carrera — Modo: {filtro_vista}",
         xaxis_title="Vueltas de Carrera",
@@ -1219,14 +1230,16 @@ with tab8:
 
     st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_v2_{vuelta_parada_usuario}_{delta_pit}_{filtro_vista}")
     
-    st.markdown("""
-        <div style='font-size: 0.85rem; color: #94A3B8; margin-top: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px;'>
-            <b>💡 Nota de Ingeniería:</b> El cambio de color en cada barra representa la vuelta exacta de entrada a boxes. 
-            Utiliza el selector superior para aislar grupos de pilotos y analizar rivales directos en pista.
+    # Alerta dinámica basada en la estrategia de undercut
+    st.markdown(f"""
+        <div style='background: rgba(255,24,1,0.04); padding: 14px 18px; border-radius: 10px; border: 1px solid rgba(255,24,1,0.25); margin-top: 15px;'>
+            <span style='color: #FFFFFF; font-size: 0.9rem;'>
+                🏁 <b>Análisis Táctico de Undercut:</b> Entrar en la <b>vuelta {vuelta_parada_usuario}</b> requiere un margen operacional de <b>{vueltas_ventaja_necesarias} vueltas</b> de aire limpio para neutralizar la pérdida de <b>{delta_pit}s</b> en el pit-lane.
+            </span>
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("</div>", unsafe_allow_html=True) 
+    st.markdown("</div>", unsafe_allow_html=True)
 with tab9:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>💵 Fantasy F1 Auto-Optimizer (Algoritmo de Alineación Suprema)</div>", unsafe_allow_html=True)
