@@ -18,6 +18,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+st.sidebar.markdown("### 🎵 Tema Oficial F1")
+st.sidebar.markdown("""
+    <audio controls autoplay loop style="width: 100%;">
+        <source src="https://www.myinstants.com/media/sounds/f1-theme-song.mp3" type="audio/mp3">
+        Tu navegador no soporta el audio.
+    </audio>
+""", unsafe_allow_html=True)
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
