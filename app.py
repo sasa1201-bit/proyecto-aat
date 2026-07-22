@@ -456,20 +456,25 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CALENDARIO OFICIAL CON SOPORTE REAL DE GPs (AZUL) Y SPRINTS (MORADO) ---
+    # --- CALENDARIO OFICIAL ALINEADO Y PAREJO CON ESTADÍSTICAS EXTRA ---
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (GP en Azul y Sprints en Morado)</div>", unsafe_allow_html=True)
     st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en azul y los fines de semana Sprint en color morado.")
     
-    col_cal_info1, col_cal_info2, col_cal_info3 = st.columns([1.5, 1, 1])
-    with col_cal_info1:
-        st.markdown("<span style='background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;'>🏆 Temporada 2024: 24 GPs & 6 Sprints</span>", unsafe_allow_html=True)
-    with col_cal_info2:
-        st.markdown("<span style='color: #38BDF8; font-size: 0.8rem; font-weight: 600; float: right;'>🔵 Días de Gran Premio</span>", unsafe_allow_html=True)
-    with col_cal_info3:
-        st.markdown("<span style='color: #A855F7; font-size: 0.8rem; font-weight: 600; float: right;'>🟣 Días de Sprint</span>", unsafe_allow_html=True)
-    
-    st.write("")
+    # Mini panel de estadísticas extra para complementar
+    st.markdown("""
+        <div style='display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;'>
+            <div style='background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10B981; padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #10B981;'>
+                🏆 24 Grandes Premios Totales
+            </div>
+            <div style='background: rgba(168, 85, 247, 0.15); border-left: 4px solid #A855F7; padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #A855F7;'>
+                🟣 6 Fines de Semana Sprint
+            </div>
+            <div style='background: rgba(56, 189, 248, 0.15); border-left: 4px solid #38BDF8; padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #38BDF8; margin-left: auto;'>
+                🔵 Días GP | 🟣 Días Sprint
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
     
     import calendar
     from datetime import date
@@ -495,7 +500,8 @@ with tab1:
     cols = st.columns(3)
     for i, mes in enumerate(range(1, 13), 1):
         with cols[(i - 1) % 3]:
-            st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 10px; border-radius: 8px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+            # Altura fija uniforme (height: 270px) para que todas las tarjetas queden perfectamente parejas verticalmente
+            st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 15px; height: 270px; display: flex; flex-direction: column; justify-content: space-between;'>", unsafe_allow_html=True)
             st.markdown(f"<p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[i-1]} 2024</p>", unsafe_allow_html=True)
             
             cal_mat = calendar.monthcalendar(2024, mes)
@@ -608,7 +614,6 @@ with tab1:
         df_mapa = pd.DataFrame({'lat': [lat_activa], 'lon': [lon_activa]})
         st.map(df_mapa, zoom=9, height=270)
         st.markdown("</div>", unsafe_allow_html=True)
-
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
