@@ -919,10 +919,10 @@ with tab5:
     
 with tab6:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>💵 Cost Cap War Room & Gestor Financiero FIA</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>💵 Cost Cap War Room & Gestor Financiero FIA (Edición Élite)</div>", unsafe_allow_html=True)
     st.write(
-        "Centro de control financiero de la escudería. Administra los topes presupuestarios de la FIA, "
-        "simula paquetes de evolución aerodinámica y controla el riesgo de sanciones reglamentarias."
+        "Centro de control financiero avanzado. Administra el tope presupuestario personalizado, "
+        "controla daños por accidentes imprevistos y evalúa las restricciones de túnel de viento (Regla ATR)."
     )
 
     # --- INICIALIZAR ESTADOS DE SESIÓN PARA LOS PRESETS ---
@@ -936,6 +936,8 @@ with tab6:
         st.session_state["cc_chasis"] = 25.0
     if "cc_ops" not in st.session_state:
         st.session_state["cc_ops"] = 18.0
+    if "cc_crash" not in st.session_state:
+        st.session_state["cc_crash"] = 4.0
 
     # --- PRESETS FINANCIEROS RÁPIDOS (FUNCIONALES) ---
     st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Estrategias Financieras Rápidas (Presets):</b>", unsafe_allow_html=True)
@@ -947,6 +949,7 @@ with tab6:
             st.session_state["cc_motor"] = 42.0
             st.session_state["cc_chasis"] = 32.0
             st.session_state["cc_ops"] = 22.0
+            st.session_state["cc_crash"] = 6.5
             st.rerun()
             
     with col_p2:
@@ -955,6 +958,7 @@ with tab6:
             st.session_state["cc_motor"] = 35.0
             st.session_state["cc_chasis"] = 25.0
             st.session_state["cc_ops"] = 18.0
+            st.session_state["cc_crash"] = 4.0
             st.rerun()
             
     with col_p3:
@@ -963,6 +967,7 @@ with tab6:
             st.session_state["cc_motor"] = 25.0
             st.session_state["cc_chasis"] = 18.0
             st.session_state["cc_ops"] = 12.0
+            st.session_state["cc_crash"] = 2.0
             st.rerun()
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
@@ -970,17 +975,19 @@ with tab6:
     # --- CONTROLES Y SLIDERS VINCULADOS A SESSION STATE ---
     col_cc1, col_cc2 = st.columns(2)
     with col_cc1:
-        presupuesto_base = st.number_input("Límite Base FIA ($M):", min_value=100.0, max_value=150.0, value=st.session_state["cc_base"], step=0.5, key="input_cc_base")
-        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel ($M):", min_value=20.0, max_value=70.0, value=st.session_state["cc_aero"], step=0.5, key="slider_cc_aero")
-        gasto_motor = st.slider("Unidad de Potencia e Integración ($M):", min_value=15.0, max_value=50.0, value=st.session_state["cc_motor"], step=0.5, key="slider_cc_motor")
+        presupuesto_base = st.number_input("Límite Personalizado / Base ($M):", min_value=50.0, max_value=300.0, value=st.session_state["cc_base"], step=0.5, key="input_cc_base")
+        gasto_aero = st.slider("Desarrollo Aerodinámico y Túnel ($M):", min_value=10.0, max_value=150.0, value=st.session_state["cc_aero"], step=0.5, key="slider_cc_aero")
+        gasto_motor = st.slider("Unidad de Potencia e Integración ($M):", min_value=10.0, max_value=150.0, value=st.session_state["cc_motor"], step=0.5, key="slider_cc_motor")
+        gasto_crash = st.slider("Impacto por Accidentes y Daños (Crash Damage) ($M):", min_value=0.0, max_value=25.0, value=st.session_state["cc_crash"], step=0.5, key="slider_cc_crash")
         
         st.session_state["cc_base"] = presupuesto_base
         st.session_state["cc_aero"] = gasto_aero
         st.session_state["cc_motor"] = gasto_motor
+        st.session_state["cc_crash"] = gasto_crash
 
     with col_cc2:
-        gasto_chasis = st.slider("Chasis, Manufactura y Peso ($M):", min_value=10.0, max_value=40.0, value=st.session_state["cc_chasis"], step=0.5, key="slider_cc_chasis")
-        gasto_operaciones = st.slider("Logística y Operaciones ($M):", min_value=10.0, max_value=30.0, value=st.session_state["cc_ops"], step=0.5, key="slider_cc_ops")
+        gasto_chasis = st.slider("Chasis, Manufactura y Peso ($M):", min_value=10.0, max_value=150.0, value=st.session_state["cc_chasis"], step=0.5, key="slider_cc_chasis")
+        gasto_operaciones = st.slider("Logística y Operaciones ($M):", min_value=5.0, max_value=100.0, value=st.session_state["cc_ops"], step=0.5, key="slider_cc_ops")
         
         st.session_state["cc_chasis"] = gasto_chasis
         st.session_state["cc_ops"] = gasto_operaciones
@@ -1004,71 +1011,73 @@ with tab6:
             key="cc_upgrades_pro"
         )
 
-    # --- CÁLCULOS FINANCIEROS Y DE RENDIMIENTO ---
+    # --- CÁLCULOS FINANCIEROS Y RESTRICCIÓN ATR (TÚNEL DE VIENTO) ---
     costo_upgrades_val = sum(upgrades_disponibles[p]["costo"] for p in paquetes_seleccionados)
     ganancia_tiempo_total = round(sum(upgrades_disponibles[p]["ganancia"] for p in paquetes_seleccionados), 2)
-    gasto_total = round(gasto_aero + gasto_motor + gasto_chasis + gasto_operaciones + costo_upgrades_val, 2)
+    gasto_total = round(gasto_aero + gasto_motor + gasto_chasis + gasto_operaciones + gasto_crash + costo_upgrades_val, 2)
     remanente = round(presupuesto_base - gasto_total, 2)
+
+    # Cálculo dinámico de horas/porcentaje de túnel de viento (Regla ATR)
+    factor_atr = max(60, round(100 - (len(paquetes_seleccionados) * 3) - (max(0, gasto_aero - 50) * 0.4)))
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 20px 0;'>", unsafe_allow_html=True)
 
-    # --- KPIS FINANCIEROS (4 COLUMNAS) ---
+    # --- KPIS FINANCIEROS Y TÉCNICOS (4 COLUMNAS) ---
     kpi_f1, kpi_f2, kpi_f3, kpi_f4 = st.columns(4)
     with kpi_f1:
-        st.metric(label="Presupuesto Autorizado", value=f"${presupuesto_base}M", delta="Límite FIA")
+        st.metric(label="Presupuesto Autorizado", value=f"${presupuesto_base}M", delta="Límite Personalizado")
     with kpi_f2:
-        st.metric(label="Gasto Acumulado", value=f"${gasto_total}M", delta="Total operativo")
+        st.metric(label="Gasto Acumulado", value=f"${gasto_total}M", delta="Incluye Accidentes")
     with kpi_f3:
         st.metric(label="Remanente en Caja", value=f"${remanente}M", delta="Margen financiero", delta_color="normal" if remanente >= 0 else "inverse")
     with kpi_f4:
-        st.metric(label="Ganancia en Ritmo", value=f"-{ganancia_tiempo_total}s", delta="Mejora por vuelta")
+        st.metric(label="Asignación Túnel (ATR)", value=f"{factor_atr}%", delta="Horas legales FIA")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- AUDITORÍA Y GRÁFICA CIRCULAR / DONUT LIMPIA Y ESPACIADA ---
+    # --- AUDITORÍA Y GRÁFICA CIRCULAR / DONUT LIMPIA ---
     col_res_cc, col_graf_cc = st.columns([1, 1.4])
 
     with col_res_cc:
         if remanente >= 0:
-            cumplimiento = "✅ CUMPLE REGLAMENTO FINANCIERO FIA"
+            cumplimiento = "✅ DENTRO DEL LÍMITE PRESUPUESTARIO"
             color_estado = "#10B981"
-            detalle_sancion = "Operación financiera limpia. Sin riesgo de sanciones reglamentarias ni pérdida de túnel de viento."
+            detalle_sancion = f"Operación financiera limpia. Restricción aerodinámica FIA aplicada al {factor_atr}% de capacidad base."
         elif remanente >= -7.0:
-            cumplimiento = "⚠️ INFRACCIÓN MENOR DE GASTO (<5%)"
+            cumplimiento = "⚠️ SOBREPASO MENOR (<$7M)"
             color_estado = "#F59E0B"
-            detalle_sancion = "Infracción procesal o de costo menor. Riesgo de multa económica o reprimenda deportiva."
+            detalle_sancion = "Déficit presupuestario leve por reparaciones o evolución. Riesgo moderado de auditoría."
         else:
-            cumplimiento = "❌ INFRACCIÓN MATERIAL GRAVE (>5%)"
+            cumplimiento = "❌ DÉFICIT FINANCIERO SEVERO"
             color_estado = "#FF1801"
-            detalle_sancion = "Sanción severa: Deducción drástica de puntos en el Mundial y reducción del 20% en tiempo de túnel de viento."
+            detalle_sancion = "Exceso crítico de gastos sobre el límite establecido. Sanción deportiva inminente."
 
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.9)); padding: 22px; border-radius: 14px; border: 1px solid {color_estado}; box-shadow: 0 4px 20px rgba(0,0,0,0.4);'>
                 <div style='display: flex; align-items: center; margin-bottom: 10px;'>
                     <span style='font-size: 1.2rem; margin-right: 8px;'>📋</span>
-                    <h4 style='color: {color_estado}; margin:0;'>Auditoría Financiera Oficial</h4>
+                    <h4 style='color: {color_estado}; margin:0;'>Auditoría Financiera & ATR</h4>
                 </div>
-                <p style='margin: 6px 0; color: #E2E8F0;'><strong>Estado FIA:</strong> <span style='color: {color_estado}; font-weight: bold;'>{cumplimiento}</span></p>
+                <p style='margin: 6px 0; color: #E2E8F0;'><strong>Estado del Límite:</strong> <span style='color: {color_estado}; font-weight: bold;'>{cumplimiento}</span></p>
                 <p style='margin: 6px 0; color: #94A3B8; font-size: 0.9rem;'>{detalle_sancion}</p>
                 <hr style='border: 1px solid rgba(255,255,255,0.1); margin: 14px 0;'>
                 <div style='background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;'>
-                    <span style='color: #38BDF8; font-weight: bold; display: block; margin-bottom: 4px;'>💡 Consejo del Director Financiero:</span>
-                    <small style='color: #CBD5E1;'>Optimiza los paquetes de mejoras aerodinámicas para no comprometer el desarrollo del monoplaza en la segunda mitad de la temporada.</small>
+                    <span style='color: #38BDF8; font-weight: bold; display: block; margin-bottom: 4px;'>💡 Factor de Impacto en Pista:</span>
+                    <small style='color: #CBD5E1;'>Mejora neta acumulada de ritmo: <b>-{ganancia_tiempo_total}s/vuelta</b> frente al coste de <b>${gasto_crash}M</b> en daños por accidentes.</small>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
     with col_graf_cc:
         df_costos = pd.DataFrame({
-            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones", "Mejoras"],
-            "Costo ($M)": [gasto_aero, gasto_motor, gasto_chasis, gasto_operaciones, costo_upgrades_val]
+            "Rubro": ["Aerodinámica", "Unidad de Potencia", "Chasis", "Operaciones", "Accidentes", "Mejoras"],
+            "Costo ($M)": [gasto_aero, gasto_motor, gasto_chasis, gasto_operaciones, gasto_crash, costo_upgrades_val]
         })
         
-        # Gráfica de Donut con diseño limpio, holgado y sin amontonarse
         fig_donut = px.pie(
             df_costos, names="Rubro", values="Costo ($M)", hole=0.65,
-            title="<b>Distribución del Cost Cap</b>",
-            color_discrete_sequence=["#FF1801", "#38BDF8", "#F59E0B", "#10B981", "#8B5CF6"],
+            title="<b>Distribución Global del Presupuesto</b>",
+            color_discrete_sequence=["#FF1801", "#38BDF8", "#F59E0B", "#10B981", "#EF4444", "#8B5CF6"],
             template="plotly_dark"
         )
         fig_donut.update_traces(
@@ -1087,10 +1096,10 @@ with tab6:
                 y=-0.12, 
                 xanchor="center", 
                 x=0.5,
-                font=dict(size=11)
+                font=dict(size=10)
             )
         )
-        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut_clean_v2")
+        st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut_elite")
 
     st.markdown("</div>", unsafe_allow_html=True)
     
