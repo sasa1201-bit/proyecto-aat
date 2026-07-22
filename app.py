@@ -1003,6 +1003,7 @@ with tab6:
         st.plotly_chart(fig_donut, use_container_width=True, key="chart_cost_cap_donut")
 
     st.markdown("</div>", unsafe_allow_html=True)
+    
 with tab7:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🚦 Simulador de Luces de Salida & Tiempo de Reacción F1</div>", unsafe_allow_html=True)
@@ -1108,83 +1109,104 @@ with tab7:
     
 with tab8:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🛑 Diagrama de Estrategia de Paradas (Pit-Stop Stint Manager Gantt)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🛑 Centro de Estrategia Táctica: Simulador de Stints & Undercut</div>", unsafe_allow_html=True)
     st.write(
-        "Simulador interactivo de stints y gestión de neumáticos. Modifica los parámetros operativos "
-        "para evaluar el impacto del *undercut* frente al resto de la parrilla."
+        "Simulador avanzado de muro de boxes (*Pit-Wall*). Analiza en tiempo real las ventanas de undercut, "
+        "el desgaste de compuestos Pirelli y proyecta tu posición en pista frente a la parrilla."
     )
 
-    # Controles de simulación organizados en 4 columnas
-    col_uc1, col_uc2, col_uc3, col_uc4 = st.columns(4)
-    with col_uc1:
-        delta_pit = st.slider("Pérdida en Pit-Lane (s):", min_value=18.0, max_value=28.0, value=21.8, step=0.1, key="slider_delta_pit")
-    with col_uc2:
-        delta_goma_fresca = st.slider("Ganancia Goma Fresca (s/v):", min_value=0.5, max_value=2.5, value=1.4, step=0.1, key="slider_delta_goma")
-    with col_uc3:
-        vuelta_parada_usuario = st.slider("Tu Vuelta de Parada:", min_value=10, max_value=35, value=22, step=1, key="slider_vuelta_parada")
-    with col_uc4:
-        filtro_vista = st.selectbox("Filtrar Pilotos:", ["Toda la Parrilla (20)", "Top 10 / Puntos", "Equipos Punta"], key="slider_filtro_vista")
+    # --- PANEL DE CONTROL AVANZADO (Organizado jerárquicamente) ---
+    col_c1, col_c2, col_c3 = st.columns(3)
+    with col_c1:
+        delta_pit = st.slider("Pérdida neta en Pit-Lane (s):", min_value=18.0, max_value=28.0, value=21.8, step=0.1, key="opt_delta_pit")
+    with col_c2:
+        delta_goma_fresca = st.slider("Ventaja Goma Fresca (s/v):", min_value=0.5, max_value=2.5, value=1.4, step=0.1, key="opt_delta_goma")
+    with col_c3:
+        vuelta_parada_usuario = st.slider("Vuelta Objetivo de Parada:", min_value=10, max_value=45, value=22, step=1, key="opt_vuelta_parada")
 
-    # Cálculo de la ventana de Undercut
+    col_f1, col_f2 = st.columns([2, 1])
+    with col_f1:
+        filtro_vista = st.selectbox(
+            "Filtrar Agrupación de Monoplazas:", 
+            ["Toda la Parrilla (20 Monoplazas)", "Top 10 / Zona de Puntos", "Equipos de Punta (Top Teams)"], 
+            key="opt_filtro_vista"
+        )
+    with col_f2:
+        compuesto_inicial = st.selectbox("Tu Compuesto Inicial (Stint 1):", ["Medium (C3)", "Soft (C5)", "Hard (C1)"], key="opt_c_init")
+
+    # --- CÁLCULOS MATEMÁTICOS DE ESTRATEGIA ---
     vueltas_ventaja_necesarias = round(delta_pit / delta_goma_fresca, 1)
 
-    # Panel de métricas clave (KPIs estilo telemetría)
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.metric(label="Ventana de Undercut Óptima", value=f"{vueltas_ventaja_necesarias} vueltas", delta="Margen estratégico", delta_color="normal")
-    with m2:
-        st.metric(label="Costo de Parada", value=f"{delta_pit}s", delta="Pérdida neta pit-lane", delta_color="inverse")
-    with m3:
-        st.metric(label="Estrategia Tu Monoplaza", value=f"Vuelta {vuelta_parada_usuario}", delta="Objetivo fijado")
+    # --- MÉTRICAS / KPIS DE TELEMETRÍA (4 columnas estilo cockpit) ---
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    with kpi1:
+        st.metric(label="Ventana de Undercut", value=f"{vueltas_ventaja_necesarias} vls", delta="Margen crítico", delta_color="normal")
+    with kpi2:
+        st.metric(label="Costo en Pit-Lane", value=f"{delta_pit}s", delta="Pérdida estática", delta_color="inverse")
+    with kpi3:
+        st.metric(label="Estrategia Asignada", value=f"Vuelta {vuelta_parada_usuario}", delta="Box Target")
+    with kpi4:
+        st.metric(label="Salida con Goma", value=compuesto_inicial.split()[0], delta="Stint 1 Asignado")
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
-    # Filtrar lista de pilotos según el selector
-    if filtro_vista == "Top 10 / Puntos":
-        pilotos_activos = TODOS_OS_PILOTOS_2024[:10]
-    elif filtro_vista == "Equipos Punta":
-        pilotos_activos = [p for p in TODOS_OS_PILOTOS_2024 if any(eq in p for eq in ["Verstappen", "Pérez", "Leclerc", "Sainz", "Norris", "Piastri", "Hamilton", "Russell"])]
-    else:
-        pilotos_activos = TODOS_OS_PILOTOS_2024
+    # --- FILTRADO DE PILOTOS ---
+    pilotos_base = globals().get('TODOS_OS_PILOTOS_2024', [
+        "Max Verstappen", "Sergio Pérez", "Charles Leclerc", "Carlos Sainz",
+        "Lando Norris", "Oscar Piastri", "Lewis Hamilton", "George Russell",
+        "Fernando Alonso", "Lance Stroll", "Yuki Tsunoda", "Daniel Ricciardo",
+        "Alexander Albon", "Logan Sargeant", "Valtteri Bottas", "Guanyu Zhou",
+        "Esteban Ocon", "Pierre Gasly", "Kevin Magnussen", "Nico Hülkenberg"
+    ])
 
-    # Generación de datos de stints para los pilotos activos
+    if "Top 10" in filtro_vista:
+        pilotos_activos = pilotos_base[:10]
+    elif "Punta" in filtro_vista:
+        pilotos_activos = [p for p in pilotos_base if any(eq in p for eq in ["Verstappen", "Pérez", "Leclerc", "Sainz", "Norris", "Piastri", "Hamilton", "Russell"])]
+    else:
+        pilotos_activos = pilotos_base
+
+    # Incorporamos al usuario simulado en la parte superior de la lista
+    pilotos_con_usuario = ["🏎️ TU MONOPLAZA"] + pilotos_activos
+
+    # --- GENERACIÓN DE DATOS DE STINTS (GANTT) ---
     gantt_data = []
     total_vueltas_carrera = 55
 
-    for i, piloto in enumerate(pilotos_activos):
-        if "Verstappen" in piloto or "Pérez" in piloto:
-            c1, c2 = "Medium (C3)", "Hard (C1)"
+    for i, piloto in enumerate(pilotos_con_usuario):
+        if piloto == "🏎️ TU MONOPLAZA":
+            c1 = compuesto_inicial
+            c2 = "Hard (C1)" if "Soft" in compuesto_inicial or "Medium" in compuesto_inicial else "Medium (C3)"
             p_split = vuelta_parada_usuario
+        elif "Verstappen" in piloto or "Pérez" in piloto:
+            c1, c2 = "Medium (C3)", "Hard (C1)"
+            p_split = vuelta_parada_usuario + (1 if i % 2 == 0 else -1)
         elif "Leclerc" in piloto or "Sainz" in piloto:
             c1, c2 = "Soft (C5)", "Hard (C1)"
-            p_split = max(5, vuelta_parada_usuario - 3)
+            p_split = max(5, vuelta_parada_usuario - 2)
         elif "Norris" in piloto or "Piastri" in piloto:
             c1, c2 = "Medium (C3)", "Hard (C1)"
-            p_split = vuelta_parada_usuario + 2
-        elif "Hamilton" in piloto or "Russell" in piloto:
-            c1, c2 = "Soft (C5)", "Medium (C3)"
-            p_split = max(5, vuelta_parada_usuario - 2)
-        elif "Alonso" in piloto or "Stroll" in piloto:
-            c1, c2 = "Hard (C1)", "Medium (C3)"
-            p_split = vuelta_parada_usuario + 4
+            p_split = vuelta_parada_usuario + 1
         else:
             c1, c2 = ("Medium (C3)", "Hard (C1)") if i % 2 == 0 else ("Soft (C5)", "Medium (C3)")
-            p_split = max(8, min(45, vuelta_parada_usuario + (i % 5 - 2)))
+            p_split = max(8, min(48, vuelta_parada_usuario + (i % 4 - 2)))
 
-        p_split = min(p_split, total_vueltas_carrera - 5)
+        p_split = min(max(5, p_split), total_vueltas_carrera - 5)
 
+        # Stint 1
         gantt_data.append({
             "Driver": piloto, "Compound": c1, "Start": 1, "Finish": p_split, 
             "Duration": p_split - 1, "Stint": "Stint 1 (Salida)"
         })
+        # Stint 2
         gantt_data.append({
             "Driver": piloto, "Compound": c2, "Start": p_split, "Finish": total_vueltas_carrera, 
-            "Duration": total_vueltas_carrera - p_split, "Stint": "Stint 2 (Post-Pit)"
+            "Duration": total_vueltas_carrera - p_split, "Stint": "Stint 2 (Post-Box)"
         })
 
     df_gantt = pd.DataFrame(gantt_data)
 
-    # Creación del gráfico Plotly integrado al template oscuro de la app
+    # --- CONSTRUCCIÓN DEL GRÁFICO PLOTLY DE ALTO RENDIMIENTO ---
     fig_gantt = px.bar(
         df_gantt, 
         x="Duration", 
@@ -1192,55 +1214,87 @@ with tab8:
         base="Start", 
         orientation="h", 
         color="Compound",
-        hover_data=["Stint", "Start", "Finish"],
+        hover_name="Driver",
+        hover_data={"Stint": True, "Start": True, "Finish": True, "Duration": True, "Driver": False},
         color_discrete_map={
-            "Soft (C5)": "#EF4444",   # Rojo sintonizado
-            "Medium (C3)": "#F59E0B", # Amarillo ámbar
-            "Hard (C1)": "#38BDF8"    # Azul celeste
+            "Soft (C5)": "#EF4444",   # Rojo Pirelli (Agresivo)
+            "Medium (C3)": "#F59E0B", # Ámbar (Equilibrado)
+            "Hard (C1)": "#38BDF8"    # Celeste (Durabilidad)
         },
         template="plotly_dark",
-        category_orders={"Driver": pilotos_activos}
+        category_orders={"Driver": pilotos_con_usuario[::-1]} # Orden natural de arriba a abajo
     )
 
-    fig_gantt.update_yaxes(categoryorder="array", categoryarray=pilotos_activos, autorange="reversed")
-    
-    # Línea vertical interactiva para marcar la vuelta de parada elegida por el usuario
+    fig_gantt.update_yaxes(categoryorder="array", categoryarray=pilotos_con_usuario[::-1])
+
+    # Línea vertical discontinua indicando el momento exacto de tu parada
     fig_gantt.add_vline(
         x=vuelta_parada_usuario, 
-        line_dash="dash", 
+        line_dash="dot", 
         line_color="#FF1801", 
-        line_width=2,
+        line_width=2.5,
         annotation_text=f"Tu Parada (V.{vuelta_parada_usuario})", 
         annotation_position="top right",
-        annotation_font_color="#FF1801"
+        annotation_font=dict(size=12, color="#FF1801", family="sans-serif")
     )
-    
+
     fig_gantt.update_layout(
-        title=f"Estrategia de Stints en Carrera — Modo: {filtro_vista}",
-        xaxis_title="Vueltas de Carrera",
-        yaxis_title="Pilotos",
+        title=dict(
+            text=f"<b>Matriz de Stints y Ventana Táctica</b> — Vista: {filtro_vista.split('(')[0]}",
+            font=dict(size=16, color="#FFFFFF")
+        ),
+        xaxis_title="<b>Vueltas de Gran Premio</b>",
+        yaxis_title=None,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(t=40, b=20, l=10, r=10),
-        height=max(450, len(pilotos_activos) * 32),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        margin=dict(t=50, b=30, l=10, r=10),
+        height=max(500, len(pilotos_con_usuario) * 30),
+        legend=dict(
+            orientation="h", 
+            yanchor="bottom", 
+            y=1.02, 
+            xanchor="right", 
+            x=1,
+            bgcolor='rgba(0,0,0,0.4)',
+            bordercolor='rgba(255,255,255,0.15)',
+            borderwidth=1
+        ),
+        hoverlabel=dict(
+            bgcolor="#0F172A",
+            font_size=13,
+            font_family="sans-serif"
+        )
     )
-    
-    fig_gantt.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.08)')
-    fig_gantt.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.04)')
 
-    st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_v2_{vuelta_parada_usuario}_{delta_pit}_{filtro_vista}")
-    
-    # Tabla interactiva desplegable de respaldo para inspeccionar los stints
-    with st.expander("📊 Ver Tabla de Datos de Stints (Detalle por Piloto)"):
-        st.dataframe(df_gantt, use_container_width=True)
+    fig_gantt.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', dtick=5)
+    fig_gantt.update_yaxes(showgrid=False)
 
-    # Alerta dinámica basada en la estrategia de undercut
+    st.plotly_chart(fig_gantt, use_container_width=True, key=f"chart_gantt_pro_{vuelta_parada_usuario}_{delta_pit}")
+
+    # --- INSPECCIÓN MODULAR DE DATOS ---
+    col_exp1, col_exp2 = st.columns(2)
+    with col_exp1:
+        with st.expander("🔍 Ver Tabla de Datos Crudos (Raw Stints)"):
+            st.dataframe(df_gantt, use_container_width=True, height=220)
+    with col_exp2:
+        with st.expander("📊 Distribución Global de Compuestos"):
+            conteo_compuestos = df_gantt["Compound"].value_counts()
+            st.bar_chart(conteo_compuestos)
+
+    # --- REPORTE TÁCTICO INTELIGENTE ---
+    efectividad_undercut = "ALTA 🟢" if vueltas_ventaja_necesarias <= 3.5 else ("MODERADA 🟡" if vueltas_ventaja_necesarias <= 5.0 else "BAJA 🔴")
+    
     st.markdown(f"""
-        <div style='background: rgba(255,24,1,0.04); padding: 14px 18px; border-radius: 10px; border: 1px solid rgba(255,24,1,0.25); margin-top: 15px;'>
-            <span style='color: #FFFFFF; font-size: 0.9rem;'>
-                🏁 <b>Análisis Táctico de Undercut:</b> Entrar en la <b>vuelta {vuelta_parada_usuario}</b> requiere un margen operacional de <b>{vueltas_ventaja_necesarias} vueltas</b> de aire limpio para neutralizar la pérdida de <b>{delta_pit}s</b> en el pit-lane.
-            </span>
+        <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 18px 22px; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); margin-top: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);'>
+            <div style='display: flex; align-items: center; margin-bottom: 8px;'>
+                <span style='font-size: 1.2rem; margin-right: 8px;'>🎯</span>
+                <b style='color: #38BDF8; font-size: 1.05rem;'>Reporte del Muro de Boxes (Pit-Wall Intelligence):</b>
+            </div>
+            <p style='color: #E2E8F0; font-size: 0.92rem; line-height: 1.5; margin: 0;'>
+                Para la estrategia fijada en la <b>vuelta {vuelta_parada_usuario}</b>, el costo operativo en el pit-lane es de <b>{delta_pit}s</b>. 
+                Con una ganancia de ritmo estimada en <b>{delta_goma_fresca}s por vuelta</b> con goma fresca, la ventana de <b>undercut</b> efectiva es de <b>{vueltas_ventaja_necesarias} vueltas</b> 
+                (Efectividad Táctica: <b>{efectividad_undercut}</b>). Asegúrate de salir a pista con aire limpio para evitar tráfico en el sector medio.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
