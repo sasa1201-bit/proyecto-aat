@@ -2077,7 +2077,7 @@ with tab10:
 
 with tab11:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🏎️✨ Pit Wall Lounge: Tu Ingeniero AI Personal</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🏎️✨ Pit Wall Lounge: Tu Ingeniero AI Personal (Top-Feed & Clear)</div>", unsafe_allow_html=True)
     
     st.markdown("""
         <div style='background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95)); padding: 22px; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.4); margin-bottom: 25px;'>
@@ -2086,7 +2086,7 @@ with tab11:
                 <div>
                     <h3 style='color: #38BDF8; margin: 0 0 6px 0; font-size: 1.25rem; font-weight: 800;'>¡Bienvenido al Muro de Boxes, Piloto!</h3>
                     <p style='color: #94A3B8; font-size: 0.9rem; margin: 0; line-height: 1.5;'>
-                        Aquí tienes la línea directa con tu ingeniero jefe de pista virtual. Ya sea que necesites calcular un undercut, gestionar la batería o relajarte con telemetría en tiempo real, estoy aquí para llevarte al podio con una sonrisa y precisión milimétrica.
+                        Aquí tienes la línea directa con tu ingeniero jefe de pista virtual. Las respuestas aparecen de inmediato en la parte superior para una lectura ejecutiva rápida. ¡Usa el botón de limpiar búsqueda cuando quieras despejar el canal!
                     </p>
                 </div>
             </div>
@@ -2095,8 +2095,17 @@ with tab11:
 
     if "engineer_chat_history" not in st.session_state:
         st.session_state["engineer_chat_history"] = [
-            {"role": "assistant", "content": "¡Hola de nuevo! 🟢 Sistemas de boxes activos y listos. Selecciona cualquiera de las opciones rápidas de abajo o escríbeme lo que necesites para planificar la estrategia perfecta de hoy."}
+            {"role": "assistant", "content": "¡Hola de nuevo! 🟢 Sistemas de boxes activos y listos. Selecciona cualquiera de las opciones rápidas o escríbeme lo que necesites. Las respuestas aparecerán siempre hasta arriba."}
         ]
+
+    # Botón para limpiar búsqueda / historial y evitar que se vea abultado
+    col_ctrl_top, col_clear = st.columns([3, 1])
+    with col_clear:
+        if st.button("🧹 Limpiar Búsqueda", use_container_width=True, key="btn_clear_history_top"):
+            st.session_state["engineer_chat_history"] = [
+                {"role": "assistant", "content": "Canal de radio limpiado. 🟢 Listo para nuevas consultas tácticas desde el muro de boxes."}
+            ]
+            st.rerun()
 
     st.markdown("<p style='font-size: 0.9rem; color: #F8FAFC; font-weight: 700; margin-bottom: 12px;'>⚡ Accesos Rápidos Tácticos:</p>", unsafe_allow_html=True)
     
@@ -2104,33 +2113,33 @@ with tab11:
     quick_prompt = None
     
     with sc_col1:
-        if st.button("🛡️ Defensa / Undercut", use_container_width=True, key="eng_q_1_friendly"):
+        if st.button("🛡️ Defensa / Undercut", use_container_width=True, key="eng_q_1_top_feed"):
             quick_prompt = "Analiza detalladamente la viabilidad de un undercut frente al coche perseguidor, considerando el delta de pit-lane y el tráfico."
     with sc_col2:
-        if st.button("🌧️ Alerta de Lluvia", use_container_width=True, key="eng_q_2_friendly"):
+        if st.button("🌧️ Alerta de Lluvia", use_container_width=True, key="eng_q_2_top_feed"):
             quick_prompt = "Hay previsión de lluvia inminente en el sector 2. ¿Cuál es el plan de transición a neumáticos intermedios y qué curva de temperatura debemos cuidar?"
     with sc_col3:
-        if st.button("🔋 Estado de Batería", use_container_width=True, key="eng_q_3_friendly"):
+        if st.button("🔋 Estado de Batería", use_container_width=True, key="eng_q_3_top_feed"):
             quick_prompt = "Necesito un informe completo sobre el estado de carga de la batería (SOC) y cómo optimizar el despliegue de energía en la recta principal."
     with sc_col4:
-        if st.button("📊 Curva de Gomas", use_container_width=True, key="eng_q_4_friendly"):
+        if st.button("📊 Curva de Gomas", use_container_width=True, key="eng_q_4_top_feed"):
             quick_prompt = "Evalúa la curva de degradación de los neumáticos actuales y proyecta cuántas vueltas nos quedan antes de alcanzar el cliff de rendimiento."
 
     sc_col5, sc_col6, sc_col7, sc_col8 = st.columns(4)
     with sc_col5:
-        if st.button("🏎️ Qualy vs Carrera", use_container_width=True, key="eng_q_5_friendly"):
+        if st.button("🏎️ Qualy vs Carrera", use_container_width=True, key="eng_q_5_top_feed"):
             quick_prompt = "Compara nuestro ritmo actual en tandas largas frente a la simulación de clasificación a una vuelta."
     with sc_col6:
-        if st.button("🛑 Ventana Safety Car", use_container_width=True, key="eng_q_6_friendly"):
+        if st.button("🛑 Ventana Safety Car", use_container_width=True, key="eng_q_6_top_feed"):
             quick_prompt = "Calcula la pérdida de tiempo neta bajo régimen de Safety Car y VSC para una parada en boxes gratuita."
     with sc_col7:
-        if st.button("⚙️ Ajuste de Alerón", use_container_width=True, key="eng_q_7_friendly"):
+        if st.button("⚙️ Ajuste de Alerón", use_container_width=True, key="eng_q_7_top_feed"):
             quick_prompt = "¿Debemos modificar los grados de incidencia del alerón delantero en el próximo pit-stop para corregir el subviraje crónico?"
     with sc_col8:
-        if st.button("📻 Empuje Final", use_container_width=True, key="eng_q_8_friendly"):
+        if st.button("📻 Empuje Final", use_container_width=True, key="eng_q_8_top_feed"):
             quick_prompt = "Dame el reporte de tiempos por sector y las instrucciones de empuje máximo para la fase final de la carrera."
 
-    user_input = st.chat_input("Escribe tu mensaje por radio para el ingeniero...", key="engineer_chat_input_friendly")
+    user_input = st.chat_input("Escribe tu mensaje por radio para el ingeniero...", key="engineer_chat_input_top_feed")
 
     if quick_prompt:
         user_input = quick_prompt
@@ -2202,10 +2211,12 @@ with tab11:
             * <b>Ánimo:</b> Estás rodando con un ritmo fantástico. Mantén la concentración y diviértete conduciendo esta máquina. ¡Estamos contigo!
             """
 
-        st.session_state["engineer_chat_history"].append({"role": "user", "content": user_input})
-        st.session_state["engineer_chat_history"].append({"role": "assistant", "content": ai_response})
+        # Inserción en índice 0 (insert) para que aparezca HASTA ARRIBA inmediatamente
+        st.session_state["engineer_chat_history"].insert(0, {"role": "assistant", "content": ai_response})
+        st.session_state["engineer_chat_history"].insert(0, {"role": "user", "content": user_input})
         st.rerun()
 
+    # Renderizar el historial de chat con las nuevas respuestas en la parte superior
     chat_container = st.container()
     with chat_container:
         st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 20px 0;'>", unsafe_allow_html=True)
@@ -2228,5 +2239,4 @@ st.markdown("""
         Desarrollado con Excelencia Absoluta para el Primer Lugar © 2026
     </div>
 """, unsafe_allow_html=True)
-
     
