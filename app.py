@@ -18,13 +18,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- AUDIO F1 SEGURO SOUNDCLOUD ---
-st.sidebar.markdown("### 🎵 Tema Oficial F1")
-st.sidebar.markdown("""
-    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" 
-    src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/brian-tyler-official/formula-1-theme&color=%23FF1801&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false">
-    </iframe>
-""", unsafe_allow_html=True)
+# --- MÚSICA DE FONDO (SIN COPYRIGHT Y SIN BLOQUEOS) ---
+st.sidebar.markdown("### 🎵 Música de Fondo")
+st.sidebar.video("https://www.youtube.com/watch?v=p7ZsBPK656s")
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
