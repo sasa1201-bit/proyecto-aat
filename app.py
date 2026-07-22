@@ -456,12 +456,11 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CALENDARIO OFICIAL ALINEADO Y PAREJO CON ESTADÍSTICAS EXTRA ---
+    # --- CALENDARIO OFICIAL PERFECTAMENTE ALINEADO Y SIN BLOQUES VACÍOS ---
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (GP en Azul y Sprints en Morado)</div>", unsafe_allow_html=True)
     st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en azul y los fines de semana Sprint en color morado.")
     
-    # Mini panel de estadísticas extra para complementar
     st.markdown("""
         <div style='display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;'>
             <div style='background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10B981; padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #10B981;'>
@@ -497,34 +496,39 @@ with tab1:
     }
     
     meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    cols = st.columns(3)
-    for i, mes in enumerate(range(1, 13), 1):
-        with cols[(i - 1) % 3]:
-            # Altura fija uniforme (height: 270px) para que todas las tarjetas queden perfectamente parejas verticalmente
-            st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 15px; height: 270px; display: flex; flex-direction: column; justify-content: space-between;'>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[i-1]} 2024</p>", unsafe_allow_html=True)
-            
-            cal_mat = calendar.monthcalendar(2024, mes)
-            cal_html = "<table style='width:100%; text-align:center; font-size:0.75rem; color:#94A3B8; border-collapse:collapse;'>"
-            cal_html += "<tr><th>l</th><th>m</th><th>m</th><th>j</th><th>v</th><th>s</th><th>d</th></tr>"
-            
-            for semana in cal_mat:
-                cal_html += "<tr>"
-                for dia in semana:
-                    if dia == 0:
-                        cal_html += "<td style='padding:3px;'></td>"
-                    else:
-                        d_obj = date(2024, mes, dia)
-                        if d_obj in gps_2024:
-                            cal_html += f"<td style='padding:3px; background:#38BDF8; color:#0F172A; font-weight:bold; border-radius:4px;'>{dia}</td>"
-                        elif d_obj in sprints_2024:
-                            cal_html += f"<td style='padding:3px; background:#A855F7; color:#FFFFFF; font-weight:bold; border-radius:4px;'>{dia}</td>"
-                        else:
-                            cal_html += f"<td style='padding:3px;'>{dia}</td>"
-                cal_html += "</tr>"
-            cal_html += "</table>"
-            st.markdown(cal_html, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Cuadrícula perfecta de 4 filas x 3 columnas para evitar saltos y espacios en negro vacíos
+    for row in range(4):
+        cols = st.columns(3)
+        for col_idx in range(3):
+            mes_idx = row * 3 + col_idx
+            if mes_idx < 12:
+                mes = mes_idx + 1
+                with cols[col_idx]:
+                    st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 15px; height: 270px; display: flex; flex-direction: column; justify-content: space-between;'>", unsafe_allow_html=True)
+                    st.markdown(f"<p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[mes-1]} 2024</p>", unsafe_allow_html=True)
+                    
+                    cal_mat = calendar.monthcalendar(2024, mes)
+                    cal_html = "<table style='width:100%; text-align:center; font-size:0.75rem; color:#94A3B8; border-collapse:collapse;'>"
+                    cal_html += "<tr><th>l</th><th>m</th><th>m</th><th>j</th><th>v</th><th>s</th><th>d</th></tr>"
+                    
+                    for semana in cal_mat:
+                        cal_html += "<tr>"
+                        for dia in semana:
+                            if dia == 0:
+                                cal_html += "<td style='padding:3px;'></td>"
+                            else:
+                                d_obj = date(2024, mes, dia)
+                                if d_obj in gps_2024:
+                                    cal_html += f"<td style='padding:3px; background:#38BDF8; color:#0F172A; font-weight:bold; border-radius:4px;'>{dia}</td>"
+                                elif d_obj in sprints_2024:
+                                    cal_html += f"<td style='padding:3px; background:#A855F7; color:#FFFFFF; font-weight:bold; border-radius:4px;'>{dia}</td>"
+                                else:
+                                    cal_html += f"<td style='padding:3px;'>{dia}</td>"
+                        cal_html += "</tr>"
+                    cal_html += "</table>"
+                    st.markdown(cal_html, unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -614,6 +618,7 @@ with tab1:
         df_mapa = pd.DataFrame({'lat': [lat_activa], 'lon': [lon_activa]})
         st.map(df_mapa, zoom=9, height=270)
         st.markdown("</div>", unsafe_allow_html=True)
+        
 with tab2:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>⚔️ Batalla Cara a Cara (Teammate / Grid Battle 2024)</div>", unsafe_allow_html=True)
