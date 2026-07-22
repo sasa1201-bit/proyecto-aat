@@ -706,7 +706,7 @@ with tab4:
     st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Sector a Sector)</div>", unsafe_allow_html=True)
     st.write(
         "Análisis cruzado de los inputs del piloto: Acelerador, Freno, Velocidad y Delta de Tiempo "
-        "mediante la integración simulada de FastF1 con toda la parrilla."
+        "comparativo mediante la integración simulada de FastF1."
     )
     
     # --- DICCIONARIO DE COLORES OFICIALES DE ESCUDERÍAS ---
@@ -753,18 +753,18 @@ with tab4:
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
-    # --- SELECTORES DE PILOTOS Y SESIÓN CON AYUDA (I) ---
+    # --- SELECTORES DE PILOTOS Y SESIÓN ---
     col_t1, col_t2, col_t3 = st.columns(3)
     with col_t1:
-        driver1 = st.selectbox("Piloto 1 (Referencia):", TODOS_OS_PILOTOS_2024, key="tel_driver_1", help="Selecciona al piloto principal para la comparación de telemetría.")
+        driver1 = st.selectbox("Piloto 1 (Referencia):", TODOS_OS_PILOTOS_2024, key="tel_driver_1", help="Piloto base para comparar el delta de tiempo.")
         color1 = DRIVER_COLORS.get(driver1, "#FF1801")
     with col_t2:
-        driver2 = st.selectbox("Piloto 2 (Comparativa):", TODOS_OS_PILOTOS_2024, key="tel_driver_2", help="Selecciona al piloto rival contra el que se contrastarán los datos.")
+        driver2 = st.selectbox("Piloto 2 (Comparativa):", TODOS_OS_PILOTOS_2024, key="tel_driver_2", help="Piloto evaluado contra la referencia.")
         color2 = DRIVER_COLORS.get(driver2, "#38BDF8")
     with col_t3:
-        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session", help="Elige la sesión oficial para analizar el régimen de carga de combustible y gomas.")
+        session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
 
-    # --- GENERACIÓN DE DATOS DINÁMICOS BASADOS EN CADA PILOTO ---
+    # --- GENERACIÓN DE DATOS DINÁMICOS ---
     x = np.linspace(0, 100, 600)
     
     seed1 = sum(ord(c) for c in driver1)
@@ -781,8 +781,8 @@ with tab4:
     throttle2 = np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
     brake2 = np.where(np.sin(x/3.5 + fase2) < -0.65, 100, 0)
 
-    # Cálculo del Delta de Tiempo en segundos
-    delta_time = np.cumsum((speed2 - speed1) / 3600 * 0.01)
+    # Cálculo del Delta de Tiempo (Negativo = Piloto 2 más rápido / Positivo = Piloto 2 más lento)
+    delta_time = np.cumsum((speed1 - speed2) / 3600 * 0.01)
 
     max_speed_1 = round(max(speed1), 1)
     max_speed_2 = round(max(speed2), 1)
@@ -791,7 +791,7 @@ with tab4:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- KPIS / MÉTRICAS RÁPIDAS DE TELEMETRÍA ---
+    # --- KPIS / MÉTRICAS RÁPIDAS ---
     m1, m2, m3, m4 = st.columns(4)
     with m1:
         st.metric(label=f"Vmax {driver1.split()[-1]}", value=f"{max_speed_1} km/h")
@@ -800,14 +800,14 @@ with tab4:
     with m3:
         st.metric(label="Delta Vmax Pura", value=f"{delta_max_speed:+g} km/h", delta_color="normal" if delta_max_speed >= 0 else "inverse")
     with m4:
-        st.metric(label="Diferencial de Vuelta", value=f"{delta_final:+.3f} s", delta="Delta final")
+        st.metric(label=f"Delta Final ({driver2.split()[-1]} vs {driver1.split()[-1]})", value=f"{delta_final:+.3f} s", delta_color="inverse" if delta_final <= 0 else "normal")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (4 PANELES) ---
     fig_tel = make_subplots(
         rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.05,
-        subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)", f"Delta de Tiempo vs {driver1.split()[-1]} (s)")
+        subplot_titles=("Velocidad (km/h)", "Acelerador (%)", "Freno (%)", f"Delta de Tiempo ({driver2.split()[-1]} vs {driver1.split()[-1]}) (s)")
     )
     
     # Panel 1: Velocidad
@@ -822,18 +822,29 @@ with tab4:
     fig_tel.add_trace(go.Scatter(x=x, y=brake1, showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
     fig_tel.add_trace(go.Scatter(x=x, y=brake2, showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
 
-    # Panel 4: Delta de Tiempo
-    fig_tel.add_trace(go.Scatter(x=x, y=delta_time, showlegend=False, line=dict(color="#38BDF8", width=2.5), fill='tozeroy'), row=4, col=1)
+    # Panel 4: Delta de Tiempo Dividido (Verde si gana Piloto 2 / Rojo si pierde)
+    delta_ganando = np.where(delta_time <= 0, delta_time, 0)
+    delta_perdiendo = np.where(delta_time > 0, delta_time, 0)
+
+    fig_tel.add_trace(go.Scatter(
+        x=x, y=delta_ganando, name=f"{driver2.split()[-1]} Más Rápido",
+        line=dict(color='#10B981', width=2), fill='tozeroy', fillcolor='rgba(16, 185, 129, 0.2)'
+    ), row=4, col=1)
+    
+    fig_tel.add_trace(go.Scatter(
+        x=x, y=delta_perdiendo, name=f"{driver2.split()[-1]} Más Lento",
+        line=dict(color='#EF4444', width=2), fill='tozeroy', fillcolor='rgba(239, 68, 68, 0.2)'
+    ), row=4, col=1)
 
     fig_tel.update_layout(
         height=820, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(t=30, b=20, l=10, r=10), hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.03, xanchor="right", x=1)
     )
-    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=False)
+    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=True, zerolinecolor='rgba(255,255,255,0.2)')
     fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text="<b>Distancia del Circuito (m)</b>", row=4, col=1)
 
-    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_pro_4panels")
+    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_pro_4panels_dual")
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab5:
