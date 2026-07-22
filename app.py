@@ -363,43 +363,60 @@ with tab1:
         )
     st.markdown("</div>", unsafe_allow_html=True)
 
-    datos_equipo = TEAMS_DICT_2024[equipo_seleccionado_nombre]
-    id_activo = datos_equipo["id"]
-    nombre_activo = equipo_seleccionado_nombre
-    pais_activo = datos_equipo["country"]
-    logo_activo = datos_equipo["logo"]
-    ciudad_activa = datos_equipo["base"]
-    estadio_activo = datos_equipo["estadio"]
-    puntos_totales = datos_equipo["puntos"]
-    podios = datos_equipo["podios"]
-    efectividad = datos_equipo["efectividad"]
-    promedio_puntos = datos_equipo["promedio"]
+    # --- COORDENADAS EXACTAS DE FÁBRICAS 2024 ---
+    TEAMS_GEO_COORDS = {
+        "Red Bull Racing": {"lat": 52.0406, "lon": -0.6835, "base": "Milton Keynes, Reino Unido"},
+        "Ferrari": {"lat": 44.5795, "lon": 10.8661, "base": "Maranello, Italia"},
+        "Mercedes": {"lat": 52.0292, "lon": -1.1444, "base": "Brackley, Reino Unido"},
+        "McLaren": {"lat": 51.3444, "lon": -0.5516, "base": "Woking, Reino Unido"},
+        "Aston Martin": {"lat": 52.0903, "lon": -1.0172, "base": "Silverstone, Reino Unido"},
+        "RB": {"lat": 44.2853, "lon": 11.8823, "base": "Faenza, Italia"},
+        "Haas": {"lat": 52.0625, "lon": -1.3364, "base": "Banbury, Reino Unido"},
+        "Alpine": {"lat": 51.9392, "lon": -1.4394, "base": "Enstone, Reino Unido"},
+        "Williams": {"lat": 51.5544, "lon": -1.4194, "base": "Grove, Reino Unido"},
+        "Kick Sauber": {"lat": 47.3075, "lon": 8.8475, "base": "Hinwil, Suiza"}
+    }
 
-    # Panel de métricas clave (KPIs estilizados con altura uniforme)
+    # Obtener datos de forma segura
+    datos_equipo = TEAMS_DICT_2024.get(equipo_seleccionado_nombre, {})
+    nombre_activo = equipo_seleccionado_nombre
+    pais_activo = datos_equipo.get("country", "F1")
+    logo_activo = datos_equipo.get("logo", "")
+    
+    info_geo = TEAMS_GEO_COORDS.get(nombre_activo, {"lat": 44.5795, "lon": 10.8661, "base": datos_equipo.get("base", "Europa")})
+    lat_activa = info_geo["lat"]
+    lon_activa = info_geo["lon"]
+    ciudad_activa = info_geo["base"]
+
+    puntos_totales = datos_equipo.get("puntos", 0)
+    efectividad = datos_equipo.get("efectividad", 0)
+    promedio_puntos = datos_equipo.get("promedio", 0)
+
+    # --- PANEL DE MÉTRICAS CLAVE (LOGOS DINÁMICOS CORREGIDOS) ---
     k1, k2, k3, k4 = st.columns(4)
     with k1:
-        logo_html_str = render_logo_html(logo_activo, width=48, fallback_emoji="🏎️")
         st.markdown(f"""
-            <div class='telemetry-card' style='display:flex; align-items:center; gap:16px; border-left: 5px solid #FF1801; padding: 22px; height: 100%;'>
-                {logo_html_str}
-                <div>
-                    <h3 style='margin:0; font-size:1.05rem; font-weight:800; color: #FFFFFF;'>{nombre_activo}</h3>
-                    <small style='color:#94A3B8; font-weight:600;'>{pais_activo} (Temporada 2024)</small>
+            <div class='telemetry-card' style='display:flex; align-items:center; gap:12px; border-left: 5px solid #FF1801; padding: 18px; height: 100%; box-sizing: border-box;'>
+                <div style='min-width: 45px; display: flex; align-items: center; justify-content: center;'>
+                    <img src="{logo_activo}" style="max-height: 38px; max-width: 50px; object-fit: contain;" alt="Logo">
+                </div>
+                <div style='overflow: hidden;'>
+                    <h3 style='margin:0; font-size:0.9rem; font-weight:800; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>{nombre_activo}</h3>
+                    <small style='color:#94A3B8; font-weight:600; font-size:0.75rem;'>{pais_activo}</small>
                 </div>
             </div>
         """, unsafe_allow_html=True)
     with k2:
-        st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>EFECTIVIDAD PODIOS</small><h2 style='margin:6px 0 0 0; color:#10B981 !important; font-weight:900; font-size:1.8rem;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='telemetry-card' style='padding: 18px; height: 100%; box-sizing: border-box;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px; font-size:0.7rem;'>EFECTIVIDAD PODIOS</small><h2 style='margin:4px 0 0 0; color:#10B981 !important; font-weight:900; font-size:1.6rem;'>{efectividad}%</h2></div>", unsafe_allow_html=True)
     with k3:
-        st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PROMEDIO PUNTOS / GP</small><h2 style='margin:6px 0 0 0; color:#F59E0B !important; font-weight:900; font-size:1.8rem;'>{promedio_puntos}</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='telemetry-card' style='padding: 18px; height: 100%; box-sizing: border-box;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px; font-size:0.7rem;'>PROMEDIO PUNTOS / GP</small><h2 style='margin:4px 0 0 0; color:#F59E0B !important; font-weight:900; font-size:1.6rem;'>{promedio_puntos}</h2></div>", unsafe_allow_html=True)
     with k4:
-        st.markdown(f"<div class='telemetry-card' style='padding: 22px; height: 100%;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:6px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.8rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='telemetry-card' style='padding: 18px; height: 100%; box-sizing: border-box;'><small style='color:#94A3B8; font-weight:700; letter-spacing:1px; font-size:0.7rem;'>PUNTUACIÓN GLOBAL</small><h2 style='margin:4px 0 0 0; color:#FFFFFF !important; font-weight:900; font-size:1.6rem;'>{puntos_totales} pts</h2></div>", unsafe_allow_html=True)
 
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📊 Clasificación y Gráfica Dinámica de Puntos 2024</div>", unsafe_allow_html=True)
     st.info("Modifica los valores numéricos de los puntos en la tabla interactiva y la gráfica se actualizará al instante en tiempo real.")
 
-    # Inicialización de respaldo para el estado del editor de puntos general
     if "df_puntos_state" not in st.session_state:
         st.session_state["df_puntos_state"] = pd.DataFrame([
             {"Piloto": "Max Verstappen", "Puntos": 429},
@@ -445,90 +462,82 @@ with tab1:
     render_calendario_anual_2024()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Diccionario con los pilotos oficiales de cada escudería para 2024
-    PILOTOS_EQUIPOS_2024 = {
+    # --- DICCIONARIO DE PILOTOS CON ESTILO INTERACTIVO ---
+    PILOTOS_EQUIPOS_2024_DIVERTIDO = {
         "Red Bull Racing": [
-            {"Piloto": "Max Verstappen", "País": "Netherlands", "Número": 1},
-            {"Piloto": "Sergio Pérez", "País": "Mexico", "Número": 11}
+            {"Piloto": "Max Verstappen", "País": "Países Bajos 🇳🇱", "Número": "#1", "Apodo": "🦁 Mad Max", "Estilo": "Ritmo de videojuego, imparable en qualy y carrera."},
+            {"Piloto": "Sergio Pérez", "País": "México 🇲🇽", "Número": "#11", "Apodo": "🛡️ Ministro de Defensa", "Estilo": "Especialista en remontadas épicas y domingos locos."}
         ],
         "Ferrari": [
-            {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16},
-            {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55}
+            {"Piloto": "Charles Leclerc", "País": "Mónaco 🇲🇨", "Número": "#16", "Apodo": "⚡ Lord Perma-Pole", "Estilo": "Magia pura a una vuelta, sufre los domingos con estrategia."},
+            {"Piloto": "Carlos Sainz", "País": "España 🇪🇸", "Número": "#55", "Apodo": "🧠 El Profesor / Chili", "Estilo": "Calculador, preciso y siempre aprovechando los errores ajenos."}
         ],
         "McLaren": [
-            {"Piloto": "Lando Norris", "País": "United Kingdom", "Número": 4},
-            {"Piloto": "Oscar Piastri", "País": "Australia", "Número": 81}
+            {"Piloto": "Lando Norris", "País": "Reino Unido 🇬🇧", "Número": "#4", "Apodo": "🎮 El Streamer Volador", "Estilo": "Velocidad brutal en desarrollo, amante de los memes y podios."},
+            {"Piloto": "Oscar Piastri", "País": "Australia 🇦🇺", "Número": "#81", "Apodo": "🧊 Ice Man Jr.", "Estilo": "Frío, calculador y maduro como si llevara 10 años en la F1."}
         ],
         "Mercedes": [
-            {"Piloto": "Lewis Hamilton", "País": "United Kingdom", "Número": 44},
-            {"Piloto": "George Russell", "País": "United Kingdom", "Número": 63}
+            {"Piloto": "Lewis Hamilton", "País": "Reino Unido 🇬🇧", "Número": "#44", "Apodo": "🐐 Sir Lewis", "Estilo": "Leyenda viviente, maestro de la lluvia y las salidas agresivas."},
+            {"Piloto": "George Russell", "País": "Reino Unido 🇬🇧", "Número": "#63", "Apodo": "👔 Mr. Saturday", "Estilo": "Siempre impecable, formal y exprimiendo hasta el último tornillo."}
         ],
         "Aston Martin": [
-            {"Piloto": "Fernando Alonso", "País": "Spain", "Número": 14},
-            {"Piloto": "Lance Stroll", "País": "Canada", "Número": 18}
+            {"Piloto": "Fernando Alonso", "País": "España 🇪🇸", "Número": "#14", "Apodo": "🧙‍♂️ El Nano / Magic Alonso", "Estilo": "Maquiavélico en pista, experiencia infinita y adelantamientos imposibles."},
+            {"Piloto": "Lance Stroll", "País": "Canadá 🇨🇦", "Número": "#18", "Apodo": "🌪️ Wild Card", "Estilo": "Capaz de hacer la maniobra del año o meterse en un lío en la curva 1."}
         ],
         "RB": [
-            {"Piloto": "Yuki Tsunoda", "País": "Japan", "Número": 22},
-            {"Piloto": "Daniel Ricciardo", "País": "Australia", "Número": 3}
+            {"Piloto": "Yuki Tsunoda", "País": "Japón 🇯🇵", "Número": "#22", "Apodo": "📻 Radio Explosiva", "Estilo": "Veloz, pasional y con los mejores mensajes de radio enojado."},
+            {"Piloto": "Daniel Ricciardo", "País": "Australia 🇦🇺", "Número": "#3", "Apodo": "🍯 Honey Badger", "Estilo": "La sonrisa más grande del paddock y frenadas tardías de infarto."}
         ],
         "Haas": [
-            {"Piloto": "Nico Hulkenberg", "País": "Germany", "Número": 27},
-            {"Piloto": "Kevin Magnussen", "País": "Denmark", "Número": 20}
+            {"Piloto": "Nico Hulkenberg", "País": "Alemania 🇩🇪", "Número": "#27", "Apodo": "👑 Super Sub / Hulk", "Estilo": "Consistencia brutal y experto en meter autos lentos a Q3."},
+            {"Piloto": "Kevin Magnussen", "País": "Dinamarca 🇩🇰", "Número": "#20", "Apodo": "🛡️ El Vikingo Táctico", "Estilo": "Defensa férrea y dispuesto a defender su posición cueste lo que cueste."}
         ],
         "Alpine": [
-            {"Piloto": "Pierre Gasly", "País": "France", "Número": 10},
-            {"Piloto": "Esteban Ocon", "País": "France", "Número": 31}
+            {"Piloto": "Pierre Gasly", "País": "Francia 🇫🇷", "Número": "#10", "Apodo": "🍾 El Prodigio de Monza", "Estilo": "Resiliente, rápido y sacando oro puro de donde nadie lo espera."},
+            {"Piloto": "Esteban Ocon", "País": "Francia 🇫🇷", "Número": "#31", "Apodo": "⚔️ El Defensor Feroz", "Estilo": "Inamovible en pista, no le regala un centímetro ni a su compañero."}
         ],
         "Williams": [
-            {"Piloto": "Alexander Albon", "País": "Thailand", "Número": 23},
-            {"Piloto": "Logan Sargeant", "País": "United States", "Número": 2}
+            {"Piloto": "Alexander Albon", "País": "Tailandia 🇹🇭", "Número": "#23", "Apodo": "🦸‍♂️ Albono el Salvador", "Estilo": "Carga con todo el equipo a la espalda y maneja con pulso de cirujano."},
+            {"Piloto": "Logan Sargeant", "País": "Estados Unidos 🇺🇸", "Número": "#2", "Apodo": "🦅 Freedom Speed", "Estilo": "Aprendiendo a base de golpes y buscando el límite del monoplaza."}
         ],
         "Kick Sauber": [
-            {"Piloto": "Valtteri Bottas", "País": "Finland", "Número": 77},
-            {"Piloto": "Zhou Guanyu", "País": "China", "Número": 24}
+            {"Piloto": "Valtteri Bottas", "País": "Finlandia 🇫🇮", "Número": "#77", "Apodo": "🩳 El Rey del Calendario", "Estilo": "Veloz los viernes, relajado los domingos y rey de las fotos épicas."},
+            {"Piloto": "Zhou Guanyu", "País": "China 🇨🇳", "Número": "#24", "Apodo": "☕ Estilo de Paddock", "Estilo": "Elegante, caballeroso y buscando siempre dar la sorpresa."}
         ]
     }
 
     col_plantilla, col_mapa = st.columns(2)
+    
     with col_plantilla:
-        st.markdown(f"<div class='telemetry-card'><div class='section-header'>👥 Alineación Oficial de Pilotos - {equipo_seleccionado_nombre}</div>", unsafe_allow_html=True)
+        st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='section-header'>🔥 Alineación Estelar - {equipo_seleccionado_nombre}</div>", unsafe_allow_html=True)
+        st.write("Conoce el verdadero espíritu y estilo de los pilotos de esta escudería:")
         
-        pilotos_equipo_info = PILOTOS_EQUIPOS_2024.get(equipo_seleccionado_nombre, [])
+        pilotos_equipo_info = PILOTOS_EQUIPOS_2024_DIVERTIDO.get(equipo_seleccionado_nombre, [])
         if pilotos_equipo_info:
-            df_final = pd.DataFrame(pilotos_equipo_info)
-            st.dataframe(df_final, hide_index=True, use_container_width=True)
+            for p in pilotos_equipo_info:
+                st.markdown(f"""
+                    <div style='background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 24, 1, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px;'>
+                        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                            <strong style='color: #FFFFFF; font-size: 1.05rem;'>🏎️ {p['Piloto']}</strong>
+                            <span style='background: #FF1801; color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;'>{p['Número']}</span>
+                        </div>
+                        <div style='color: #38BDF8; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;'>{p['Apodo']} | {p['País']}</div>
+                        <p style='color: #94A3B8; font-size: 0.82rem; margin: 0;'>💡 <i>{p['Estilo']}</i></p>
+                    </div>
+                """, unsafe_allow_html=True)
         else:
-            pilotos = obtener_pilotos(id_activo)
-            if pilotos:
-                datos_formateados = []
-                for p in pilotos:
-                    driver_info = p.get("driver", {})
-                    datos_formateados.append({
-                        "Piloto": driver_info.get("name", "N/A"),
-                        "País": driver_info.get("country", "-"),
-                        "Número": driver_info.get("number", "-")
-                    })
-                df_final = pd.DataFrame(datos_formateados)
-                st.dataframe(df_final, hide_index=True, use_container_width=True)
-            else:
-                df_default_pilotos = pd.DataFrame([
-                    {"Piloto": "Charles Leclerc", "País": "Monaco", "Número": 16},
-                    {"Piloto": "Carlos Sainz", "País": "Spain", "Número": 55}
-                ])
-                st.dataframe(df_default_pilotos, hide_index=True, use_container_width=True)
+            st.warning("No hay información de pilotos disponible para este equipo.")
+            
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col_mapa:
-        st.markdown("<div class='telemetry-card'><div class='section-header'>🗺️ Base de Operaciones y Fábrica</div>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: #94A3B8 !important; margin-bottom: 15px;'><strong>📍 Sede Principal:</strong> {estadio_activo} <br> <strong>🏙️ Ubicación:</strong> {ciudad_activa}, {pais_activo}</p>", unsafe_allow_html=True)
+        st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>🗺️ Base de Operaciones y Fábrica</div>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: #94A3B8 !important; margin-bottom: 15px;'><strong>🏙️ Sede / Fábrica:</strong> {ciudad_activa}</p>", unsafe_allow_html=True)
         
-        lat, lon = obtener_coordenadas(ciudad_activa, pais_activo)
-        if lat and lon:
-            df_mapa = pd.DataFrame({'lat': [lat], 'lon': [lon]})
-            st.map(df_mapa, zoom=10, height=230)
-        else:
-            df_mapa = pd.DataFrame({'lat': [44.5385], 'lon': [10.8643]})
-            st.map(df_mapa, zoom=10, height=230)
+        df_mapa = pd.DataFrame({'lat': [lat_activa], 'lon': [lon_activa]})
+        st.map(df_mapa, zoom=9, height=270)
         st.markdown("</div>", unsafe_allow_html=True)
 
 with tab2:
