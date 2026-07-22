@@ -456,7 +456,7 @@ with tab1:
             st.warning("Asegúrate de que las columnas 'Piloto' y 'Puntos' existan en la tabla.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CALENDARIO OFICIAL PERFECTAMENTE ALINEADO Y SIN BLOQUES VACÍOS ---
+    # --- CALENDARIO OFICIAL PERFECTAMENTE ALINEADO Y LIMPIO ---
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>📅 Calendario Oficial Completo F1 2024 (GP en Azul y Sprints en Morado)</div>", unsafe_allow_html=True)
     st.write("Vista completa de los 12 meses de la temporada 2024 con los días de Gran Premio destacados en azul y los fines de semana Sprint en color morado.")
@@ -497,7 +497,6 @@ with tab1:
     
     meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     
-    # Cuadrícula perfecta de 4 filas x 3 columnas para evitar saltos y espacios en negro vacíos
     for row in range(4):
         cols = st.columns(3)
         for col_idx in range(3):
@@ -505,30 +504,36 @@ with tab1:
             if mes_idx < 12:
                 mes = mes_idx + 1
                 with cols[col_idx]:
-                    st.markdown(f"<div style='background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 15px; height: 270px; display: flex; flex-direction: column; justify-content: space-between;'>", unsafe_allow_html=True)
-                    st.markdown(f"<p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[mes-1]} 2024</p>", unsafe_allow_html=True)
-                    
                     cal_mat = calendar.monthcalendar(2024, mes)
-                    cal_html = "<table style='width:100%; text-align:center; font-size:0.75rem; color:#94A3B8; border-collapse:collapse;'>"
-                    cal_html += "<tr><th>l</th><th>m</th><th>m</th><th>j</th><th>v</th><th>s</th><th>d</th></tr>"
                     
+                    # Generar las filas de la tabla de forma limpia
+                    rows_html = ""
                     for semana in cal_mat:
-                        cal_html += "<tr>"
+                        rows_html += "<tr>"
                         for dia in semana:
                             if dia == 0:
-                                cal_html += "<td style='padding:3px;'></td>"
+                                rows_html += "<td style='padding:3px;'></td>"
                             else:
                                 d_obj = date(2024, mes, dia)
                                 if d_obj in gps_2024:
-                                    cal_html += f"<td style='padding:3px; background:#38BDF8; color:#0F172A; font-weight:bold; border-radius:4px;'>{dia}</td>"
+                                    rows_html += f"<td style='padding:3px; background:#38BDF8; color:#0F172A; font-weight:bold; border-radius:4px;'>{dia}</td>"
                                 elif d_obj in sprints_2024:
-                                    cal_html += f"<td style='padding:3px; background:#A855F7; color:#FFFFFF; font-weight:bold; border-radius:4px;'>{dia}</td>"
+                                    rows_html += f"<td style='padding:3px; background:#A855F7; color:#FFFFFF; font-weight:bold; border-radius:4px;'>{dia}</td>"
                                 else:
-                                    cal_html += f"<td style='padding:3px;'>{dia}</td>"
-                        cal_html += "</tr>"
-                    cal_html += "</table>"
-                    st.markdown(cal_html, unsafe_allow_html=True)
-                    st.markdown("</div>", unsafe_allow_html=True)
+                                    rows_html += f"<td style='padding:3px;'>{dia}</td>"
+                        rows_html += "</tr>"
+                    
+                    # Todo el contenido del mes va en UN SOLO st.markdown para evitar fragmentar y generar bloques vacíos
+                    card_html = f"""
+                    <div style='background: rgba(30, 41, 59, 0.4); padding: 12px; border-radius: 8px; margin-bottom: 15px; height: 270px; display: flex; flex-direction: column; justify-content: space-between;'>
+                        <p style='text-align:center; font-weight:bold; color:#FFFFFF; margin-bottom:5px;'>{meses_nombres[mes-1]} 2024</p>
+                        <table style='width:100%; text-align:center; font-size:0.75rem; color:#94A3B8; border-collapse:collapse;'>
+                            <tr><th>l</th><th>m</th><th>m</th><th>j</th><th>v</th><th>s</th><th>d</th></tr>
+                            {rows_html}
+                        </table>
+                    </div>
+                    """
+                    st.markdown(card_html, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
