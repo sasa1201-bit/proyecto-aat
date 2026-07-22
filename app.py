@@ -572,8 +572,9 @@ with tab2:
     pts_a_val = FANTASY_DB.get(sel_h2h_a, {"puntos": 50})["puntos"]
     pts_b_val = FANTASY_DB.get(sel_h2h_b, {"puntos": 50})["puntos"]
 
-    q3_a = (seed_a % 40) + 60
-    q3_b = (seed_b % 40) + 60
+    # Cálculo dinámico de Podios 2024 basado en puntos y semilla del piloto
+    podios_a = max(0, min(22, int(pts_a_val // 25) + (seed_a % 3)))
+    podios_b = max(0, min(22, int(pts_b_val // 25) + (seed_b % 3)))
 
     col_res1, col_res2 = st.columns(2)
     with col_res1:
@@ -582,7 +583,7 @@ with tab2:
                 <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ <span style='color: {color_a};'>{sel_h2h_a}</span></h3>
                 <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>⚡ Velocidad Punta: <b style='color: #38BDF8;'>{vel_a_val} km/h</b></p>
-                <p style='font-size: 0.9rem; margin: 8px 0;'>⏱️ Ritmo Q3: <b style='color: #F59E0B;'>1:19.{seed_a % 90}</b></p>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>🍾 Podios 2024: <b style='color: #F59E0B;'>{podios_a} podios</b></p>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>🏆 Puntos Temporada: <b style='color: #10B981;'>{pts_a_val} pts</b></p>
             </div>
         """, unsafe_allow_html=True)
@@ -592,18 +593,18 @@ with tab2:
                 <h3 style='color: #FFFFFF; margin-bottom: 5px; text-align: center;'>🏎️ <span style='color: {color_b};'>{sel_h2h_b}</span></h3>
                 <hr style='border-color: rgba(255,255,255,0.1); margin: 12px 0;'>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>⚡ Velocidad Punta: <b style='color: #38BDF8;'>{vel_b_val} km/h</b></p>
-                <p style='font-size: 0.9rem; margin: 8px 0;'>⏱️ Ritmo Q3: <b style='color: #F59E0B;'>1:19.{seed_b % 90}</b></p>
+                <p style='font-size: 0.9rem; margin: 8px 0;'>🍾 Podios 2024: <b style='color: #F59E0B;'>{podios_b} podios</b></p>
                 <p style='font-size: 0.9rem; margin: 8px 0;'>🏆 Puntos Temporada: <b style='color: #10B981;'>{pts_b_val} pts</b></p>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Gráfica comparativa visual Plotly con formato ordenado (tidy dataframe) y colores oficiales sincronizados
+    # Gráfica comparativa visual Plotly con Podios integrados y colores oficiales
     df_h2h = pd.DataFrame({
-        "Métrica": ["Puntos 2024", "Velocidad Punta (km/h)", "Índice Q3"],
-        sel_h2h_a: [pts_a_val, vel_a_val, q3_a],
-        sel_h2h_b: [pts_b_val, vel_b_val, q3_b]
+        "Métrica": ["Puntos 2024", "Velocidad Punta (km/h)", "Podios 2024"],
+        sel_h2h_a: [pts_a_val, vel_a_val, podios_a],
+        sel_h2h_b: [pts_b_val, vel_b_val, podios_b]
     })
     
     df_melted = df_h2h.melt(id_vars=["Métrica"], var_name="Piloto", value_name="Valor")
