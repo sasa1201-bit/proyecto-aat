@@ -778,61 +778,98 @@ with tab3:
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
-    # --- SALÓN DE LA FAMA Y RESUMEN LLAMATIVO ---
-    st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 10px;'>🔥 Salón de la Fama y Estadísticas de la Temporada 2024</h4>", unsafe_allow_html=True)
-    st.write("Filtra el desempeño por piloto y analiza su dominio en el campeonato con métricas visuales de alto impacto.")
+    # --- SALÓN DE LA FAMA INTERACTIVO Y MODERNO ---
+    st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 6px;'>🔥 Salón de la Fama y Dominio de Pilotos (2024)</h4>", unsafe_allow_html=True)
+    st.write("Selecciona un piloto para desplegar su tarjeta táctica interactiva con el desglose exacto de sus victorias en la temporada.")
 
-    # Calcular estadísticas de victorias por piloto para las métricas superiores
     df_base = pd.DataFrame(CARRERAS_2024_DATOS)
     conteo_victorias = df_base['ganador'].value_counts().reset_index()
     conteo_victorias.columns = ['Piloto', 'Victorias']
 
-    # Mostrar métricas rápidas de los máximos ganadores en columnas superiores
+    # Métricas superiores con diseño de tarjetas de podio estilizadas
     cols_podio = st.columns(min(len(conteo_victorias), 4))
+    medals = ["👑", "🥈", "🥉", "🏅"]
     for idx, row in conteo_victorias.head(4).iterrows():
         with cols_podio[idx]:
-            st.metric(label=f"🥇 {row['Piloto']}", value=f"{row['Victorias']} Triunfos")
+            st.markdown(f"""
+                <div style='background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(56, 189, 248, 0.2); padding: 12px; border-radius: 10px; text-align: center;'>
+                    <span style='font-size: 1.3rem;'>{medals[idx]}</span>
+                    <h5 style='color: #38BDF8; margin: 4px 0 2px 0; font-size: 0.95rem;'>{row['Piloto']}</h5>
+                    <strong style='color: #10B981; font-size: 1.1rem;'>{row['Victorias']} Triunfos</strong>
+                </div>
+            """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Selector de filtro de piloto estilizado
-    ganadores_disponibles = ["Todos los Pilotos"] + sorted(list(df_base['ganador'].unique()))
+    # Selector principal de pilotos interactivo
+    ganadores_disponibles = ["🌟 Todos los Pilotos (Vista General)"] + sorted(list(df_base['ganador'].unique()))
     
-    col_f1, col_f2 = st.columns([2, 1])
-    with col_f1:
-        piloto_filtro = st.selectbox("Filtrar Grandes Premios por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro")
+    col_sel_p, col_badge_p = st.columns([2, 1])
+    with col_sel_p:
+        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive")
 
-    df_carreras = df_base[["gp", "circuito", "fecha", "ganador"]].copy()
-    df_carreras.columns = ["Gran Premio", "Circuito Oficial", "Fecha", "Ganador del GP"]
-    
-    if piloto_filtro != "Todos los Pilotos":
-        df_carreras_filtrado = df_carreras[df_carreras["Ganador del GP"] == piloto_filtro]
-        total_victorias = len(df_carreras_filtrado)
-        texto_metrica = f"{total_victorias} Victorias Registradas"
-    else:
-        df_carreras_filtrado = df_carreras
-        texto_metrica = f"{len(CARRERAS_2024_DATOS)} Grandes Premios Totales"
+    total_gps = len(CARRERAS_2024_DATOS)
 
-    with col_f2:
+    with col_badge_p:
+        if "Todos" not in piloto_filtro:
+            wins_piloto = len(df_base[df_base['ganador'] == piloto_filtro])
+            porcentaje = (wins_piloto / total_gps) * 100
+            badge_text = f"Efectividad: {porcentaje:.1f}% de la parrilla"
+        else:
+            badge_text = f"Temporada Completa ({total_gps} GPs)"
+
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, rgba(255,24,1,0.2), rgba(16,185,129,0.1)); border: 1px solid rgba(255,24,1,0.4); padding: 8px 15px; border-radius: 8px; text-align: center; margin-top: 24px;'>
-                <span style='font-size: 0.75rem; color: #94A3B8; display: block;'>FILTRO ACTIVO</span>
-                <strong style='color: #38BDF8; font-size: 1.05rem;'>{texto_metrica}</strong>
+            <div style='background: linear-gradient(135deg, rgba(255,24,1,0.15), rgba(16,185,129,0.15)); border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 15px; border-radius: 8px; text-align: center; margin-top: 22px;'>
+                <span style='font-size: 0.7rem; color: #94A3B8; display: block;'>ESTADÍSTICA CLAVE</span>
+                <strong style='color: #38BDF8; font-size: 0.95rem;'>{badge_text}</strong>
             </div>
         """, unsafe_allow_html=True)
 
-    # Tabla interactiva mejorada
-    st.dataframe(
-        df_carreras_filtrado, 
-        use_container_width=True, 
-        hide_index=True,
-        column_config={
-            "Gran Premio": st.column_config.TextColumn("Gran Premio", width="medium"),
-            "Circuito Oficial": st.column_config.TextColumn("Circuito Oficial", width="large"),
-            "Fecha": st.column_config.TextColumn("Fecha", width="small"),
-            "Ganador del GP": st.column_config.TextColumn("Ganador del GP", width="medium")
-        }
-    )
+    # Filtrar datos según la selección
+    if "Todos" not in piloto_filtro:
+        df_filtrado_tarjetas = df_base[df_base['ganador'] == piloto_filtro].reset_index(drop=True)
+    else:
+        df_filtrado_tarjetas = df_base.reset_index(drop=True)
+
+    # Renderizar tarjetas interactivas de Grandes Premios en lugar de una tabla aburrida
+    st.markdown("<p style='font-weight: 700; color: #FFFFFF; margin: 15px 0 10px 0;'>🏁 Grandes Premios Conquistados:</p>", unsafe_allow_html=True)
+    
+    # Mostrar en grid de 2 columnas para que sea muy visual
+    for i in range(0, len(df_filtrado_tarjetas), 2):
+        col_card1, col_card2 = st.columns(2)
+        
+        # Tarjeta 1
+        with col_card1:
+            row1 = df_filtrado_tarjetas.iloc[i]
+            fecha_d1 = datetime.strptime(row1['fecha'], "%Y-%m-%d")
+            fecha_f1 = f"{fecha_d1.day} {meses_es[fecha_d1.month][:3].capitalize()} {fecha_d1.year}"
+            st.markdown(f"""
+                <div style='background: rgba(15, 23, 42, 0.7); border-left: 4px solid #FF1801; padding: 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06);'>
+                    <div style='display: flex; justify-content: space-between; align-items: center;'>
+                        <span style='font-size: 0.75rem; color: #38BDF8; font-weight: 700;'>{fecha_f1}</span>
+                        <span style='font-size: 0.8rem; background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 2px 8px; border-radius: 4px;'>🏆 {row1['ganador']}</span>
+                    </div>
+                    <h5 style='color: #FFFFFF; margin: 6px 0 4px 0; font-size: 1rem;'>{row1['gp']}</h5>
+                    <p style='color: #94A3B8; font-size: 0.85rem; margin: 0;'>📍 {row1['circuito']} ({row1['ciudad']})</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+        # Tarjeta 2 (si existe)
+        if i + 1 < len(df_filtrado_tarjetas):
+            with col_card2:
+                row2 = df_filtrado_tarjetas.iloc[i+1]
+                fecha_d2 = datetime.strptime(row2['fecha'], "%Y-%m-%d")
+                fecha_f2 = f"{fecha_d2.day} {meses_es[fecha_d2.month][:3].capitalize()} {fecha_d2.year}"
+                st.markdown(f"""
+                    <div style='background: rgba(15, 23, 42, 0.7); border-left: 4px solid #10B981; padding: 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06);'>
+                        <div style='display: flex; justify-content: space-between; align-items: center;'>
+                            <span style='font-size: 0.75rem; color: #38BDF8; font-weight: 700;'>{fecha_f2}</span>
+                            <span style='font-size: 0.8rem; background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 2px 8px; border-radius: 4px;'>🏆 {row2['ganador']}</span>
+                        </div>
+                        <h5 style='color: #FFFFFF; margin: 6px 0 4px 0; font-size: 1rem;'>{row2['gp']}</h5>
+                        <p style='color: #94A3B8; font-size: 0.85rem; margin: 0;'>📍 {row2['circuito']} ({row2['ciudad']})</p>
+                    </div>
+                """, unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
     
