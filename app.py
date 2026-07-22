@@ -18,9 +18,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- MÚSICA F1 (COVER ÉPICO SIN BLOQUEO DE COPYRIGHT) ---
+# --- MÚSICA F1 (COVER ÉPICO EN BUCLE INFINITO) ---
 st.sidebar.markdown("### 🎵 Tema Oficial F1")
-st.sidebar.video("https://www.youtube.com/watch?v=MSrHoJHCa3I")
+st.sidebar.markdown("""
+    <iframe width="100%" height="180" src="https://www.youtube.com/embed/MSrHoJHCa3I?loop=1&playlist=MSrHoJHCa3I" 
+    title="F1 Theme Cover" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="border-radius: 8px;">
+    </iframe>
+""", unsafe_allow_html=True)
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
