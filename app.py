@@ -19,7 +19,12 @@ st.set_page_config(
 )
 
 st.sidebar.markdown("### 🎵 Tema Oficial F1")
-st.sidebar.audio("https://upload.wikimedia.org/wikipedia/commons/b/b3/Formula_1_theme_sample.ogg", format="audio/ogg")
+st.sidebar.markdown("""
+    <audio controls loop style="width: 100%;">
+        <source src="https://upload.wikimedia.org/wikipedia/commons/d/d4/Nurburgring_F1_onboard_sound_sample.ogg" type="audio/ogg">
+        Tu navegador no soporta el audio.
+    </audio>
+""", unsafe_allow_html=True)
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
