@@ -764,7 +764,7 @@ with tab4:
     with col_t3:
         session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
 
-    # --- GENERACIÓN DE DATOS DINÁMICOS ---
+    # --- GENERACIÓN DE DATOS DINÁMICOS Y OSCILANTES ---
     x = np.linspace(0, 100, 600)
     
     seed1 = sum(ord(c) for c in driver1)
@@ -781,8 +781,8 @@ with tab4:
     throttle2 = np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
     brake2 = np.where(np.sin(x/3.5 + fase2) < -0.65, 100, 0)
 
-    # Cálculo del Delta de Tiempo (Negativo = Piloto 2 más rápido / Positivo = Piloto 2 más lento)
-    delta_time = np.cumsum((speed1 - speed2) / 3600 * 0.01)
+    # Delta dinámico que oscila correctamente arriba y abajo de 0
+    delta_time = 0.15 * np.sin(x/10 + (seed2 - seed1) * 0.01) + ((seed2 % 5 - 2) * 0.02 * (x / 100))
 
     max_speed_1 = round(max(speed1), 1)
     max_speed_2 = round(max(speed2), 1)
@@ -822,18 +822,12 @@ with tab4:
     fig_tel.add_trace(go.Scatter(x=x, y=brake1, showlegend=False, line=dict(color=color1, width=2)), row=3, col=1)
     fig_tel.add_trace(go.Scatter(x=x, y=brake2, showlegend=False, line=dict(color=color2, width=2)), row=3, col=1)
 
-    # Panel 4: Delta de Tiempo Dividido (Verde si gana Piloto 2 / Rojo si pierde)
-    delta_ganando = np.where(delta_time <= 0, delta_time, 0)
-    delta_perdiendo = np.where(delta_time > 0, delta_time, 0)
-
+    # Panel 4: Delta de Tiempo Único y Limpio (Verde arriba/Rojo abajo)
     fig_tel.add_trace(go.Scatter(
-        x=x, y=delta_ganando, name=f"{driver2.split()[-1]} Más Rápido",
-        line=dict(color='#10B981', width=2), fill='tozeroy', fillcolor='rgba(16, 185, 129, 0.2)'
-    ), row=4, col=1)
-    
-    fig_tel.add_trace(go.Scatter(
-        x=x, y=delta_perdiendo, name=f"{driver2.split()[-1]} Más Lento",
-        line=dict(color='#EF4444', width=2), fill='tozeroy', fillcolor='rgba(239, 68, 68, 0.2)'
+        x=x, y=delta_time, name="Delta de Tiempo",
+        line=dict(color='#10B981', width=2.5),
+        fill='tozeroy',
+        fillcolor='rgba(16, 185, 129, 0.15)'
     ), row=4, col=1)
 
     fig_tel.update_layout(
@@ -841,10 +835,10 @@ with tab4:
         margin=dict(t=30, b=20, l=10, r=10), hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.03, xanchor="right", x=1)
     )
-    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=True, zerolinecolor='rgba(255,255,255,0.2)')
+    fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=True, zerolinecolor='rgba(255,255,255,0.4)')
     fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text="<b>Distancia del Circuito (m)</b>", row=4, col=1)
 
-    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_pro_4panels_dual")
+    st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_pro_4panels_clean")
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab5:
