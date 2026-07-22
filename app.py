@@ -18,14 +18,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- AUDIO F1 (Pégalo únicamente al final de todo tu código) ---
-st.sidebar.markdown("### 🎵 Audio F1")
-st.sidebar.markdown("""
-    <audio controls style="width: 100%;">
-        <source src="https://actions.google.com/sounds/v1/transportation/race_car_passing.ogg" type="audio/ogg">
-        Tu navegador no soporta el audio.
-    </audio>
-""", unsafe_allow_html=True)
+# --- AUDIO F1 SIN BLOQUEOS (Pégalo debajo de st.set_page_config) ---
+st.sidebar.markdown("### 🎵 Tema Oficial F1")
+st.sidebar.video("https://www.youtube.com/watch?v=aEqB-7D8mks")
 
 # Diseño UI/UX de Vanguardia Absoluta (Estética F1 Pit-Wall Elite & Glassmorphism Pro)
 st.markdown(
