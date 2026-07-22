@@ -2077,25 +2077,25 @@ with tab10:
 
 with tab11:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🧠 AI Race Strategist & Chief Engineer (MARV v11.4)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🧠 AI Race Strategist & Chief Engineer (MARV v11.8 - Expanded Tactical Suite)</div>", unsafe_allow_html=True)
     
     st.markdown("""
         <div style='background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); padding: 20px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.4); margin-bottom: 20px;'>
             <h4 style='color: #38BDF8; margin: 0 0 8px 0; font-size: 1.1rem;'>📡 Muro de Estrategia Inteligente y Telemetría Predictiva</h4>
             <p style='color: #94A3B8; font-size: 0.85rem; margin: 0;'>
-                Este módulo simula un ingeniero de carrera de IA de nivel de fábrica con procesamiento en tiempo real. 
-                Consulta escenarios complejos de carrera, análisis de ritmo de clasificación, gestión de unidades de potencia (PU) y ventanas de parada críticas.
+                Selecciona entre un catálogo ampliado de consultas tácticas de nivel de fábrica. Tu ingeniero jefe procesará al instante escenarios de Safety Car, ritmo de clasificación, gestión de compuestos y mapas de motor.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
     if "engineer_chat_history" not in st.session_state:
         st.session_state["engineer_chat_history"] = [
-            {"role": "assistant", "content": "Box, box... O sistema de telemetría principal está en línea. Soy tu Ingeniero Jefe de Pista virtual. ¿Qué evaluamos para esta sesión? ¿Estrategia de neumáticos, gestión de combustible, mapa de motor o análisis de tráfico con el coche de atrás?"}
+            {"role": "assistant", "content": "Box, box... Sistemas de telemetría y banco de opciones ampliadas en línea. Soy tu Ingeniero Jefe de Pista virtual. Selecciona una opción del tablero táctico o transmíteme un escenario por radio."}
         ]
 
-    st.markdown("<p style='font-size: 0.85rem; color: #FFFFFF; font-weight: 700; margin-bottom: 10px;'>⚡ Consultas Estratégicas Preconfiguradas:</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.85rem; color: #FFFFFF; font-weight: 700; margin-bottom: 10px;'>⚡ Banco de Consultas Estratégicas Avanzadas:</p>", unsafe_allow_html=True)
     
+    # Fila 1 de botones rápidos
     sc_col1, sc_col2, sc_col3, sc_col4 = st.columns(4)
     quick_prompt = None
     
@@ -2103,7 +2103,7 @@ with tab11:
         if st.button("🛡️ Plan de Defensa & Undercut", use_container_width=True, key="eng_q_1"):
             quick_prompt = "Analiza detalladamente la viabilidad de un undercut frente al coche perseguidor, considerando el delta de pit-lane y el tráfico."
     with sc_col2:
-        if st.button("🌧️ Simulación de Lluvia / Clima", use_container_width=True, key="eng_q_2"):
+        if st.button("🌧️ Simulación de Lluvia", use_container_width=True, key="eng_q_2"):
             quick_prompt = "Hay previsión de lluvia inminente en el sector 2. ¿Cuál es el plan de transición a neumáticos intermedios y qué curva de temperatura debemos cuidar?"
     with sc_col3:
         if st.button("🔋 Gestión de Batería (SOC)", use_container_width=True, key="eng_q_3"):
@@ -2111,6 +2111,21 @@ with tab11:
     with sc_col4:
         if st.button("📊 Análisis de Degradación", use_container_width=True, key="eng_q_4"):
             quick_prompt = "Evalúa la curva de degradación de los neumáticos actuales y proyecta cuántas vueltas nos quedan antes de alcanzar el cliff de rendimiento."
+
+    # Fila 2 de botones rápidos añadidos
+    sc_col5, sc_col6, sc_col7, sc_col8 = st.columns(4)
+    with sc_col5:
+        if st.button("🏎️ Ritmo Qualy vs Carrera", use_container_width=True, key="eng_q_5"):
+            quick_prompt = "Compara nuestro ritmo actual en tandas largas frente a la simulación de clasificación a una vuelta."
+    with sc_col6:
+        if st.button("🛑 Ventana de Safety Car", use_container_width=True, key="eng_q_6"):
+            quick_prompt = "Calcula la pérdida de tiempo neta bajo régimen de Safety Car y VSC para una parada en boxes gratuita."
+    with sc_col7:
+        if st.button("⚙️ Ajuste de Alerón Frontal", use_container_width=True, key="eng_q_7"):
+            quick_prompt = "¿Debemos modificar los grados de incidencia del alerón delantero en el próximo pit-stop para corregir el subviraje crónico?"
+    with sc_col8:
+        if st.button("📻 Radio Motivacional / Empuje", use_container_width=True, key="eng_q_8"):
+            quick_prompt = "Dame el reporte de tiempos por sector y las instrucciones de empuje máximo para la fase final de la carrera."
 
     chat_container = st.container()
     with chat_container:
@@ -2162,6 +2177,37 @@ with tab11:
             * <b>Nivel de Desgaste:</b> El compuesto medio actual presenta un 64% de vida útil remanente. Las temperaturas de la carcasa están estabilizadas en 98°C.<br>
             * <b>Predicción del Cliff:</b> La gráfica de caída de rendimiento indica que el <i>cliff</i> se manifestará con claridad dentro de aproximadamente 11 vueltas.<br>
             * <b>Recomendación del Muro:</b> Evita sobrevolar los pianos agresivos en la chicana rápida; necesitamos conservar la integridad estructural del flanco interior derecho.
+            """
+        elif "clasificación" in query_lower or "qualy" in query_lower or "tandas" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - COMPARATIVA RITMO QUALY VS CARRERA]</b><br>
+            Sincronizando tiempos por sector con el servidor central de cronometraje:<br>
+            * <b>Ritmo a una vuelta:</b> Destacamos en el Sector 2 gracias al agarre mecánico en curvas de media velocidad, perdiendo marginalmente 0.15s en la velocidad punta de la recta principal.<br>
+            * <b>Degradación en Tandas Largas:</b> El monoplaza muestra una estabilidad superior al promedio de la parrilla en el desgaste del neumático trasero izquierdo.<br>
+            * <b>Recomendación del Muro:</b> Mantén una trazabilidad limpia en la entrada de las curvas lentas para proteger la tracción de salida. El coche está configurado para volar en el segundo stint.
+            """
+        elif "safety car" in query_lower or "vsc" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - ANÁLISIS DE VENTANA BAJO SAFETY CAR]</b><br>
+            Monitoreando incidentes en pista y estado de neutralización:<br>
+            * <b>Pérdida neta en Pit-Lane:</b> Bajo régimen normal de bandera verde perdemos 21.8s; sin embargo, con Safety Car activo, la pérdida se reduce a 11.2s netos frente al pelotón desacelerado.<br>
+            * <b>Estrategia Oportunista:</b> Tenemos una 'parada gratis' virtual si el despliegue se mantiene un giro más. Los mecánicos ya tienen listos los compuestos duros para llegar hasta el final.<br>
+            * <b>Recomendación del Muro:</b> Atento a las banderas amarillas en el sector. Mantén el delta de velocidad obligatorio de la FIA y prepárate para entrar a boxes inmediatamente si dirección de carrera lo confirma.
+            """
+        elif "alerón" in query_lower or "subviraje" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - BALANCE AERODINÁMICO Y CARGA]</b><br>
+            Revisando la telemetría de ángulos de dirección y comportamiento del eje delantero:<br>
+            * <b>Diagnóstico de Comportamiento:</b> El piloto reporta ligera saturación y subviraje en la fase de entrada a curvas de 90 grados (Apex crítico).<br>
+            * <b>Acción en Boxes:</b> En la próxima parada aplicaremos un incremento de <b>+1.5 grados en la incidencia del alerón delantero</b> (apertura del flap).<br>
+            * <b>Impacto Esperado:</b> Esto balanceará el centro de presiones aerodinámicas hacia adelante, dándote mayor mordiente en la dirección sin comprometer la estabilidad trasera en alta velocidad.
+            """
+        elif "motivacional" in query_lower or "empuje" in query_lower or "final" in query_lower:
+            ai_response = """
+            <b>[RADIO DE INGENIERÍA - MENSAJE DE EMPUJE FINAL / MURI DE BOXES]</b><br>
+            ¡Muy bien hecho hasta aquí! Escúchame bien: quedan pocas vueltas para la bandera a cuadros y estás rodando en zona de puntos de oro:<br>
+            * <b>Diferenciales de Ritmo:</b> El coche de atrás viene sufriendo con la temperatura de frenos. Tienes el ritmo perfecto para consolidar la posición.<br>
+            * <b>Instrucciones de Muro:</b> Libera toda la energía almacenada en la batería (Deploy Max) en la salida de la curva final. Mantén la concentración, confía en el monoplaza y cruza esa meta llevándote el máximo potencial del equipo. ¡Vamos con todo!
             """
         else:
             ai_response = f"""
