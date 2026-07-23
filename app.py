@@ -751,7 +751,10 @@ with tab3:
     fecha_dt = datetime.strptime(gp_info['fecha'], "%Y-%m-%d")
     fecha_formateada = f"{fecha_dt.day} de {meses_es[fecha_dt.month]}, {fecha_dt.year}"
 
-    # Diccionario de trazados oficiales de circuitos 2024 (Wikimedia Commons)
+    # Limpiar el nombre para asegurar coincidencia exacta en el diccionario
+    gp_key_clean = gp_info['gp'].replace(" 2024", "").strip()
+
+    # Diccionario de trazados oficiales de circuitos 2024
     CIRCUIT_TRACKS_2024 = {
         "Gran Premio de Baréin": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Bahrain_International_Circuit_-_2004_layout.svg",
         "Gran Premio de Arabia Saudita": "https://upload.wikimedia.org/wikipedia/commons/8/86/Jeddah_Street_Circuit_2021.svg",
@@ -779,9 +782,9 @@ with tab3:
         "Gran Premio de Abu Dabi": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Yas_Marina_Circuit_2021.svg"
     }
 
-    track_url = CIRCUIT_TRACKS_2024.get(gp_info['gp'], "https://upload.wikimedia.org/wikipedia/commons/3/3b/Circuit_Monaco.svg")
+    track_url = CIRCUIT_TRACKS_2024.get(gp_key_clean, "https://upload.wikimedia.org/wikipedia/commons/3/3b/Circuit_Monaco.svg")
 
-    # Distribución en dos columnas: Ficha técnica y Trazado de Pista (en lugar de mapa)
+    # Distribución en dos columnas: Ficha técnica y Trazado oficial de pista
     col_det, col_track = st.columns([1, 1])
 
     with col_det:
@@ -803,11 +806,11 @@ with tab3:
 
     with col_track:
         st.markdown(f"<p style='font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #38BDF8;'>🏎️ Trazado Oficial de Pista ({gp_info['circuito']}):</p>", unsafe_allow_html=True)
-        st.markdown(f"""
-            <div style='background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); padding: 10px; border-radius: 12px; text-align: center; height: 300px; display: flex; align-items: center; justify-content: center;'>
-                <img src='{track_url}' style='max-height: 240px; max-width: 100%; filter: drop-shadow(0 0 8px rgba(56,189,248,0.4));'>
-            </div>
+        st.markdown("""
+            <div style='background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); padding: 15px; border-radius: 12px; height: 300px; display: flex; align-items: center; justify-content: center;'>
         """, unsafe_allow_html=True)
+        st.image(track_url, use_column_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
