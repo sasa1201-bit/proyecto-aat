@@ -1250,6 +1250,68 @@ with tab5:
 
     st.plotly_chart(fig_evo, use_container_width=True, key="chart_track_evolution_pro")
 
+    # --- SIMULADOR DE DEGRADACIÓN DE NEUMÁTICOS PIRELLI AGREGADO ---
+    st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
+    st.markdown("<b style='color: #FFFFFF; font-size: 1rem;'>🛑 Simulador Interactivo de Degradación y Pérdida de Tiempo Pirelli</b>", unsafe_allow_html=True)
+    st.write("Configura el compuesto de neumáticos para proyectar la pérdida de tiempo acumulada por vuelta debido a la degradación térmica y mecánica.")
+
+    col_sim_t1, col_sim_t2 = st.columns([1, 1])
+    with col_sim_t1:
+        compuesto_sim = st.selectbox(
+            "Compuesto Pirelli a Simular:",
+            ["🔴 Soft (C5)", "🟡 Medium (C3)", "⚪ Hard (C1)", "🟢 Intermedio", "🔵 Lluvia Extrema"],
+            key="sim_tire_compound"
+        )
+    with col_sim_t2:
+        vueltas_stint = st.slider(
+            "Longitud del Stint (Vueltas):",
+            min_value=10, max_value=50, value=25,
+            key="sim_stint_laps"
+        )
+
+    if "Soft" in compuesto_sim:
+        factor_comp = 0.14
+        color_comp = "#FF1801"
+    elif "Medium" in compuesto_sim:
+        factor_comp = 0.09
+        color_comp = "#F59E0B"
+    elif "Hard" in compuesto_sim:
+        factor_comp = 0.05
+        color_comp = "#E2E8F0"
+    elif "Intermedio" in compuesto_sim:
+        factor_comp = 0.08
+        color_comp = "#10B981"
+    else:
+        factor_comp = 0.04
+        color_comp = "#0066FF"
+
+    v_array = list(range(1, vueltas_stint + 1))
+    perdida_tiempo = [round((v * factor_comp * (factor_pista ** 0.8)) + (0.002 * (v ** 1.8)), 3) for v in v_array]
+
+    df_tire_sim = pd.DataFrame({
+        "Vuelta": v_array,
+        "Pérdida de Tiempo Acumulada (s)": perdida_tiempo
+    })
+
+    fig_tire_deg = px.line(
+        df_tire_sim, x="Vuelta", y="Pérdida de Tiempo Acumulada (s)",
+        template="plotly_dark",
+        title=f"Curva de Pérdida de Tiempo - {compuesto_sim} en {circuito_seleccionado.split('(')[0]}"
+    )
+    fig_tire_deg.update_traces(line_color=color_comp, line_width=3)
+    fig_tire_deg.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=35, b=10, l=10, r=10),
+        height=300,
+        xaxis_title="<b>Número de Vuelta en el Stint</b>",
+        yaxis_title="<b>Pérdida de Tiempo (Segundos)</b>"
+    )
+    fig_tire_deg.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+    fig_tire_deg.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)')
+
+    st.plotly_chart(fig_tire_deg, use_container_width=True, key="chart_interactive_tire_deg_tab5")
+
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab6:
