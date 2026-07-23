@@ -878,7 +878,7 @@ with tab4:
     st.markdown("<div class='section-header'>📈 Análisis de Telemetría Avanzada (Estilo F1 Broadcast Pro)</div>", unsafe_allow_html=True)
     st.write(
         "Comparativa visual de élite: Velocidad, Entrega de Acelerador, Zonas de Frenada, "
-        "Ángulo de Giro del Volante y Fuerzas G Totales soportadas por los pilotos."
+        "Ángulo de Giro del Volante y Fuerzas G Totales soportadas por los pilotos en circuitos reales."
     )
     
     # --- DICCIONARIO DE COLORES OFICIALES DE ESCUDERÍAS ---
@@ -895,6 +895,33 @@ with tab4:
         "Daniel Ricciardo": "#2B4562", "Oliver Bearman": "#DC0000"
     }
 
+    # --- DATOS REALES DE TODOS LOS CIRCUITOS F1 (LONGITUDES EN METROS) ---
+    CIRCUITS_DATA = {
+        "Bahrein (Sakhir)": 5412,
+        "Arabia Saudita (Yeda)": 6174,
+        "Australia (Melbourne)": 5278,
+        "Japón (Suzuka)": 5807,
+        "China (Shanghái)": 5451,
+        "Estados Unidos (Miami)": 5412,
+        "Mónaco (Mónaco)": 3337,
+        "Canadá (Montreal)": 4361,
+        "España (Barcelona)": 4657,
+        "Austria (Spielberg)": 4318,
+        "Gran Bretaña (Silverstone)": 5891,
+        "Hungría (Budapest)": 4381,
+        "Bélgica (Spa-Francorchamps)": 7004,
+        "Países Bajos (Zandvoort)": 4259,
+        "Italia (Monza)": 5793,
+        "Azerbaiyán (Bakú)": 6003,
+        "Singapur (Singapur)": 4940,
+        "Estados Unidos (Austin - COTA)": 5513,
+        "México (Ciudad de México)": 4304,
+        "Brasil (Interlagos)": 4309,
+        "Estados Unidos (Las Vegas)": 6201,
+        "Catar (Lusail)": 5419,
+        "Abu Dabi (Yas Marina)": 5281
+    }
+
     # --- INICIALIZAR ESTADOS DE SESIÓN PARA LOS SELECTORES ---
     if "tel_driver_1" not in st.session_state:
         st.session_state["tel_driver_1"] = "Max Verstappen"
@@ -902,6 +929,8 @@ with tab4:
         st.session_state["tel_driver_2"] = "Lando Norris"
     if "tel_session" not in st.session_state:
         st.session_state["tel_session"] = "Q3 - Clasificación"
+    if "tel_circuit" not in st.session_state:
+        st.session_state["tel_circuit"] = "Italia (Monza)"
 
     # --- DUELOS / PRESETS RÁPIDOS ---
     st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Duelos Destacados en Pista (Presets):</b>", unsafe_allow_html=True)
@@ -925,8 +954,8 @@ with tab4:
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
 
-    # --- SELECTORES DE PILOTOS Y SESIÓN ---
-    col_t1, col_t2, col_t3 = st.columns(3)
+    # --- SELECTORES DE PILOTOS, SESIÓN Y CIRCUITO REAL ---
+    col_t1, col_t2, col_t3, col_t4 = st.columns(4)
     with col_t1:
         driver1 = st.selectbox("Piloto 1 (Referencia):", TODOS_OS_PILOTOS_2024, key="tel_driver_1", help="Piloto base de comparación.")
         color1 = DRIVER_COLORS.get(driver1, "#FF1801")
@@ -935,9 +964,12 @@ with tab4:
         color2 = DRIVER_COLORS.get(driver2, "#38BDF8")
     with col_t3:
         session = st.selectbox("Sesión F1:", ["Q3 - Clasificación", "Carrera", "FP2"], key="tel_session")
+    with col_t4:
+        circuit_name = st.selectbox("Circuito Real:", list(CIRCUITS_DATA.keys()), key="tel_circuit")
+        track_length = CIRCUITS_DATA[circuit_name]
 
-    # --- GENERACIÓN DE DATOS DINÁMICOS ---
-    x = np.linspace(0, 100, 600)
+    # --- GENERACIÓN DE DATOS DINÁMICOS BASados EN LONGITUD REAL ---
+    x = np.linspace(0, track_length, 600)
     
     seed1 = sum(ord(c) for c in driver1)
     seed2 = sum(ord(c) for c in driver2)
@@ -946,20 +978,20 @@ with tab4:
     fase2 = (seed2 % 12) * 0.08
     
     # Velocidad
-    speed1 = 305 + (seed1 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase1) + np.random.normal(0, 1.2, 600)
-    speed2 = 305 + (seed2 % 18) - 150 * np.exp(-x/16) + 35 * np.sin(x/3.5 + fase2) + np.random.normal(0, 1.2, 600)
+    speed1 = 305 + (seed1 % 18) - 150 * np.exp(-x/(track_length*0.16)) + 35 * np.sin(x/(track_length*0.035) + fase1) + np.random.normal(0, 1.2, 600)
+    speed2 = 305 + (seed2 % 18) - 150 * np.exp(-x/(track_length*0.16)) + 35 * np.sin(x/(track_length*0.035) + fase2) + np.random.normal(0, 1.2, 600)
     
     # Acelerador (%)
-    throttle1 = np.where(np.sin(x/3.5 + fase1) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
-    throttle2 = np.where(np.sin(x/3.5 + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
+    throttle1 = np.where(np.sin(x/(track_length*0.035) + fase1) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
+    throttle2 = np.where(np.sin(x/(track_length*0.035) + fase2) > -0.15, 100, 0) + np.random.normal(0, 2, 600)
     
     # Freno (%)
-    brake1 = np.where(np.sin(x/3.5 + fase1) < -0.5, 100, 0)
-    brake2 = np.where(np.sin(x/3.5 + fase2) < -0.5, 100, 0)
+    brake1 = np.where(np.sin(x/(track_length*0.035) + fase1) < -0.5, 100, 0)
+    brake2 = np.where(np.sin(x/(track_length*0.035) + fase2) < -0.5, 100, 0)
 
     # Volante (Steering Angle)
-    steering1 = 280 * np.sin(x / 3.5 + fase1 + 0.5) + np.random.normal(0, 4, 600)
-    steering2 = 280 * np.sin(x / 3.5 + fase2 + 0.5) + np.random.normal(0, 4, 600)
+    steering1 = 280 * np.sin(x / (track_length*0.035) + fase1 + 0.5) + np.random.normal(0, 4, 600)
+    steering2 = 280 * np.sin(x / (track_length*0.035) + fase2 + 0.5) + np.random.normal(0, 4, 600)
 
     # Fuerzas G Totales (Combinación de frenada y giro, con picos de hasta 4.5G)
     g_force1 = np.clip(1.0 + (np.clip(brake1, 0, 100) / 28) + (np.abs(steering1) / 80) + np.random.normal(0, 0.15, 600), 0.5, 5.0)
@@ -983,6 +1015,12 @@ with tab4:
     with m4:
         st.metric(label=f"Pico G {driver2.split()[-1]}", value=f"{max_g_2} G")
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- NUEVA FUNCIONALIDAD 4: CONTROL DESLIZANTE DE DISTANCIA SINCRONIZADO ---
+    st.markdown(f"<b style='color: #38BDF8; font-size: 0.9rem;'>🎛️ Control Deslizante de Distancia Sincronizado ({circuit_name} - {track_length}m):</b>", unsafe_allow_html=True)
+    sync_distance = st.slider("Posición exacta en pista (Metros):", 0, track_length, int(track_length / 2), step=25, key="sync_distance_slider")
+    
     st.markdown("<br>", unsafe_allow_html=True)
 
     # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (5 PANELES) ---
@@ -1017,15 +1055,43 @@ with tab4:
     fig_tel.add_trace(go.Scatter(x=x, y=g_force1, name=f"{driver1} G-Force", showlegend=False, line=dict(color=color1, width=2.5), fill='tozeroy', fillcolor=color1.replace(')', ', 0.15)').replace('rgb', 'rgba')), row=5, col=1)
     fig_tel.add_trace(go.Scatter(x=x, y=g_force2, name=f"{driver2} G-Force", showlegend=False, line=dict(color=color2, width=2.5), fill='tozeroy', fillcolor=color2.replace(')', ', 0.15)').replace('rgb', 'rgba')), row=5, col=1)
 
+    # Añadir línea vertical sincronizada con el control deslizante en todos los subplots
+    fig_tel.add_vline(x=sync_distance, line_dash="dash", line_color="#38BDF8", annotation_text=f"{sync_distance}m", annotation_position="top")
+
     fig_tel.update_layout(
         height=1000, template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(t=30, b=20, l=10, r=10), hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     fig_tel.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', zeroline=False)
-    fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text="<b>Distancia del Circuito (m)</b>", row=5, col=1)
+    fig_tel.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.06)', title_text=f"<b>Distancia del Circuito ({circuit_name}) [m]</b>", row=5, col=1)
 
     st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_5panels_gforces")
+    
+    # --- NUEVA FUNCIONALIDAD 1: DESGLOSE DINÁMICO POR MINI-SECTORES ---
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>🏁 Desglose Dinámico por Mini-Sectores (Rendimiento por Tramo)</div>", unsafe_allow_html=True)
+    st.write(f"Análisis detallado de dominio en los 5 mini-sectores del circuito **{circuit_name}** ({track_length}m totales):")
+
+    num_mini_sectors = 5
+    sector_len = track_length / num_mini_sectors
+    cols_ms = st.columns(num_mini_sectors)
+    
+    for i in range(num_mini_sectors):
+        s_start = int(i * sector_len)
+        s_end = int((i + 1) * sector_len)
+        winner_sector = driver1 if (i + seed1) % 2 == 0 else driver2
+        color_winner = color1 if winner_sector == driver1 else color2
+        
+        with cols_ms[i]:
+            st.markdown(f"""
+            <div style='background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; text-align: center; border-top: 3px solid {color_winner};'>
+                <span style='font-size: 0.8rem; color: #aaa;'>Mini-Sector {i+1}</span><br>
+                <b style='font-size: 0.85rem; color: {color_winner};'>{winner_sector.split()[-1]}</b><br>
+                <span style='font-size: 0.75rem; color: #888;'>{s_start}m - {s_end}m</span>
+            </div>
+            """, unsafe_allow_html=True)
+
     st.markdown("</div>", unsafe_allow_html=True)
     
 with tab5:
