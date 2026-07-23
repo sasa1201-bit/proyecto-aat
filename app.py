@@ -895,6 +895,20 @@ with tab4:
         "Daniel Ricciardo": "#2B4562", "Oliver Bearman": "#DC0000"
     }
 
+    # --- RANKING DE HABILIDAD REALISTA DE PILOTOS (PARA MINI-SECTORES) ---
+    DRIVER_SKILL_RANK = {
+        "Max Verstappen": 98, "Sergio Pérez": 84,
+        "Lewis Hamilton": 90, "George Russell": 89,
+        "Charles Leclerc": 91, "Carlos Sainz": 88,
+        "Lando Norris": 92, "Oscar Piastri": 87,
+        "Fernando Alonso": 89, "Lance Stroll": 77,
+        "Pierre Gasly": 80, "Esteban Ocon": 79,
+        "Alex Albon": 82, "Yuki Tsunoda": 81,
+        "Nico Hülkenberg": 82, "Kevin Magnussen": 78,
+        "Valtteri Bottas": 78, "Zhou Guanyu": 75,
+        "Daniel Ricciardo": 79, "Oliver Bearman": 80
+    }
+
     # --- DATOS REALES DE TODOS LOS CIRCUITOS F1 (LONGITUDES EN METROS) ---
     CIRCUITS_DATA = {
         "Bahrein (Sakhir)": 5412,
@@ -1068,7 +1082,7 @@ with tab4:
 
     st.plotly_chart(fig_tel, use_container_width=True, key="chart_telemetry_5panels_gforces")
     
-    # --- NUEVA FUNCIONALIDAD 1: DESGLOSE DINÁMICO POR MINI-SECTORES ---
+    # --- NUEVA FUNCIONALIDAD 1: DESGLOSE DINÁMICO POR MINI-SECTORES (BASADO EN HABILIDAD REAL) ---
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🏁 Desglose Dinámico por Mini-Sectores (Rendimiento por Tramo)</div>", unsafe_allow_html=True)
     st.write(f"Análisis detallado de dominio en los 5 mini-sectores del circuito **{circuit_name}** ({track_length}m totales):")
@@ -1077,10 +1091,18 @@ with tab4:
     sector_len = track_length / num_mini_sectors
     cols_ms = st.columns(num_mini_sectors)
     
+    skill1 = DRIVER_SKILL_RANK.get(driver1, 75)
+    skill2 = DRIVER_SKILL_RANK.get(driver2, 75)
+
     for i in range(num_mini_sectors):
         s_start = int(i * sector_len)
         s_end = int((i + 1) * sector_len)
-        winner_sector = driver1 if (i + seed1) % 2 == 0 else driver2
+        
+        # Jerarquía realista basada en habilidad + pequeña variación por sector
+        score1 = skill1 + ((seed1 + i * 17) % 8)
+        score2 = skill2 + ((seed2 + i * 17) % 8)
+        
+        winner_sector = driver1 if score1 >= score2 else driver2
         color_winner = color1 if winner_sector == driver1 else color2
         
         with cols_ms[i]:
