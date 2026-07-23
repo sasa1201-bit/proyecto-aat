@@ -1038,13 +1038,7 @@ with tab4:
     with m4:
         st.metric(label=f"Pico G {driver2.split()[-1]}", value=f"{max_g_2} G")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- CONTROL DESLIZANTE DE DISTANCIA SINCRONIZADO ---
-    st.markdown(f"<b style='color: #38BDF8; font-size: 0.9rem;'>🎛️ Control Deslizante de Distancia Sincronizado ({circuit_name} - {track_length}m):</b>", unsafe_allow_html=True)
-    sync_distance = st.slider("Posición exacta en pista (Metros):", 0, track_length, int(track_length / 2), step=25, key="sync_distance_slider")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True
 
     # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (5 PANELES) ---
     fig_tel = make_subplots(
