@@ -1036,17 +1036,7 @@ with tab5:
         "Utiliza los escenarios meteorológicos rápidos o personaliza las variables para evaluar la ventana táctica Pirelli."
     )
     
-    # --- INICIALIZAR ESTADOS DE SESIÓN PARA EL CLIMA ---
-    if "nw_temp" not in st.session_state:
-        st.session_state["nw_temp"] = 25
-    if "nw_rain" not in st.session_state:
-        st.session_state["nw_rain"] = 15
-    if "nw_hum" not in st.session_state:
-        st.session_state["nw_hum"] = 45
-    if "nw_wind" not in st.session_state:
-        st.session_state["nw_wind"] = 12
-
-    # --- ESCENARIOS METEOROLÓGICOS RÁPIDOS (PRESETS) ---
+    # --- ESCENARIOS METEOROLÓGICOS RÁPIDOS (PRESETS CON REACTIVIDAD TOTAL) ---
     st.markdown("<b style='color: #38BDF8; font-size: 0.9rem;'>⚡ Escenarios Atmosféricos Rápidos:</b>", unsafe_allow_html=True)
     col_p1, col_p2, col_p3 = st.columns(3)
     
@@ -1056,6 +1046,9 @@ with tab5:
             st.session_state["nw_rain"] = 5
             st.session_state["nw_hum"] = 30
             st.session_state["nw_wind"] = 8
+            for k in ["nw_temp", "nw_rain", "nw_hum", "nw_wind"]:
+                if k in st.session_state:
+                    del st.session_state[k]
             st.rerun()
     with col_p2:
         if st.button("🌧️ Tormenta Inminente", use_container_width=True, key="btn_weather_rain"):
@@ -1063,6 +1056,9 @@ with tab5:
             st.session_state["nw_rain"] = 85
             st.session_state["nw_hum"] = 90
             st.session_state["nw_wind"] = 28
+            for k in ["nw_temp", "nw_rain", "nw_hum", "nw_wind"]:
+                if k in st.session_state:
+                    del st.session_state[k]
             st.rerun()
     with col_p3:
         if st.button("🌙 Nocturna / Pista Fría", use_container_width=True, key="btn_weather_cold"):
@@ -1070,6 +1066,9 @@ with tab5:
             st.session_state["nw_rain"] = 10
             st.session_state["nw_hum"] = 65
             st.session_state["nw_wind"] = 10
+            for k in ["nw_temp", "nw_rain", "nw_hum", "nw_wind"]:
+                if k in st.session_state:
+                    del st.session_state[k]
             st.rerun()
 
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
@@ -1105,13 +1104,13 @@ with tab5:
     with c_circ1:
         circuito_seleccionado = st.selectbox("🏁 Circuito Oficial", list(circuitos_f1.keys()), key="nw_circuit")
     with c_w1:
-        temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=45, key="nw_temp", help="Temperatura del aire en el pit lane.")
+        temp_amb = st.slider("🌡️ Temp. Ambiente (°C)", min_value=10, max_value=45, value=st.session_state.get("nw_temp", 25), key="nw_temp", help="Temperatura del aire en el pit lane.")
     with c_w2:
-        prob_lluvia = st.slider("🌧️ Prob. de Lluvia (%)", min_value=0, max_value=100, key="nw_rain", help="Probabilidad de precipitación según radar meteorológico AWS.")
+        prob_lluvia = st.slider("🌧️ Prob. de Lluvia (%)", min_value=0, max_value=100, value=st.session_state.get("nw_rain", 15), key="nw_rain", help="Probabilidad de precipitación según radar meteorológico AWS.")
     with c_w3:
-        humedad = st.slider("💧 Humedad Relativa (%)", min_value=10, max_value=100, key="nw_hum", help="Nivel de vapor de agua en el ambiente.")
+        humedad = st.slider("💧 Humedad Relativa (%)", min_value=10, max_value=100, value=st.session_state.get("nw_hum", 45), key="nw_hum", help="Nivel de vapor de agua en el ambiente.")
     with c_w4:
-        viento = st.slider("💨 Viento (km/h)", min_value=0, max_value=60, key="nw_wind", help="Velocidad e intensidad de ráfagas en recta principal.")
+        viento = st.slider("💨 Viento (km/h)", min_value=0, max_value=60, value=st.session_state.get("nw_wind", 12), key="nw_wind", help="Velocidad e intensidad de ráfagas en recta principal.")
 
     impacto_sol = 15 if prob_lluvia < 30 and humedad < 60 else (5 if prob_lluvia < 60 else 0)
     temp_pista = temp_amb + impacto_sol - (viento * 0.15)
@@ -1219,11 +1218,11 @@ with tab5:
         </div>
     """, unsafe_allow_html=True)
 
-    # --- GRÁFICA DE EVOLUCIÓN DE PISTA DURANTE EL STINT ---
+    # --- GRÁFICA DE EVOLUCIÓN DE PISTA DURANTE EL STINT (DINÁMICA) ---
     st.markdown("<b style='color: #FFFFFF; font-size: 0.95rem;'>📈 Simulación de Evolución de Agarre en el Stint (Primeras 30 Vueltas):</b>", unsafe_allow_html=True)
     
     vueltas_sim = list(range(1, 31))
-    grip_evolucion = [round(min(100, max(20, (indice_agarre * 100) + (v * 0.4) if v <= 8 else (indice_agarre * 100) + 3.2 - ((v - 8) * (desgaste_por_vuelta * 0.15)))), 1) for v in vueltas_sim]
+    grip_evolucion = [round(min(100, max(10, (indice_agarre * 100) - (v * desgaste_por_vuelta * 0.35))), 1) for v in vueltas_sim]
     
     df_evolucion = pd.DataFrame({
         "Vuelta": vueltas_sim,
@@ -1250,7 +1249,7 @@ with tab5:
 
     st.plotly_chart(fig_evo, use_container_width=True, key="chart_track_evolution_pro")
 
-    # --- SIMULADOR DE DEGRADACIÓN DE NEUMÁTICOS PIRELLI AGREGADO ---
+    # --- SIMULADOR DE DEGRADACIÓN DE NEUMÁTICOS PIRELLI (TOTALMENTE REACTIVO) ---
     st.markdown("<hr style='border: 1px solid rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
     st.markdown("<b style='color: #FFFFFF; font-size: 1rem;'>🛑 Simulador Interactivo de Degradación y Pérdida de Tiempo Pirelli</b>", unsafe_allow_html=True)
     st.write("Configura el compuesto de neumáticos para proyectar la pérdida de tiempo acumulada por vuelta debido a la degradación térmica y mecánica.")
@@ -1286,7 +1285,7 @@ with tab5:
         color_comp = "#0066FF"
 
     v_array = list(range(1, vueltas_stint + 1))
-    perdida_tiempo = [round((v * factor_comp * (factor_pista ** 0.8)) + (0.002 * (v ** 1.8)), 3) for v in v_array]
+    perdida_tiempo = [round((v * factor_comp * (factor_pista ** 0.8) * (max(0.5, temp_pista / 30))) + (0.002 * (v ** 1.8)), 3) for v in v_array]
 
     df_tire_sim = pd.DataFrame({
         "Vuelta": v_array,
