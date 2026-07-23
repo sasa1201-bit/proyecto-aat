@@ -740,7 +740,7 @@ with tab3:
     st.write("Explora cada circuito del calendario 2024, sus especificaciones técnicas de pista y el ganador de la prueba.")
 
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_hud_final")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_svg_clean")
 
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
 
@@ -805,32 +805,38 @@ with tab3:
             <div style='background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(56, 189, 248, 0.4); padding: 18px; border-radius: 12px; height: 330px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.4);'>
                 <div>
                     <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
-                        <span style='color: #38BDF8; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px;'>🗺️ TELEMETRÍA Y TRAZADO FIA</span>
+                        <span style='color: #38BDF8; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px;'>🗺️ TRAZADO Y TELEMETRÍA FIA</span>
                         <span style='background: rgba(16, 185, 129, 0.2); color: #10B981; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;'>LIVE HUD</span>
                     </div>
-                    <h4 style='color: #FFFFFF; margin: 0 0 8px 0; font-size: 0.98rem;'>{gp_info['circuito']}</h4>
-                    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.82rem;'>
-                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
-                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>LONGITUD</span>
+                    <h4 style='color: #FFFFFF; margin: 0 0 8px 0; font-size: 0.95rem;'>{gp_info['circuito']}</h4>
+                    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem;'>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.65rem;'>LONGITUD</span>
                             <strong style='color: #F8FAFC;'>{specs['longitud']}</strong>
                         </div>
-                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
-                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>CURVAS</span>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.65rem;'>CURVAS</span>
                             <strong style='color: #F8FAFC;'>{specs['curvas']} giros</strong>
                         </div>
-                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
-                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>ZONAS DRS</span>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.65rem;'>ZONAS DRS</span>
                             <strong style='color: #38BDF8;'>{specs['drs']} activas</strong>
                         </div>
-                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
-                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>PERFIL</span>
-                            <strong style='color: #10B981; font-size: 0.75rem;'>{specs['tipo']}</strong>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.65rem;'>PERFIL</span>
+                            <strong style='color: #10B981; font-size: 0.7rem;'>{specs['tipo']}</strong>
                         </div>
                     </div>
                 </div>
-                <div style='background: rgba(56, 189, 248, 0.1); border: 1px dashed rgba(56, 189, 248, 0.4); padding: 8px 10px; border-radius: 8px; text-align: center;'>
-                    <span style='color: #38BDF8; font-size: 0.7rem; display: block; font-weight: 700;'>⏱️ RÉCORD OFICIAL DE PISTA</span>
-                    <strong style='color: #FFFFFF; font-size: 0.88rem;'>{specs['record']}</strong>
+                <div style='display: flex; align-items: center; justify-content: space-between; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); padding: 6px 10px; border-radius: 6px;'>
+                    <div>
+                        <span style='color: #38BDF8; font-size: 0.65rem; display: block; font-weight: 700;'>RÉCORD OFICIAL</span>
+                        <strong style='color: #FFFFFF; font-size: 0.82rem;'>{specs['record']}</strong>
+                    </div>
+                    <div style='text-align: right;'>
+                        <span style='color: #10B981; font-size: 0.65rem; display: block; font-weight: 700;'>ESTADO</span>
+                        <span style='color: #10B981; font-size: 0.78rem; font-weight: 800;'>🟢 HOMOLOGADO</span>
+                    </div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -862,7 +868,7 @@ with tab3:
     
     col_sel_p, col_badge_p = st.columns([2, 1])
     with col_sel_p:
-        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_hud_v2")
+        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_svg")
 
     total_gps = len(CARRERAS_2024_DATOS)
 
