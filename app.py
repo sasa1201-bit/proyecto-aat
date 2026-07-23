@@ -733,12 +733,12 @@ with tab2:
     
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='section-header'>🗺️ Calendario, Mapas y Geolocalización F1 (2024)</div>", unsafe_allow_html=True)
-    st.write("Explora cada circuito del calendario 2024, su ubicación geográfica exacta en el mapa interactivo y el ganador de la prueba.")
+    st.markdown("<div class='section-header'>🗺️ Calendario, Fichas Técnicas y Trazados de Circuitos F1 (2024)</div>", unsafe_allow_html=True)
+    st.write("Explora cada circuito del calendario 2024, su trazado oficial de pista y el ganador de la prueba.")
 
     # Selector limpio y directo
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_map")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track")
 
     # Extraer datos del GP activo
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
@@ -751,12 +751,42 @@ with tab3:
     fecha_dt = datetime.strptime(gp_info['fecha'], "%Y-%m-%d")
     fecha_formateada = f"{fecha_dt.day} de {meses_es[fecha_dt.month]}, {fecha_dt.year}"
 
-    # Distribución en dos columnas: Ficha técnica y Mapa interactivo
-    col_det, col_map = st.columns([1, 1])
+    # Diccionario de trazados oficiales de circuitos 2024 (Wikimedia Commons)
+    CIRCUIT_TRACKS_2024 = {
+        "Gran Premio de Baréin": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Bahrain_International_Circuit_-_2004_layout.svg",
+        "Gran Premio de Arabia Saudita": "https://upload.wikimedia.org/wikipedia/commons/8/86/Jeddah_Street_Circuit_2021.svg",
+        "Gran Premio de Australia": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Albert_Park_Circuit_2022.svg",
+        "Gran Premio de Japón": "https://upload.wikimedia.org/wikipedia/commons/7/78/Suzuka_Circuit_map.svg",
+        "Gran Premio de China": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Shanghai_International_Circuit.svg",
+        "Gran Premio de Miami": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Miami_International_Autodrome.svg",
+        "Gran Premio de Emilia-Romaña": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Autodromo_Internazionale_Enzo_e_Dino_Ferrari_%28Imola%29_-_2008_layout.svg",
+        "Gran Premio de Mónaco": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Circuit_Monaco.svg",
+        "Gran Premio de Canadá": "https://upload.wikimedia.org/wikipedia/commons/6/67/Circuit_Gilles_Villeneuve_2002.svg",
+        "Gran Premio de España": "https://upload.wikimedia.org/wikipedia/commons/2/29/Circuit_de_Barcelona-Catalunya_2021.svg",
+        "Gran Premio de Austria": "https://upload.wikimedia.org/wikipedia/commons/5/58/Red_Bull_Ring_2011.svg",
+        "Gran Premio de Gran Bretaña": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Silverstone_Circuit_2011.svg",
+        "Gran Premio de Hungría": "https://upload.wikimedia.org/wikipedia/commons/2/21/Hungaroring_2003.svg",
+        "Gran Premio de Bélgica": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Circuit_Spa-Francorchamps_2007.svg",
+        "Gran Premio de los Países Bajos": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Circuit_Zandvoort_2020.svg",
+        "Gran Premio de Italia": "https://upload.wikimedia.org/wikipedia/commons/1/18/Autodromo_Nazionale_Monza_in_2000.svg",
+        "Gran Premio de Azerbaiyán": "https://upload.wikimedia.org/wikipedia/commons/3/36/Baku_City_Circuit_2016.svg",
+        "Gran Premio de Singapur": "https://upload.wikimedia.org/wikipedia/commons/6/66/Marina_Bay_Street_Circuit_2023.svg",
+        "Gran Premio de los Estados Unidos": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Circuit_of_the_Americas.svg",
+        "Gran Premio de la Ciudad de México": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Autodromo_Hermanos_Rodriguez_2015.svg",
+        "Gran Premio de São Paulo": "https://upload.wikimedia.org/wikipedia/commons/0/07/Autodromo_Jose_Carlos_Pace_-_Interlagos_1990.svg",
+        "Gran Premio de Las Vegas": "https://upload.wikimedia.org/wikipedia/commons/3/31/Las_Vegas_Grand_Prix_track_layout.svg",
+        "Gran Premio de Catar": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Losail_International_Circuit_2021.svg",
+        "Gran Premio de Abu Dabi": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Yas_Marina_Circuit_2021.svg"
+    }
+
+    track_url = CIRCUIT_TRACKS_2024.get(gp_info['gp'], "https://upload.wikimedia.org/wikipedia/commons/3/3b/Circuit_Monaco.svg")
+
+    # Distribución en dos columnas: Ficha técnica y Trazado de Pista (en lugar de mapa)
+    col_det, col_track = st.columns([1, 1])
 
     with col_det:
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 285px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 300px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
                 <div>
                     <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>FICHA TÉCNICA DEL CIRCUITO</span>
                     <h3 style='color: #FF1801; margin: 6px 0 8px 0; font-size: 1.1rem;'>🏁 {gp_info['gp']}</h3>
@@ -771,10 +801,13 @@ with tab3:
             </div>
         """, unsafe_allow_html=True)
 
-    with col_map:
-        st.markdown("<p style='font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #38BDF8;'>📍 Geolocalización del Circuito:</p>", unsafe_allow_html=True)
-        df_mapa = pd.DataFrame({'lat': [gp_info['lat']], 'lon': [gp_info['lon']]})
-        st.map(df_mapa, zoom=9, height=245)
+    with col_track:
+        st.markdown(f"<p style='font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #38BDF8;'>🏎️ Trazado Oficial de Pista ({gp_info['circuito']}):</p>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style='background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); padding: 10px; border-radius: 12px; text-align: center; height: 300px; display: flex; align-items: center; justify-content: center;'>
+                <img src='{track_url}' style='max-height: 240px; max-width: 100%; filter: drop-shadow(0 0 8px rgba(56,189,248,0.4));'>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
@@ -786,7 +819,6 @@ with tab3:
     conteo_victorias = df_base['ganador'].value_counts().reset_index()
     conteo_victorias.columns = ['Piloto', 'Victorias']
 
-    # Métricas superiores con diseño de tarjetas de podio estilizadas
     cols_podio = st.columns(min(len(conteo_victorias), 4))
     medals = ["👑", "🥈", "🥉", "🏅"]
     for idx, row in conteo_victorias.head(4).iterrows():
@@ -801,12 +833,11 @@ with tab3:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Selector principal de pilotos interactivo
     ganadores_disponibles = ["🌟 Todos los Pilotos (Vista General)"] + sorted(list(df_base['ganador'].unique()))
     
     col_sel_p, col_badge_p = st.columns([2, 1])
     with col_sel_p:
-        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive")
+        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_v3")
 
     total_gps = len(CARRERAS_2024_DATOS)
 
@@ -825,20 +856,16 @@ with tab3:
             </div>
         """, unsafe_allow_html=True)
 
-    # Filtrar datos según la selección
     if "Todos" not in piloto_filtro:
         df_filtrado_tarjetas = df_base[df_base['ganador'] == piloto_filtro].reset_index(drop=True)
     else:
         df_filtrado_tarjetas = df_base.reset_index(drop=True)
 
-    # Renderizar tarjetas interactivas de Grandes Premios en lugar de una tabla aburrida
     st.markdown("<p style='font-weight: 700; color: #FFFFFF; margin: 15px 0 10px 0;'>🏁 Grandes Premios Conquistados:</p>", unsafe_allow_html=True)
     
-    # Mostrar en grid de 2 columnas para que sea muy visual
     for i in range(0, len(df_filtrado_tarjetas), 2):
         col_card1, col_card2 = st.columns(2)
         
-        # Tarjeta 1
         with col_card1:
             row1 = df_filtrado_tarjetas.iloc[i]
             fecha_d1 = datetime.strptime(row1['fecha'], "%Y-%m-%d")
@@ -854,7 +881,6 @@ with tab3:
                 </div>
             """, unsafe_allow_html=True)
             
-        # Tarjeta 2 (si existe)
         if i + 1 < len(df_filtrado_tarjetas):
             with col_card2:
                 row2 = df_filtrado_tarjetas.iloc[i+1]
