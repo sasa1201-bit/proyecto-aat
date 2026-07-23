@@ -1040,6 +1040,12 @@ with tab4:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # --- CONTROL DESLIZANTE DE DISTANCIA SINCRONIZADO ---
+    st.markdown(f"<b style='color: #38BDF8; font-size: 0.9rem;'>🎛️ Control Deslizante de Distancia Sincronizado ({circuit_name} - {track_length}m):</b>", unsafe_allow_html=True)
+    sync_distance = st.slider("Posición exacta en pista (Metros):", 0, track_length, int(track_length / 2), step=25, key="sync_distance_slider")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # --- GRÁFICA MULTI-SUBPLOT DE TELEMETRÍA (5 PANELES) ---
     fig_tel = make_subplots(
         rows=5, cols=1, shared_xaxes=True, vertical_spacing=0.04,
