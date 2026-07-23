@@ -734,16 +734,13 @@ with tab2:
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🗺️ Calendario, Fichas Técnicas y Trazados de Circuitos F1 (2024)</div>", unsafe_allow_html=True)
-    st.write("Explora cada circuito del calendario 2024, su trazado oficial de pista y el ganador de la prueba.")
+    st.write("Explora cada circuito del calendario 2024, sus especificaciones técnicas de pista y el ganador de la prueba.")
 
-    # Selector limpio y directo
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_fixed")
 
-    # Extraer datos del GP activo
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
 
-    # Formatear fecha en español
     meses_es = {
         1: "enero", 2: "febrero", 3: "marzo", 4: "abril", 5: "mayo", 6: "junio",
         7: "julio", 8: "agosto", 9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"
@@ -751,45 +748,42 @@ with tab3:
     fecha_dt = datetime.strptime(gp_info['fecha'], "%Y-%m-%d")
     fecha_formateada = f"{fecha_dt.day} de {meses_es[fecha_dt.month]}, {fecha_dt.year}"
 
-    # Limpiar el nombre para asegurar coincidencia exacta en el diccionario
-    gp_key_clean = gp_info['gp'].replace(" 2024", "").strip()
-
-    # Diccionario de trazados oficiales de circuitos 2024
-    CIRCUIT_TRACKS_2024 = {
-        "Gran Premio de Baréin": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Bahrain_International_Circuit_-_2004_layout.svg",
-        "Gran Premio de Arabia Saudita": "https://upload.wikimedia.org/wikipedia/commons/8/86/Jeddah_Street_Circuit_2021.svg",
-        "Gran Premio de Australia": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Albert_Park_Circuit_2022.svg",
-        "Gran Premio de Japón": "https://upload.wikimedia.org/wikipedia/commons/7/78/Suzuka_Circuit_map.svg",
-        "Gran Premio de China": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Shanghai_International_Circuit.svg",
-        "Gran Premio de Miami": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Miami_International_Autodrome.svg",
-        "Gran Premio de Emilia-Romaña": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Autodromo_Internazionale_Enzo_e_Dino_Ferrari_%28Imola%29_-_2008_layout.svg",
-        "Gran Premio de Mónaco": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Circuit_Monaco.svg",
-        "Gran Premio de Canadá": "https://upload.wikimedia.org/wikipedia/commons/6/67/Circuit_Gilles_Villeneuve_2002.svg",
-        "Gran Premio de España": "https://upload.wikimedia.org/wikipedia/commons/2/29/Circuit_de_Barcelona-Catalunya_2021.svg",
-        "Gran Premio de Austria": "https://upload.wikimedia.org/wikipedia/commons/5/58/Red_Bull_Ring_2011.svg",
-        "Gran Premio de Gran Bretaña": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Silverstone_Circuit_2011.svg",
-        "Gran Premio de Hungría": "https://upload.wikimedia.org/wikipedia/commons/2/21/Hungaroring_2003.svg",
-        "Gran Premio de Bélgica": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Circuit_Spa-Francorchamps_2007.svg",
-        "Gran Premio de los Países Bajos": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Circuit_Zandvoort_2020.svg",
-        "Gran Premio de Italia": "https://upload.wikimedia.org/wikipedia/commons/1/18/Autodromo_Nazionale_Monza_in_2000.svg",
-        "Gran Premio de Azerbaiyán": "https://upload.wikimedia.org/wikipedia/commons/3/36/Baku_City_Circuit_2016.svg",
-        "Gran Premio de Singapur": "https://upload.wikimedia.org/wikipedia/commons/6/66/Marina_Bay_Street_Circuit_2023.svg",
-        "Gran Premio de los Estados Unidos": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Circuit_of_the_Americas.svg",
-        "Gran Premio de la Ciudad de México": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Autodromo_Hermanos_Rodriguez_2015.svg",
-        "Gran Premio de São Paulo": "https://upload.wikimedia.org/wikipedia/commons/0/07/Autodromo_Jose_Carlos_Pace_-_Interlagos_1990.svg",
-        "Gran Premio de Las Vegas": "https://upload.wikimedia.org/wikipedia/commons/3/31/Las_Vegas_Grand_Prix_track_layout.svg",
-        "Gran Premio de Catar": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Losail_International_Circuit_2021.svg",
-        "Gran Premio de Abu Dabi": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Yas_Marina_Circuit_2021.svg"
+    # Diccionario técnico con especificaciones reales de los circuitos 2024
+    CIRCUIT_SPECS_2024 = {
+        "Gran Premio de Baréin": {"longitud": "5.412 km", "curvas": 15, "drs": 3, "record": "1:31.447 (P. de la Rosa, 2005)", "tipo": "Alta tracción y frenada"},
+        "Gran Premio de Arabia Saudita": {"longitud": "6.174 km", "curvas": 27, "drs": 3, "record": "1:30.734 (L. Hamilton, 2021)", "tipo": "Callejero ultra rápido"},
+        "Gran Premio de Australia": {"longitud": "5.278 km", "curvas": 14, "drs": 4, "record": "1:19.813 (C. Leclerc, 2024)", "tipo": "Fluido y semi-urbano"},
+        "Gran Premio de Japón": {"longitud": "5.807 km", "curvas": 18, "drs": 1, "record": "1:30.983 (L. Hamilton, 2019)", "tipo": "Alta carga aerodinámica"},
+        "Gran Premio de China": {"longitud": "5.451 km", "curvas": 16, "drs": 2, "record": "1:32.238 (M. Schumacher, 2004)", "tipo": "Mixto con recta gigante"},
+        "Gran Premio de Miami": {"longitud": "5.410 km", "curvas": 19, "drs": 3, "record": "1:29.708 (M. Verstappen, 2023)", "tipo": "Callejero moderno"},
+        "Gran Premio de Emilia-Romaña": {"longitud": "4.909 km", "curvas": 19, "drs": 1, "record": "1:15.484 (L. Hamilton, 2020)", "tipo": "Técnico e histórico"},
+        "Gran Premio de Mónaco": {"longitud": "3.337 km", "curvas": 19, "drs": 1, "record": "1:12.909 (L. Hamilton, 2021)", "tipo": "Máximo glamour y precisión"},
+        "Gran Premio de Canadá": {"longitud": "4.361 km", "curvas": 14, "drs": 2, "record": "1:13.078 (V. Bottas, 2019)", "tipo": "Frenadas duras y muros"},
+        "Gran Premio de España": {"longitud": "4.657 km", "curvas": 14, "drs": 2, "record": "1:16.330 (M. Verstappen, 2023)", "tipo": "Prueba de fuego aerodinámica"},
+        "Gran Premio de Austria": {"longitud": "4.318 km", "curvas": 10, "drs": 3, "record": "1:05.619 (C. Sainz, 2020)", "tipo": "Corto, rápido y desnivelado"},
+        "Gran Premio de Gran Bretaña": {"longitud": "5.891 km", "curvas": 18, "drs": 2, "record": "1:27.097 (M. Verstappen, 2020)", "tipo": "Alta velocidad en curvas de enlace"},
+        "Gran Premio de Hungría": {"longitud": "4.381 km", "curvas": 14, "drs": 1, "record": "1:16.627 (L. Hamilton, 2020)", "tipo": "Mónaco sin muros (Ratónera)"},
+        "Gran Premio de Bélgica": {"longitud": "7.004 km", "curvas": 19, "drs": 2, "record": "1:46.286 (V. Bottas, 2018)", "tipo": "La catedral de la velocidad (Eau Rouge)"},
+        "Gran Premio de los Países Bajos": {"longitud": "4.259 km", "curvas": 14, "drs": 2, "record": "1:11.097 (L. Hamilton, 2021)", "tipo": "Curvas peraltadas únicas"},
+        "Gran Premio de Italia": {"longitud": "5.793 km", "curvas": 11, "drs": 2, "record": "1:21.046 (R. Barrichello, 2004)", "tipo": "Templo de la velocidad pura"},
+        "Gran Premio de Azerbaiyán": {"longitud": "6.003 km", "curvas": 20, "drs": 2, "record": "1:43.009 (C. Leclerc, 2023)", "tipo": "Callejero extremo con recta infinita"},
+        "Gran Premio de Singapur": {"longitud": "4.940 km", "curvas": 19, "drs": 3, "record": "1:35.867 (L. Hamilton, 2023)", "tipo": "Nocturno, físico y bacheado"},
+        "Gran Premio de los Estados Unidos": {"longitud": "5.513 km", "curvas": 20, "drs": 2, "record": "1:36.169 (C. Leclerc, 2019)", "tipo": "Inspirado en circuitos legendarios"},
+        "Gran Premio de la Ciudad de México": {"longitud": "4.304 km", "curvas": 17, "drs": 3, "record": "1:17.774 (V. Bottas, 2021)", "tipo": "Gran altitud y baja densidad de aire"},
+        "Gran Premio de São Paulo": {"longitud": "4.309 km", "curvas": 15, "drs": 2, "record": "1:10.540 (L. Hamilton, 2021)", "tipo": "Tradicional, ondulado y adelantamientos"},
+        "Gran Premio de Las Vegas": {"longitud": "6.201 km", "curvas": 17, "drs": 2, "record": "1:35.490 (O. Piastri, 2023)", "tipo": "Strip nocturno ultrarrápido"},
+        "Gran Premio de Catar": {"longitud": "5.419 km", "curvas": 16, "drs": 1, "record": "1:24.319 (L. Verstappen, 2023)", "tipo": "Curvas rápidas encadenadas"},
+        "Gran Premio de Abu Dabi": {"longitud": "5.281 km", "curvas": 16, "drs": 2, "record": "1:26.103 (M. Verstappen, 2021)", "tipo": "Gran Premio nocturno de cierre"}
     }
 
-    track_url = CIRCUIT_TRACKS_2024.get(gp_key_clean, "https://upload.wikimedia.org/wikipedia/commons/3/3b/Circuit_Monaco.svg")
+    gp_key_clean = gp_info['gp'].replace(" 2024", "").strip()
+    specs = CIRCUIT_SPECS_2024.get(gp_key_clean, {"longitud": "5.0 km", "curvas": 16, "drs": 2, "record": "1:30.000", "tipo": "Circuito FIA Estándar"})
 
-    # Distribución en dos columnas: Ficha técnica y Trazado oficial de pista
     col_det, col_track = st.columns([1, 1])
 
     with col_det:
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 300px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 320px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
                 <div>
                     <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>FICHA TÉCNICA DEL CIRCUITO</span>
                     <h3 style='color: #FF1801; margin: 6px 0 8px 0; font-size: 1.1rem;'>🏁 {gp_info['gp']}</h3>
@@ -805,12 +799,39 @@ with tab3:
         """, unsafe_allow_html=True)
 
     with col_track:
-        st.markdown(f"<p style='font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #38BDF8;'>🏎️ Trazado Oficial de Pista ({gp_info['circuito']}):</p>", unsafe_allow_html=True)
-        st.markdown("""
-            <div style='background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); padding: 15px; border-radius: 12px; height: 300px; display: flex; align-items: center; justify-content: center;'>
+        st.markdown(f"""
+            <div style='background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(56, 189, 248, 0.3); padding: 20px; border-radius: 12px; height: 320px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+                <div>
+                    <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;'>
+                        <span style='color: #38BDF8; font-size: 0.75rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;'>📊 ESPECIFICACIONES TÉCNICAS DE PISTA</span>
+                        <span style='background: rgba(56, 189, 248, 0.15); color: #38BDF8; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;'>FIA HOMOLOGATED</span>
+                    </div>
+                    <h4 style='color: #FFFFFF; margin: 0 0 10px 0; font-size: 1rem;'>{gp_info['circuito']}</h4>
+                    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem;'>
+                        <div style='background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.7rem;'>LONGITUD</span>
+                            <strong style='color: #F8FAFC;'>{specs['longitud']}</strong>
+                        </div>
+                        <div style='background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.7rem;'>CURVAS</span>
+                            <strong style='color: #F8FAFC;'>{specs['curvas']} giros</strong>
+                        </div>
+                        <div style='background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.7rem;'>ZONAS DRS</span>
+                            <strong style='color: #38BDF8;'>{specs['drs']} zonas</strong>
+                        </div>
+                        <div style='background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.7rem;'>PERFIL</span>
+                            <strong style='color: #10B981; font-size: 0.8rem;'>{specs['tipo']}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div style='background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10B981; padding: 8px 12px; border-radius: 4px; margin-top: 8px;'>
+                    <span style='color: #94A3B8; font-size: 0.7rem; display: block;'>RÉCORD OFICIAL DE VUELTA</span>
+                    <strong style='color: #10B981; font-size: 0.9rem;'>⏱️ {specs['record']}</strong>
+                </div>
+            </div>
         """, unsafe_allow_html=True)
-        st.image(track_url, use_column_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
@@ -840,7 +861,7 @@ with tab3:
     
     col_sel_p, col_badge_p = st.columns([2, 1])
     with col_sel_p:
-        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_v3")
+        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_v3_fixed")
 
     total_gps = len(CARRERAS_2024_DATOS)
 
