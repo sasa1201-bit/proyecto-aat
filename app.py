@@ -740,7 +740,7 @@ with tab3:
     st.write("Explora cada circuito del calendario 2024, sus especificaciones técnicas de pista y el ganador de la prueba.")
 
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_hud")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_hud_final")
 
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
 
@@ -837,7 +837,6 @@ with tab3:
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
-    # --- SALÓN DE LA FAMA INTERACTIVO Y MODERNO ---
     st.markdown("<h4 style='color: #FFFFFF; font-weight: 700; margin-bottom: 6px;'>🔥 Salón de la Fama y Dominio de Pilotos (2024)</h4>", unsafe_allow_html=True)
     st.write("Selecciona un piloto para desplegar su tarjeta táctica interactiva con el desglose exacto de sus victorias en la temporada.")
 
@@ -863,7 +862,7 @@ with tab3:
     
     col_sel_p, col_badge_p = st.columns([2, 1])
     with col_sel_p:
-        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_hud")
+        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_hud_v2")
 
     total_gps = len(CARRERAS_2024_DATOS)
 
