@@ -737,10 +737,10 @@ import numpy as np
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🗺️ Calendario, Fichas Técnicas y Trazados de Circuitos F1 (2024)</div>", unsafe_allow_html=True)
-    st.write("Explora cada circuito del calendario 2024, su trazado oficial de telemetría en tiempo real y el ganador de la prueba.")
+    st.write("Explora cada circuito del calendario 2024, sus especificaciones técnicas de pista y el ganador de la prueba.")
 
     nombres_gps = [item["gp"] for item in CARRERAS_2024_DATOS]
-    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_matplotlib")
+    gp_seleccionado = st.selectbox("Selecciona un Gran Premio:", nombres_gps, key="selector_gp_simple_v3_track_hud")
 
     gp_info = next(item for item in CARRERAS_2024_DATOS if item["gp"] == gp_seleccionado)
 
@@ -785,7 +785,7 @@ with tab3:
 
     with col_det:
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 340px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
+            <div style='background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95)); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,24,1,0.3); height: 330px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3);'>
                 <div>
                     <span style='color: #94A3B8; font-weight: 700; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;'>FICHA TÉCNICA DEL CIRCUITO</span>
                     <h3 style='color: #FF1801; margin: 6px 0 8px 0; font-size: 1.1rem;'>🏁 {gp_info['gp']}</h3>
@@ -801,37 +801,39 @@ with tab3:
         """, unsafe_allow_html=True)
 
     with col_track:
-        st.markdown(f"<p style='font-weight: 600; margin-bottom: 2px; font-size: 0.85rem; color: #38BDF8;'>🏎️ Trazado de Pista y Telemetría ({specs['longitud']} | {specs['curvas']} Curvas):</p>", unsafe_allow_html=True)
-        
-        # Generar gráfico dinámico de la forma del circuito usando Matplotlib (100% nativo y confiable)
-        fig, ax = plt.subplots(figsize=(5, 2.7))
-        fig.patch.set_facecolor('#0f172a')
-        ax.set_facecolor('#0f172a')
-
-        # Semilla única basada en el nombre del circuito para generar una forma de trazado distintiva
-        np.random.seed(len(gp_info['circuito']))
-        theta = np.linspace(0, 2 * np.pi, 300)
-        
-        # Formas paramétricas de circuito simulando curvas y rectas
-        r = 5 + 1.5 * np.sin(specs['curvas'] * theta / 3) + np.random.normal(0, 0.1, 300)
-        x = r * np.cos(theta) + 0.5 * np.sin(2 * theta)
-        y = r * np.sin(theta) + 0.5 * np.cos(3 * theta)
-
-        # Dibujar pista con estilo de neón F1
-        ax.plot(x, y, color='#1e293b', linewidth=8, solid_capstyle='round')
-        ax.plot(x, y, color='#38bdf8', linewidth=3, solid_capstyle='round')
-        
-        # Línea de salida / Meta (Start/Finish)
-        ax.scatter([x[0]], [y[0]], color='#ff1801', s=80, zorder=5, edgeports='white', label='Start/Finish')
-
-        ax.set_xticks([])
-        ax.set_yticks([])
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        plt.tight_layout()
-        st.pyplot(fig, use_container_width=True)
-        plt.close(fig)
+        st.markdown(f"""
+            <div style='background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(56, 189, 248, 0.4); padding: 18px; border-radius: 12px; height: 330px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.4);'>
+                <div>
+                    <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                        <span style='color: #38BDF8; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px;'>🗺️ TELEMETRÍA Y TRAZADO FIA</span>
+                        <span style='background: rgba(16, 185, 129, 0.2); color: #10B981; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;'>LIVE HUD</span>
+                    </div>
+                    <h4 style='color: #FFFFFF; margin: 0 0 8px 0; font-size: 0.98rem;'>{gp_info['circuito']}</h4>
+                    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.82rem;'>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>LONGITUD</span>
+                            <strong style='color: #F8FAFC;'>{specs['longitud']}</strong>
+                        </div>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>CURVAS</span>
+                            <strong style='color: #F8FAFC;'>{specs['curvas']} giros</strong>
+                        </div>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>ZONAS DRS</span>
+                            <strong style='color: #38BDF8;'>{specs['drs']} activas</strong>
+                        </div>
+                        <div style='background: rgba(15, 23, 42, 0.7); padding: 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);'>
+                            <span style='color: #94A3B8; display: block; font-size: 0.68rem;'>PERFIL</span>
+                            <strong style='color: #10B981; font-size: 0.75rem;'>{specs['tipo']}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div style='background: rgba(56, 189, 248, 0.1); border: 1px dashed rgba(56, 189, 248, 0.4); padding: 8px 10px; border-radius: 8px; text-align: center;'>
+                    <span style='color: #38BDF8; font-size: 0.7rem; display: block; font-weight: 700;'>⏱️ RÉCORD OFICIAL DE PISTA</span>
+                    <strong style='color: #FFFFFF; font-size: 0.88rem;'>{specs['record']}</strong>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 25px 0;'>", unsafe_allow_html=True)
     
@@ -861,7 +863,7 @@ with tab3:
     
     col_sel_p, col_badge_p = st.columns([2, 1])
     with col_sel_p:
-        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_v4")
+        piloto_filtro = st.selectbox("🎯 Explora el desempeño individual por Piloto:", ganadores_disponibles, key="select_filtro_piloto_victorias_pro_interactive_hud")
 
     total_gps = len(CARRERAS_2024_DATOS)
 
