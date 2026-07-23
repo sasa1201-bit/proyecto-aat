@@ -731,9 +731,6 @@ with tab2:
 
     st.markdown("</div>", unsafe_allow_html=True)
     
-import matplotlib.pyplot as plt
-import numpy as np
-
 with tab3:
     st.markdown("<div class='telemetry-card'>", unsafe_allow_html=True)
     st.markdown("<div class='section-header'>🗺️ Calendario, Mapas y Geolocalización F1 (2024)</div>", unsafe_allow_html=True)
