@@ -2541,6 +2541,7 @@ with tab11:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
+
 st.markdown("""
     <hr style='border-color: rgba(255,255,255,0.08); margin-top: 50px;'>
     <div style='text-align: center; color: #64748B; font-size: 0.9rem; padding-bottom: 25px;'>
